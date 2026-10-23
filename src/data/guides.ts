@@ -116,7 +116,7 @@ export const guides: Record<string, Guide> = {
       },
       {
         q: "Will removing the widget affect Google Assistant?",
-        a: "No. Google Assistant remains available via the app icon, the power button long-press (if enabled), or voice Hey Google.",
+        a: "No. Google Assistant remains available via the app icon, the power button long-press (if enabled), or voice “Hey Google”.",
       },
       {
         q: "Why does the search bar come back after a restart or reset?",
@@ -136,6 +136,47 @@ export const guides: Record<string, Guide> = {
       { name: "Samsung Galaxy A35", os: "One UI 6 / Android 14", href: "/samsung/galaxy-a35" },
     ],
     confirmations: 84,
+    forumVerified: true,
+  },
+
+  "samsung-galaxy-battery-percentage": {
+    slug: "battery-percentage",
+    brand: "Samsung",
+    brandSlug: "samsung",
+    productLine: "Galaxy",
+    title: "Show Battery Percentage in Status Bar",
+    shortDescription:
+      "Show the exact battery percentage next to the battery icon in the status bar on Samsung Galaxy phones.",
+    updated: "12.08.2026",
+    readTime: "2 min",
+    category: "Battery & Power",
+    versions: [
+      {
+        id: "oneui-7",
+        label: "Android 15 · One UI 7",
+        steps: [
+          { id: 1, instruction: "Open **Settings**", highlight: "Settings", detail: "Open the Settings app." },
+          { id: 2, instruction: "Tap **Battery and device care**", highlight: "Battery and device care" },
+          { id: 3, instruction: "Tap **Battery**", highlight: "Battery" },
+          { id: 4, instruction: "Enable **Show battery percentage**", highlight: "Show battery percentage", detail: "Toggle on to display the percentage." },
+        ],
+      },
+    ],
+    article: [
+      "Samsung hides the numeric battery percentage by default on some models. Enabling it is under Battery and device care.",
+      "Once enabled, the percentage appears next to the battery icon in the status bar.",
+    ],
+    faqs: [
+      { q: "Does this drain battery?", a: "No. Showing a percentage uses negligible power." },
+    ],
+    related: [
+      { title: "Remove Google Search Bar from Home Screen", href: "/samsung/galaxy/remove-google-search-bar", category: "Display & Home Screen" },
+    ],
+    compatibleDevices: [
+      { name: "Samsung Galaxy S24 Ultra", os: "One UI 7 / Android 15", href: "/samsung/galaxy-s24-ultra" },
+      { name: "Samsung Galaxy A55 5G", os: "One UI 6 / Android 14", href: "/samsung/galaxy-a55-5g" },
+    ],
+    confirmations: 42,
     forumVerified: true,
   },
 };
