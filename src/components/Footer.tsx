@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useT } from "@/i18n/LanguageProvider";
 
 const brands = [
   { name: "Samsung", href: "/samsung" },
@@ -11,7 +14,7 @@ const brands = [
   { name: "Android", href: "/android" },
 ];
 
-const topics = [
+const topicLinks = [
   { name: "Network & Connectivity", href: "/topics/network" },
   { name: "Display & Home Screen", href: "/topics/display" },
   { name: "Battery & Power", href: "/topics/battery" },
@@ -20,22 +23,18 @@ const topics = [
   { name: "Calls & Messages", href: "/topics/messaging" },
 ];
 
-const explore = [
-  { name: "All Devices", href: "/devices" },
-  { name: "Glossary", href: "/glossary" },
-  { name: "Forum", href: "/forum" },
-  { name: "Authors", href: "/authors" },
-];
-
-const legal = [
-  { name: "About", href: "/about" },
-  { name: "Contact", href: "/contact" },
-  { name: "Privacy", href: "/privacy" },
-  { name: "Terms", href: "/terms" },
-  { name: "Imprint", href: "/imprint" },
-];
-
 export default function Footer() {
+  const t = useT();
+  const explore = [
+    { name: t.nav.devices, href: "/devices" },
+    { name: t.nav.glossary, href: "/glossary" },
+    { name: "Forum", href: "/forum" },
+  ];
+  const legal = [
+    { name: t.footer.privacy, href: "/privacy" },
+    { name: t.footer.terms, href: "/terms" },
+  ];
+
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--muted)]/40">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -49,79 +48,51 @@ export default function Footer() {
                 Tap<span className="text-brand-600 dark:text-brand-400">Path</span>
               </span>
             </Link>
-            <p className="mt-3 text-sm text-[var(--muted-foreground)]">
-              Visual step-by-step help for smartphones — interactive, verified, and without hallucinated menu paths.
-            </p>
-            <p className="mt-4 text-xs text-[var(--muted-foreground)]">
-              Live Simulator · Built for accuracy
-            </p>
+            <p className="mt-3 text-sm text-[var(--muted-foreground)]">{t.footer.tagline}</p>
           </div>
-
           <div>
-            <h3 className="text-sm font-semibold">Brands</h3>
+            <h3 className="text-sm font-semibold">{t.footer.brands}</h3>
             <ul className="mt-3 space-y-2">
               {brands.map((b) => (
                 <li key={b.href}>
-                  <Link href={b.href} className="text-sm text-[var(--muted-foreground)] transition hover:text-[var(--foreground)]">
-                    {b.name}
-                  </Link>
+                  <Link href={b.href} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]">{b.name}</Link>
                 </li>
               ))}
             </ul>
           </div>
-
           <div>
-            <h3 className="text-sm font-semibold">Topics</h3>
+            <h3 className="text-sm font-semibold">{t.footer.topics}</h3>
             <ul className="mt-3 space-y-2">
-              {topics.map((t) => (
-                <li key={t.href}>
-                  <Link href={t.href} className="text-sm text-[var(--muted-foreground)] transition hover:text-[var(--foreground)]">
-                    {t.name}
-                  </Link>
-                </li>
-              ))}
-              <li>
-                <Link href="/topics" className="text-sm font-medium text-brand-600 dark:text-brand-400">
-                  All topics →
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-semibold">Explore</h3>
-            <ul className="mt-3 space-y-2">
-              {explore.map((e) => (
-                <li key={e.href}>
-                  <Link href={e.href} className="text-sm text-[var(--muted-foreground)] transition hover:text-[var(--foreground)]">
-                    {e.name}
-                  </Link>
+              {topicLinks.map((x) => (
+                <li key={x.href}>
+                  <Link href={x.href} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]">{x.name}</Link>
                 </li>
               ))}
             </ul>
           </div>
-
           <div>
-            <h3 className="text-sm font-semibold">Legal</h3>
+            <h3 className="text-sm font-semibold">{t.footer.explore}</h3>
             <ul className="mt-3 space-y-2">
-              {legal.map((l) => (
-                <li key={l.href}>
-                  <Link href={l.href} className="text-sm text-[var(--muted-foreground)] transition hover:text-[var(--foreground)]">
-                    {l.name}
-                  </Link>
+              {explore.map((x) => (
+                <li key={x.href}>
+                  <Link href={x.href} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]">{x.name}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold">{t.footer.legal}</h3>
+            <ul className="mt-3 space-y-2">
+              {legal.map((x) => (
+                <li key={x.href}>
+                  <Link href={x.href} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]">{x.name}</Link>
                 </li>
               ))}
             </ul>
           </div>
         </div>
-
-        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-[var(--border)] pt-8 sm:flex-row">
-          <p className="text-xs text-[var(--muted-foreground)]">
-            © {new Date().getFullYear()} TapPath. All rights reserved.
-          </p>
-          <p className="text-xs text-[var(--muted-foreground)]">
-            *As an Amazon Partner we earn from qualifying purchases.
-          </p>
+        <div className="mt-10 border-t border-[var(--border)] pt-6 text-center text-xs text-[var(--muted-foreground)]">
+          © {new Date().getFullYear()} TapPath
         </div>
       </div>
     </footer>
