@@ -10,6 +10,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        border: "var(--border)",
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        muted: {
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
+        },
+        card: "var(--card)",
+        primary: {
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
+        },
         brand: {
           50: "#f0f9ff",
           100: "#e0f2fe",
