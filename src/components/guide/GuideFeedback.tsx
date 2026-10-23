@@ -5,18 +5,33 @@ import { ThumbsUp, ThumbsDown, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Props = {
+  guideSlug: string;
   initialConfirmations: number;
   forumVerified?: boolean;
 };
 
-export default function GuideFeedback({ initialConfirmations, forumVerified }: Props) {
+export default function GuideFeedback({
+  guideSlug,
+  initialConfirmations,
+  forumVerified,
+}: Props) {
   const [voted, setVoted] = useState<"yes" | "no" | null>(null);
   const [count, setCount] = useState(initialConfirmations);
 
-  const vote = (v: "yes" | "no") => {
+  const vote = async (v: "yes" | "no") => {
     if (voted) return;
     setVoted(v);
     if (v === "yes") setCount((c) => c + 1);
+    try {
+      await fetch("/api/guides/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ guideSlug, correct: v === "yes" }),
+      });
+    } catch {
+      /* ignore */
+    }
   };
 
   return (
