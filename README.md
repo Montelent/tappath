@@ -6,10 +6,7 @@ Better, faster, more accurate than TechBone. Curated click paths, versioned, com
 
 ## Stack
 
-- Next.js 15 (App Router)
-- TypeScript
-- Tailwind CSS
-- Lucide icons
+- Next.js 15 (App Router) · TypeScript · Tailwind CSS · Lucide icons
 
 ## Getting Started
 
@@ -22,31 +19,36 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Set `NEXT_PUBLIC_SITE_URL` for production (defaults to `https://tappath.com`).
 
-## Features Implemented
+## Features Implemented (v0.1 → v0.11)
 
-### v0.1 – Homepage + Layout
-### v0.2 – Brand Pages (8 hubs)
-### v0.3 – Guide pages + Live Simulator
-### v0.4 – Topics system (14 hubs)
-### v0.5 – Devices directory
-### v0.6 – Glossary (50+ terms)
-### v0.7 – Auth UI
-### v0.8 – AI Copilot widget
-### v0.9 – SEO (sitemap, robots, HowTo/FAQ JSON-LD)
+| Area | Status |
+|------|--------|
+| Homepage + layout | ✅ |
+| Brand pages (8) | ✅ |
+| Guide pages + Live Simulator | ✅ |
+| Topics (14 hubs) | ✅ |
+| Devices directory | ✅ |
+| Glossary (50+ terms) | ✅ |
+| Auth UI | ✅ |
+| AI Copilot widget | ✅ |
+| SEO (sitemap, robots, HowTo JSON-LD) | ✅ |
+| i18n EN/DE | ✅ |
+| Content seed + Admin dashboard | ✅ |
 
-### v0.10 – Multi-language (i18n)
-- [x] EN + DE dictionaries for nav, home, guide, topics, devices, glossary, auth, copilot, footer
-- [x] `LanguageProvider` with localStorage + browser language detection
-- [x] `LanguageSwitcher` in header (desktop + mobile)
-- [x] Header labels translated via `useT()`
+### Admin
 
-## Remaining Features
+- `/admin` — counts, full content table, how-to-seed notes (noindex)
+- `/admin/guides` · `/admin/devices` · `/admin/glossary`
+- Content source of truth: `src/data/*`
 
-1–10. ~~Done~~ ✅
-11. **Content seeding + admin** ← next
-12. Community Forum *(optional / skipped)*
-13. Wire more pages fully to `useT()` (homepage body, Footer, Copilot strings)
-14. Real auth provider + real LLM for copilot
+## Optional next steps
+
+- Community Forum
+- Wire more pages to `useT()` (homepage body, Footer, Copilot)
+- Real auth (Clerk / Auth.js / Supabase)
+- Real LLM behind the Copilot
+- Expand guide seed content at scale
+- Protect `/admin` with real auth
 
 ## License
 
