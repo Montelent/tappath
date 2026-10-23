@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CopilotWidget from "@/components/copilot/CopilotWidget";
 import OrganizationJsonLd from "@/components/seo/OrganizationJsonLd";
+import { LanguageProvider } from "@/i18n/LanguageProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -81,13 +82,15 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
-        <OrganizationJsonLd />
-        <div className="flex min-h-screen flex-col">
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </div>
-        <CopilotWidget />
+        <LanguageProvider>
+          <OrganizationJsonLd />
+          <div className="flex min-h-screen flex-col">
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+          <CopilotWidget />
+        </LanguageProvider>
       </body>
     </html>
   );

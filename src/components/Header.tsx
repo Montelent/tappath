@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Moon, Sun, Menu, X, Search, Globe } from "lucide-react";
+import { Moon, Sun, Menu, X, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import { useT } from "@/i18n/LanguageProvider";
 
 export default function Header() {
   const [dark, setDark] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const t = useT();
 
   useEffect(() => {
     const isDark =
@@ -38,34 +41,41 @@ export default function Header() {
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">
-          <Link href="/" className="text-sm font-medium text-[var(--muted-foreground)] transition hover:text-[var(--foreground)]">
-            Home
+          <Link
+            href="/"
+            className="text-sm font-medium text-[var(--muted-foreground)] transition hover:text-[var(--foreground)]"
+          >
+            {t.common.home}
           </Link>
-          <Link href="/topics" className="text-sm font-medium text-[var(--muted-foreground)] transition hover:text-[var(--foreground)]">
-            Topics
+          <Link
+            href="/topics"
+            className="text-sm font-medium text-[var(--muted-foreground)] transition hover:text-[var(--foreground)]"
+          >
+            {t.nav.topics}
           </Link>
-          <Link href="/forum" className="text-sm font-medium text-[var(--muted-foreground)] transition hover:text-[var(--foreground)]">
-            Forum
+          <Link
+            href="/devices"
+            className="text-sm font-medium text-[var(--muted-foreground)] transition hover:text-[var(--foreground)]"
+          >
+            {t.nav.devices}
           </Link>
-          <Link href="/devices" className="text-sm font-medium text-[var(--muted-foreground)] transition hover:text-[var(--foreground)]">
-            Devices
+          <Link
+            href="/glossary"
+            className="text-sm font-medium text-[var(--muted-foreground)] transition hover:text-[var(--foreground)]"
+          >
+            {t.nav.glossary}
           </Link>
         </nav>
 
         <div className="flex items-center gap-2">
           <button
             className="hidden rounded-full p-2 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)] hover:text-[var(--foreground)] sm:inline-flex"
-            aria-label="Search"
+            aria-label={t.common.search}
           >
             <Search className="h-5 w-5" />
           </button>
 
-          <button
-            className="rounded-full p-2 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
-            aria-label="Language"
-          >
-            <Globe className="h-5 w-5" />
-          </button>
+          <LanguageSwitcher compact className="hidden sm:inline-flex" />
 
           <button
             onClick={toggleDark}
@@ -79,7 +89,7 @@ export default function Header() {
             href="/sign-in"
             className="ml-1 hidden rounded-full bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 sm:inline-flex"
           >
-            Sign In
+            {t.nav.signIn}
           </Link>
 
           <button
@@ -99,20 +109,44 @@ export default function Header() {
         )}
       >
         <nav className="flex flex-col gap-1 px-4 py-3">
-          <Link href="/" className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-[var(--muted)]" onClick={() => setMobileOpen(false)}>
-            Home
+          <Link
+            href="/"
+            className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-[var(--muted)]"
+            onClick={() => setMobileOpen(false)}
+          >
+            {t.common.home}
           </Link>
-          <Link href="/topics" className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-[var(--muted)]" onClick={() => setMobileOpen(false)}>
-            Topics
+          <Link
+            href="/topics"
+            className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-[var(--muted)]"
+            onClick={() => setMobileOpen(false)}
+          >
+            {t.nav.topics}
           </Link>
-          <Link href="/forum" className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-[var(--muted)]" onClick={() => setMobileOpen(false)}>
-            Forum
+          <Link
+            href="/devices"
+            className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-[var(--muted)]"
+            onClick={() => setMobileOpen(false)}
+          >
+            {t.nav.devices}
           </Link>
-          <Link href="/devices" className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-[var(--muted)]" onClick={() => setMobileOpen(false)}>
-            Devices
+          <Link
+            href="/glossary"
+            className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-[var(--muted)]"
+            onClick={() => setMobileOpen(false)}
+          >
+            {t.nav.glossary}
           </Link>
-          <Link href="/sign-in" className="mt-2 rounded-full bg-brand-600 px-4 py-2 text-center text-sm font-medium text-white" onClick={() => setMobileOpen(false)}>
-            Sign In
+          <div className="mt-2 flex items-center justify-between px-3 py-2">
+            <span className="text-sm text-[var(--muted-foreground)]">Language</span>
+            <LanguageSwitcher compact />
+          </div>
+          <Link
+            href="/sign-in"
+            className="mt-2 rounded-full bg-brand-600 px-4 py-2 text-center text-sm font-medium text-white"
+            onClick={() => setMobileOpen(false)}
+          >
+            {t.nav.signIn}
           </Link>
         </nav>
       </div>
