@@ -25,80 +25,74 @@ type AuthContextValue = {
     email: string,
     password: string
   ) => Promise<{ ok: boolean; error?: string }>;
-  signOut: () => void;
+  signOut: () => Promise<void>;
+  refresh: () => Promise<void>;
   isAdmin: boolean;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-const STORAGE_KEY = "tappath-user";
-
-const DEMO_USERS: Record<string, { password: string; user: User }> = {
-  "admin@tappath.com": {
-    password: "admin1234",
-    user: { id: "admin-1", email: "admin@tappath.com", name: "Admin", role: "admin" },
-  },
-  "user@tappath.com": {
-    password: "user1234",
-    user: { id: "user-1", email: "user@tappath.com", name: "Demo User", role: "user" },
-  },
-};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const refresh = useCallback(async () => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setUser(JSON.parse(raw) as User);
+      const res = await fetch("/api/auth/me", { credentials: "include" });
+      const data = await res.json();
+      setUser(data.user ?? null);
     } catch {
-      /* ignore */
+      setUser(null);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
-  const persist = (u: User | null) => {
-    setUser(u);
-    try {
-      if (u) localStorage.setItem(STORAGE_KEY, JSON.stringify(u));
-      else localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      /* ignore */
-    }
-  };
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const signIn = useCallback(async (email: string, password: string) => {
-    await new Promise((r) => setTimeout(r, 500));
-    const key = email.trim().toLowerCase();
-    const entry = DEMO_USERS[key];
-    if (!entry || entry.password !== password) {
-      return { ok: false, error: "Invalid email or password." };
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { ok: false, error: data.error || "Sign in failed." };
+      setUser(data.user);
+      return { ok: true };
+    } catch {
+      return { ok: false, error: "Network error." };
     }
-    persist(entry.user);
-    return { ok: true };
   }, []);
 
   const signUp = useCallback(async (name: string, email: string, password: string) => {
-    await new Promise((r) => setTimeout(r, 500));
-    const key = email.trim().toLowerCase();
-    if (DEMO_USERS[key]) {
-      return { ok: false, error: "An account with this email already exists." };
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ name, email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { ok: false, error: data.error || "Sign up failed." };
+      setUser(data.user);
+      return { ok: true };
+    } catch {
+      return { ok: false, error: "Network error." };
     }
-    if (password.length < 8) {
-      return { ok: false, error: "Password must be at least 8 characters." };
-    }
-    const newUser: User = {
-      id: `user-${Date.now()}`,
-      email: key,
-      name: name.trim() || "User",
-      role: "user",
-    };
-    persist(newUser);
-    return { ok: true };
   }, []);
 
-  const signOut = useCallback(() => {
-    persist(null);
+  const signOut = useCallback(async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    } catch {
+      /* ignore */
+    }
+    setUser(null);
   }, []);
 
   const value = useMemo(
@@ -108,9 +102,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn,
       signUp,
       signOut,
+      refresh,
       isAdmin: user?.role === "admin",
     }),
-    [user, loading, signIn, signUp, signOut]
+    [user, loading, signIn, signUp, signOut, refresh]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
