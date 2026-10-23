@@ -1,0 +1,10 @@
+{
+  "name": "TapPath",
+  "short_name": "TapPath",
+  "description": "Visual step-by-step smartphone settings guides with interactive Live Simulator.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "lang": "en"
+}
