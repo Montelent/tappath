@@ -32,19 +32,21 @@ Open [http://localhost:3000](http://localhost:3000).
 - [x] Routes: `/samsung`, `/xiaomi`, `/huawei`, `/oneplus`, `/oppo`, `/realme`, `/android`, `/google`
 
 ### v0.3 – Guide pages + Live Simulator
-- [x] Guide data model (versions, steps, FAQs, related, devices)
-- [x] **LiveSimulator**: version selector, step highlight on phone UI, prev/next, fullscreen, path verified badge
-- [x] GuideFeedback (Yes/No + confirmation count + forum verified)
-- [x] GuideFAQ accordion
-- [x] Full GuidePage layout (breadcrumb, article, related, sidebar)
-- [x] Sample guide: `/samsung/galaxy/remove-google-search-bar`
+- [x] Guide data model, LiveSimulator, Feedback, FAQ, GuidePage
+- [x] Sample: `/samsung/galaxy/remove-google-search-bar`
+
+### v0.4 – Topics system
+- [x] 14 topic hubs (Network, Display, Battery, Security, Notifications, Messaging, Apps, Media, System, Storage, Accessibility, Accounts, Language & Input, Other)
+- [x] `/topics` index with icons + guide counts
+- [x] TopicHub with brand filter, guides by brand, FAQs, sidebar
+- [x] Routes: `/topics/network`, `/topics/display`, …
 
 ## Remaining Features
 
 1. ~~Brand pages~~ ✅
 2. ~~Guide pages + Live Simulator~~ ✅
-3. **Topics system** (`/topics`, `/topics/network`, …) ← next
-4. Devices directory + device detail pages
+3. ~~Topics system~~ ✅
+4. **Devices directory + device detail pages** ← next
 5. Glossary (A–Z + categories)
 6. Community Forum
 7. Auth / Sign-in
