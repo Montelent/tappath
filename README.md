@@ -32,23 +32,21 @@ Set `NEXT_PUBLIC_SITE_URL` for production (defaults to `https://tappath.com`).
 ### v0.6 – Glossary (50+ terms)
 ### v0.7 – Auth UI
 ### v0.8 – AI Copilot widget
+### v0.9 – SEO (sitemap, robots, HowTo/FAQ JSON-LD)
 
-### v0.9 – SEO
-- [x] `/sitemap.xml` — brands, topics, glossary, devices, guides
-- [x] `/robots.txt`
-- [x] HowTo + FAQPage + BreadcrumbList JSON-LD on guide pages
-- [x] WebSite / Organization JSON-LD site-wide
-- [x] metadataBase, OpenGraph, Twitter cards, canonical, viewport
-- [x] Font `display: swap` for performance
-- [x] Web app manifest
+### v0.10 – Multi-language (i18n)
+- [x] EN + DE dictionaries for nav, home, guide, topics, devices, glossary, auth, copilot, footer
+- [x] `LanguageProvider` with localStorage + browser language detection
+- [x] `LanguageSwitcher` in header (desktop + mobile)
+- [x] Header labels translated via `useT()`
 
 ## Remaining Features
 
-1–8. ~~Done~~ ✅
-9. ~~SEO~~ ✅
-10. **Multi-language (i18n)** ← next
-11. Content seeding + admin
+1–10. ~~Done~~ ✅
+11. **Content seeding + admin** ← next
 12. Community Forum *(optional / skipped)*
+13. Wire more pages fully to `useT()` (homepage body, Footer, Copilot strings)
+14. Real auth provider + real LLM for copilot
 
 ## License
 
