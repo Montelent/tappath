@@ -23,31 +23,29 @@ Open [http://localhost:3000](http://localhost:3000).
 ## Features Implemented
 
 ### v0.1 – Homepage + Layout
-- [x] Project scaffold + Tailwind + dark mode
-- [x] Global Header / Footer
-- [x] Homepage hero with animated phone mockup, stats, brand grid, topics, CTA
+- [x] Scaffold, Header/Footer, homepage hero + stats + brand grid
 
 ### v0.2 – Brand Pages
-- [x] Shared BrandPage + data for 8 brands
-- [x] Routes: `/samsung`, `/xiaomi`, `/huawei`, `/oneplus`, `/oppo`, `/realme`, `/android`, `/google`
+- [x] 8 brand hubs (`/samsung`, `/xiaomi`, …)
 
 ### v0.3 – Guide pages + Live Simulator
-- [x] Guide data model, LiveSimulator, Feedback, FAQ, GuidePage
 - [x] Sample: `/samsung/galaxy/remove-google-search-bar`
 
 ### v0.4 – Topics system
-- [x] 14 topic hubs (Network, Display, Battery, Security, Notifications, Messaging, Apps, Media, System, Storage, Accessibility, Accounts, Language & Input, Other)
-- [x] `/topics` index with icons + guide counts
-- [x] TopicHub with brand filter, guides by brand, FAQs, sidebar
-- [x] Routes: `/topics/network`, `/topics/display`, …
+- [x] 14 topic hubs + `/topics` index + brand filter
+
+### v0.5 – Devices directory
+- [x] `/devices` searchable directory with brand filters
+- [x] Device detail pages (guides, related devices, brand CTA)
+- [x] Sample devices: Galaxy S24/S26 Ultra, A55, Xiaomi 14 Ultra, Pixel 9 Pro, OnePlus 12, Realme 12 Pro+, Oppo Find X7
 
 ## Remaining Features
 
 1. ~~Brand pages~~ ✅
 2. ~~Guide pages + Live Simulator~~ ✅
 3. ~~Topics system~~ ✅
-4. **Devices directory + device detail pages** ← next
-5. Glossary (A–Z + categories)
+4. ~~Devices directory~~ ✅
+5. **Glossary (A–Z + categories)** ← next
 6. Community Forum
 7. Auth / Sign-in
 8. AI Copilot widget
