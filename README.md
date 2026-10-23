@@ -42,8 +42,12 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ### v0.7 – Auth UI
 - [x] `/sign-in`, `/sign-up`, `/sign-in/forgot`
-- [x] AuthForm: validation, show/hide password, Google button placeholder, success state
-- [x] Ready to wire Clerk / Auth.js / Supabase
+
+### v0.8 – AI Copilot widget
+- [x] Floating “Ask TapPath” button (site-wide)
+- [x] Chat panel: suggestions, typing indicator, deep links to guides/topics/glossary
+- [x] Keyword replies for search bar, DNS, VoLTE, battery %, AOD, fingerprint, eSIM
+- [x] `replyTo()` ready to swap for a real LLM API
 
 ## Remaining Features
 
@@ -52,10 +56,10 @@ Open [http://localhost:3000](http://localhost:3000).
 3. ~~Topics system~~ ✅
 4. ~~Devices directory~~ ✅
 5. ~~Glossary~~ ✅
-6. Community Forum *(skipped for now)*
-7. ~~Auth / Sign-in UI~~ ✅
-8. **AI Copilot widget** ← next
-9. SEO (HowTo structured data, sitemap, performance)
+6. Community Forum *(skipped)*
+7. ~~Auth UI~~ ✅
+8. ~~AI Copilot widget~~ ✅
+9. **SEO (HowTo structured data, sitemap, performance)** ← next
 10. Multi-language (i18n)
 11. Content seeding + admin
 
