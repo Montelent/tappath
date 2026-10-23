@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Moon, Sun, Menu, X, Search } from "lucide-react";
+import { Moon, Sun, Menu, X, Search, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { useT } from "@/i18n/LanguageProvider";
+import { useAuthOptional } from "@/context/AuthContext";
 
 export default function Header() {
   const [dark, setDark] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const t = useT();
+  const auth = useAuthOptional();
 
   useEffect(() => {
     const isDark =
@@ -40,114 +42,54 @@ export default function Header() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-6 md:flex">
-          <Link
-            href="/"
-            className="text-sm font-medium text-[var(--muted-foreground)] transition hover:text-[var(--foreground)]"
-          >
-            {t.common.home}
-          </Link>
-          <Link
-            href="/topics"
-            className="text-sm font-medium text-[var(--muted-foreground)] transition hover:text-[var(--foreground)]"
-          >
-            {t.nav.topics}
-          </Link>
-          <Link
-            href="/devices"
-            className="text-sm font-medium text-[var(--muted-foreground)] transition hover:text-[var(--foreground)]"
-          >
-            {t.nav.devices}
-          </Link>
-          <Link
-            href="/glossary"
-            className="text-sm font-medium text-[var(--muted-foreground)] transition hover:text-[var(--foreground)]"
-          >
-            {t.nav.glossary}
-          </Link>
+        <nav className="hidden items-center gap-5 md:flex">
+          <Link href="/" className="text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]">{t.common.home}</Link>
+          <Link href="/topics" className="text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]">{t.nav.topics}</Link>
+          <Link href="/devices" className="text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]">{t.nav.devices}</Link>
+          <Link href="/glossary" className="text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]">{t.nav.glossary}</Link>
+          <Link href="/forum" className="text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]">Forum</Link>
         </nav>
 
         <div className="flex items-center gap-2">
-          <button
-            className="hidden rounded-full p-2 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)] hover:text-[var(--foreground)] sm:inline-flex"
-            aria-label={t.common.search}
-          >
-            <Search className="h-5 w-5" />
-          </button>
-
           <LanguageSwitcher compact className="hidden sm:inline-flex" />
-
-          <button
-            onClick={toggleDark}
-            className="rounded-full p-2 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
-            aria-label="Toggle dark mode"
-          >
+          <button onClick={toggleDark} className="rounded-full p-2 text-[var(--muted-foreground)] hover:bg-[var(--muted)]" aria-label="Toggle dark mode">
             {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
-
-          <Link
-            href="/sign-in"
-            className="ml-1 hidden rounded-full bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 sm:inline-flex"
-          >
-            {t.nav.signIn}
-          </Link>
-
-          <button
-            className="inline-flex rounded-full p-2 text-[var(--muted-foreground)] md:hidden"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Menu"
-          >
+          {auth?.user ? (
+            <div className="hidden items-center gap-2 sm:flex">
+              <span className="max-w-[120px] truncate text-sm text-[var(--muted-foreground)]">{auth.user.name}</span>
+              {auth.isAdmin && (
+                <Link href="/admin" className="text-xs font-medium text-brand-600 dark:text-brand-400">Admin</Link>
+              )}
+              <button onClick={() => auth.signOut()} className="rounded-full p-2 text-[var(--muted-foreground)] hover:bg-[var(--muted)]" aria-label="Sign out">
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <Link href="/sign-in" className="ml-1 hidden rounded-full bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 sm:inline-flex">
+              {t.nav.signIn}
+            </Link>
+          )}
+          <button className="inline-flex rounded-full p-2 md:hidden" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
 
-      <div
-        className={cn(
-          "border-t border-[var(--border)] bg-[var(--background)] md:hidden",
-          mobileOpen ? "block" : "hidden"
-        )}
-      >
+      <div className={cn("border-t border-[var(--border)] md:hidden", mobileOpen ? "block" : "hidden")}>
         <nav className="flex flex-col gap-1 px-4 py-3">
-          <Link
-            href="/"
-            className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-[var(--muted)]"
-            onClick={() => setMobileOpen(false)}
-          >
-            {t.common.home}
-          </Link>
-          <Link
-            href="/topics"
-            className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-[var(--muted)]"
-            onClick={() => setMobileOpen(false)}
-          >
-            {t.nav.topics}
-          </Link>
-          <Link
-            href="/devices"
-            className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-[var(--muted)]"
-            onClick={() => setMobileOpen(false)}
-          >
-            {t.nav.devices}
-          </Link>
-          <Link
-            href="/glossary"
-            className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-[var(--muted)]"
-            onClick={() => setMobileOpen(false)}
-          >
-            {t.nav.glossary}
-          </Link>
+          {[["/", t.common.home],["/topics", t.nav.topics],["/devices", t.nav.devices],["/glossary", t.nav.glossary],["/forum", "Forum"]].map(([href, label]) => (
+            <Link key={href} href={href} className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-[var(--muted)]" onClick={() => setMobileOpen(false)}>{label}</Link>
+          ))}
           <div className="mt-2 flex items-center justify-between px-3 py-2">
             <span className="text-sm text-[var(--muted-foreground)]">Language</span>
             <LanguageSwitcher compact />
           </div>
-          <Link
-            href="/sign-in"
-            className="mt-2 rounded-full bg-brand-600 px-4 py-2 text-center text-sm font-medium text-white"
-            onClick={() => setMobileOpen(false)}
-          >
-            {t.nav.signIn}
-          </Link>
+          {auth?.user ? (
+            <button onClick={() => { auth.signOut(); setMobileOpen(false); }} className="mt-2 rounded-full border border-[var(--border)] px-4 py-2 text-sm">Sign out ({auth.user.name})</button>
+          ) : (
+            <Link href="/sign-in" className="mt-2 rounded-full bg-brand-600 px-4 py-2 text-center text-sm font-medium text-white" onClick={() => setMobileOpen(false)}>{t.nav.signIn}</Link>
+          )}
         </nav>
       </div>
     </header>
