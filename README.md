@@ -38,9 +38,12 @@ Open [http://localhost:3000](http://localhost:3000).
 - [x] `/devices` searchable directory + device detail pages
 
 ### v0.6 – Glossary
-- [x] `/glossary` index with search, category filters, A–Z jump links
-- [x] 50+ terms (Network, System, Battery, Security, Display, Camera, Messaging)
-- [x] Term detail pages `/glossary/[slug]` with related terms & guides
+- [x] `/glossary` A–Z + categories + term detail pages
+
+### v0.7 – Auth UI
+- [x] `/sign-in`, `/sign-up`, `/sign-in/forgot`
+- [x] AuthForm: validation, show/hide password, Google button placeholder, success state
+- [x] Ready to wire Clerk / Auth.js / Supabase
 
 ## Remaining Features
 
@@ -49,9 +52,9 @@ Open [http://localhost:3000](http://localhost:3000).
 3. ~~Topics system~~ ✅
 4. ~~Devices directory~~ ✅
 5. ~~Glossary~~ ✅
-6. **Community Forum** ← next
-7. Auth / Sign-in
-8. AI Copilot widget
+6. Community Forum *(skipped for now)*
+7. ~~Auth / Sign-in UI~~ ✅
+8. **AI Copilot widget** ← next
 9. SEO (HowTo structured data, sitemap, performance)
 10. Multi-language (i18n)
 11. Content seeding + admin
