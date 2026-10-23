@@ -35,9 +35,12 @@ Open [http://localhost:3000](http://localhost:3000).
 - [x] 14 topic hubs + `/topics` index + brand filter
 
 ### v0.5 – Devices directory
-- [x] `/devices` searchable directory with brand filters
-- [x] Device detail pages (guides, related devices, brand CTA)
-- [x] Sample devices: Galaxy S24/S26 Ultra, A55, Xiaomi 14 Ultra, Pixel 9 Pro, OnePlus 12, Realme 12 Pro+, Oppo Find X7
+- [x] `/devices` searchable directory + device detail pages
+
+### v0.6 – Glossary
+- [x] `/glossary` index with search, category filters, A–Z jump links
+- [x] 50+ terms (Network, System, Battery, Security, Display, Camera, Messaging)
+- [x] Term detail pages `/glossary/[slug]` with related terms & guides
 
 ## Remaining Features
 
@@ -45,8 +48,8 @@ Open [http://localhost:3000](http://localhost:3000).
 2. ~~Guide pages + Live Simulator~~ ✅
 3. ~~Topics system~~ ✅
 4. ~~Devices directory~~ ✅
-5. **Glossary (A–Z + categories)** ← next
-6. Community Forum
+5. ~~Glossary~~ ✅
+6. **Community Forum** ← next
 7. Auth / Sign-in
 8. AI Copilot widget
 9. SEO (HowTo structured data, sitemap, performance)
