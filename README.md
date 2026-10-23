@@ -20,48 +20,35 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+Set `NEXT_PUBLIC_SITE_URL` for production (defaults to `https://tappath.com`).
+
 ## Features Implemented
 
 ### v0.1 – Homepage + Layout
-- [x] Scaffold, Header/Footer, homepage hero + stats + brand grid
-
-### v0.2 – Brand Pages
-- [x] 8 brand hubs (`/samsung`, `/xiaomi`, …)
-
+### v0.2 – Brand Pages (8 hubs)
 ### v0.3 – Guide pages + Live Simulator
-- [x] Sample: `/samsung/galaxy/remove-google-search-bar`
-
-### v0.4 – Topics system
-- [x] 14 topic hubs + `/topics` index + brand filter
-
+### v0.4 – Topics system (14 hubs)
 ### v0.5 – Devices directory
-- [x] `/devices` searchable directory + device detail pages
-
-### v0.6 – Glossary
-- [x] `/glossary` A–Z + categories + term detail pages
-
+### v0.6 – Glossary (50+ terms)
 ### v0.7 – Auth UI
-- [x] `/sign-in`, `/sign-up`, `/sign-in/forgot`
-
 ### v0.8 – AI Copilot widget
-- [x] Floating “Ask TapPath” button (site-wide)
-- [x] Chat panel: suggestions, typing indicator, deep links to guides/topics/glossary
-- [x] Keyword replies for search bar, DNS, VoLTE, battery %, AOD, fingerprint, eSIM
-- [x] `replyTo()` ready to swap for a real LLM API
+
+### v0.9 – SEO
+- [x] `/sitemap.xml` — brands, topics, glossary, devices, guides
+- [x] `/robots.txt`
+- [x] HowTo + FAQPage + BreadcrumbList JSON-LD on guide pages
+- [x] WebSite / Organization JSON-LD site-wide
+- [x] metadataBase, OpenGraph, Twitter cards, canonical, viewport
+- [x] Font `display: swap` for performance
+- [x] Web app manifest
 
 ## Remaining Features
 
-1. ~~Brand pages~~ ✅
-2. ~~Guide pages + Live Simulator~~ ✅
-3. ~~Topics system~~ ✅
-4. ~~Devices directory~~ ✅
-5. ~~Glossary~~ ✅
-6. Community Forum *(skipped)*
-7. ~~Auth UI~~ ✅
-8. ~~AI Copilot widget~~ ✅
-9. **SEO (HowTo structured data, sitemap, performance)** ← next
-10. Multi-language (i18n)
+1–8. ~~Done~~ ✅
+9. ~~SEO~~ ✅
+10. **Multi-language (i18n)** ← next
 11. Content seeding + admin
+12. Community Forum *(optional / skipped)*
 
 ## License
 
