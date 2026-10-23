@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import CopilotWidget from "@/components/copilot/CopilotWidget";
 import OrganizationJsonLd from "@/components/seo/OrganizationJsonLd";
 import { LanguageProvider } from "@/i18n/LanguageProvider";
+import { AuthProvider } from "@/context/AuthContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -23,46 +24,13 @@ export const metadata: Metadata = {
   },
   description:
     "3,100+ interactive guides for Samsung, Xiaomi, Huawei, OnePlus, Oppo, Realme and more. Visual step-by-step paths — verified, versioned, no hallucinations.",
-  keywords: [
-    "smartphone settings",
-    "Android guides",
-    "Samsung One UI",
-    "Xiaomi HyperOS",
-    "step by step",
-    "menu path",
-    "how to",
-  ],
-  authors: [{ name: "TapPath" }],
-  creator: "TapPath",
   openGraph: {
     type: "website",
     locale: "en_US",
     siteName: "TapPath",
-    title: "TapPath | Interactive smartphone settings guides",
-    description:
-      "Visual step-by-step smartphone settings guides with interactive Live Simulator.",
     url: BASE,
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "TapPath | Interactive smartphone settings guides",
-    description:
-      "Visual step-by-step smartphone settings guides with interactive Live Simulator.",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
-  alternates: {
-    canonical: "/",
-  },
+  robots: { index: true, follow: true },
 };
 
 export const viewport: Viewport = {
@@ -76,20 +44,20 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
         <LanguageProvider>
-          <OrganizationJsonLd />
-          <div className="flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-          <CopilotWidget />
+          <AuthProvider>
+            <OrganizationJsonLd />
+            <div className="flex min-h-screen flex-col">
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+            <CopilotWidget />
+          </AuthProvider>
         </LanguageProvider>
       </body>
     </html>
