@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { guides } from "@/data/guides";
+import ContentManager from "@/components/admin/ContentManager";
 
 export const metadata: Metadata = {
   title: "Admin · Guides",
@@ -8,47 +7,57 @@ export const metadata: Metadata = {
 };
 
 export default function AdminGuidesPage() {
-  const list = Object.values(guides);
-
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-      <nav className="mb-6 text-sm text-[var(--muted-foreground)]">
-        <Link href="/admin" className="hover:text-[var(--foreground)]">
-          Admin
-        </Link>
-        <span className="mx-2">/</span>
-        <span className="text-[var(--foreground)]">Guides</span>
-      </nav>
-
-      <h1 className="text-2xl font-bold tracking-tight">Guides ({list.length})</h1>
-      <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-        Source: <code>src/data/guides.ts</code>
-      </p>
-
-      <ul className="mt-6 divide-y divide-[var(--border)] rounded-2xl border border-[var(--border)] bg-[var(--card)]">
-        {list.map((g) => (
-          <li key={g.slug} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5">
-            <div>
-              <div className="font-medium">
-                {g.brand}: {g.title}
-              </div>
-              <div className="text-xs text-[var(--muted-foreground)]">
-                {g.category} · {g.versions.length} version(s) · {g.confirmations} confirmations
-              </div>
-            </div>
-            <Link
-              href={`/${g.brandSlug}/${g.productLine.toLowerCase()}/${g.slug}`}
-              className="text-sm font-medium text-brand-600 dark:text-brand-400"
-            >
-              Open →
-            </Link>
-          </li>
-        ))}
-      </ul>
-
-      {list.length === 0 && (
-        <p className="mt-6 text-[var(--muted-foreground)]">No guides seeded yet.</p>
-      )}
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+      <ContentManager
+        table="guides"
+        title="Guides"
+        columns={[
+          { key: "title", label: "Title" },
+          { key: "brand", label: "Brand" },
+          { key: "category", label: "Category" },
+          { key: "slug", label: "Slug" },
+          { key: "published", label: "Published" },
+        ]}
+        emptyRow={{
+          slug: "",
+          brand: "Samsung",
+          brand_slug: "samsung",
+          product_line: "Galaxy",
+          title: "",
+          short_description: "",
+          updated_label: "",
+          read_time: "2 min",
+          category: "General",
+          versions: [],
+          article: [],
+          faqs: [],
+          related: [],
+          compatible_devices: [],
+          confirmations: 0,
+          forum_verified: false,
+          published: true,
+        }}
+        fields={[
+          { key: "title", label: "Title" },
+          { key: "slug", label: "Slug" },
+          { key: "brand", label: "Brand" },
+          { key: "brand_slug", label: "Brand slug" },
+          { key: "product_line", label: "Product line" },
+          { key: "category", label: "Category" },
+          { key: "short_description", label: "Short description", type: "textarea" },
+          { key: "read_time", label: "Read time" },
+          { key: "updated_label", label: "Updated label" },
+          { key: "confirmations", label: "Confirmations", type: "number" },
+          { key: "forum_verified", label: "Forum verified", type: "boolean" },
+          { key: "published", label: "Published", type: "boolean" },
+          { key: "versions", label: "Versions (JSON)", type: "json" },
+          { key: "article", label: "Article paragraphs (JSON)", type: "json" },
+          { key: "faqs", label: "FAQs (JSON)", type: "json" },
+          { key: "related", label: "Related (JSON)", type: "json" },
+          { key: "compatible_devices", label: "Compatible devices (JSON)", type: "json" },
+        ]}
+      />
     </div>
   );
 }

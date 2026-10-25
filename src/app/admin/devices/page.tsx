@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { getAllDevices } from "@/data/devices";
+import ContentManager from "@/components/admin/ContentManager";
 
 export const metadata: Metadata = {
   title: "Admin · Devices",
@@ -8,41 +7,40 @@ export const metadata: Metadata = {
 };
 
 export default function AdminDevicesPage() {
-  const list = getAllDevices();
-
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-      <nav className="mb-6 text-sm text-[var(--muted-foreground)]">
-        <Link href="/admin" className="hover:text-[var(--foreground)]">
-          Admin
-        </Link>
-        <span className="mx-2">/</span>
-        <span className="text-[var(--foreground)]">Devices</span>
-      </nav>
-
-      <h1 className="text-2xl font-bold tracking-tight">Devices ({list.length})</h1>
-      <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-        Source: <code>src/data/devices.ts</code>
-      </p>
-
-      <ul className="mt-6 divide-y divide-[var(--border)] rounded-2xl border border-[var(--border)] bg-[var(--card)]">
-        {list.map((d) => (
-          <li key={d.slug} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5">
-            <div>
-              <div className="font-medium">{d.name}</div>
-              <div className="text-xs text-[var(--muted-foreground)]">
-                {d.os} · {d.guides.length} linked guides
-              </div>
-            </div>
-            <Link
-              href={d.href}
-              className="text-sm font-medium text-brand-600 dark:text-brand-400"
-            >
-              Open →
-            </Link>
-          </li>
-        ))}
-      </ul>
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+      <ContentManager
+        table="devices"
+        title="Devices"
+        columns={[
+          { key: "name", label: "Name" },
+          { key: "brand_name", label: "Brand" },
+          { key: "os", label: "OS" },
+          { key: "slug", label: "Slug" },
+        ]}
+        emptyRow={{
+          slug: "",
+          name: "",
+          brand_slug: "samsung",
+          brand_name: "Samsung",
+          os: "",
+          href: "",
+          year: null,
+          guides: [],
+          published: true,
+        }}
+        fields={[
+          { key: "name", label: "Name" },
+          { key: "slug", label: "Slug" },
+          { key: "brand_name", label: "Brand name" },
+          { key: "brand_slug", label: "Brand slug" },
+          { key: "os", label: "OS" },
+          { key: "href", label: "Href" },
+          { key: "year", label: "Year", type: "number" },
+          { key: "published", label: "Published", type: "boolean" },
+          { key: "guides", label: "Guides (JSON)", type: "json" },
+        ]}
+      />
     </div>
   );
 }
