@@ -50,6 +50,7 @@ export default function GuidePage({ guide }: Props) {
 
       <section className="mb-10 max-w-xl">
         <GuideFeedback
+          guideSlug={guide.slug}
           initialConfirmations={guide.confirmations}
           forumVerified={guide.forumVerified}
         />
