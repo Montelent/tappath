@@ -2,7 +2,7 @@
   "name": "tappath",
   "version": "0.1.0",
   "private": true,
-  "description": "TapPath – Visual step-by-step smartphone settings guides with interactive live simulator. Better, faster, more accurate than TechBone.",
+  "description": "TapPath – Visual step-by-step smartphone settings guides with interactive live simulator.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -15,7 +15,8 @@
     "react-dom": "^18.3.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.454.0",
-    "tailwind-merge": "^2.5.4"
+    "tailwind-merge": "^2.5.4",
+    "@supabase/supabase-js": "^2.49.1"
   },
   "devDependencies": {
     "@types/node": "^20",
