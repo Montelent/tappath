@@ -26,7 +26,8 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    const m = row.url.match(/^data:([^;]+);base64,(.+)$/s);
+    // Avoid /s flag (needs ES2018+); use [\s\S] instead
+    const m = row.url.match(/^data:([^;]+);base64,([\s\S]+)$/);
     if (m) {
       const mime = m[1] || row.mime || "image/jpeg";
       const buf = Buffer.from(m[2], "base64");
