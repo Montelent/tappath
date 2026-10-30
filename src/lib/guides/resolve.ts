@@ -86,43 +86,44 @@ export function dbGuideToGuide(db: DbGuide): Guide {
   };
 }
 
+function productMatches(stored: string, requested: string): boolean {
+  const a = stored.toLowerCase().replace(/\s+/g, "-");
+  const b = requested.toLowerCase().replace(/\s+/g, "-");
+  const aSpace = stored.toLowerCase().replace(/-/g, " ");
+  const bSpace = requested.toLowerCase().replace(/-/g, " ");
+  return a === b || aSpace === bSpace || stored.toLowerCase() === requested.toLowerCase();
+}
+
 export async function resolveGuide(
   brandSlug: string,
   productLine: string,
   slug: string
 ): Promise<Guide | null> {
   const brand = brandSlug.toLowerCase();
-  const product = productLine.toLowerCase().replace(/-/g, " ");
-  const productHyphen = productLine.toLowerCase();
+  const product = productLine.toLowerCase();
 
-  for (const g of Object.values(guides)) {
-    if (
-      g.brandSlug === brand &&
-      g.slug === slug &&
-      (g.productLine.toLowerCase() === product ||
-        g.productLine.toLowerCase().replace(/\s+/g, "-") === productHyphen)
-    ) {
-      return g;
-    }
-  }
-
+  // Prefer Neon (admin edits with screenshots) over static seed data
   if (isDatabaseConfigured()) {
     try {
       const db = await getGuideByPath(brand, productLine, slug);
       if (db) return dbGuideToGuide(db);
-      const db2 = await getGuideByPath(brand, product, slug);
-      if (db2) return dbGuideToGuide(db2);
       const all = await listGuides();
       const hit = all.find(
         (g) =>
           g.brand_slug === brand &&
           g.slug === slug &&
-          (g.product_line.toLowerCase() === product ||
-            g.product_line.toLowerCase().replace(/\s+/g, "-") === productHyphen)
+          productMatches(g.product_line, product) &&
+          g.published !== false
       );
       if (hit) return dbGuideToGuide(hit);
     } catch {
-      /* ignore */
+      /* fall through to static */
+    }
+  }
+
+  for (const g of Object.values(guides)) {
+    if (g.brandSlug === brand && g.slug === slug && productMatches(g.productLine, product)) {
+      return g;
     }
   }
 
