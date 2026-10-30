@@ -1,12 +1,17 @@
 import Link from "next/link";
-import { Calendar, Clock, ChevronRight } from "lucide-react";
+import { ChevronRight, Clock, Calendar } from "lucide-react";
 import type { Guide } from "@/data/guides";
 import LiveSimulator from "./LiveSimulator";
 import GuideFeedback from "./GuideFeedback";
+import GuideFAQ from "./GuideFAQ";
 
-export default function GuidePage({ guide }: { guide: Guide }) {
+type Props = {
+  guide: Guide;
+};
+
+export default function GuidePage({ guide }: Props) {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-[var(--muted-foreground)]">
         <Link href="/" className="hover:text-[var(--foreground)]">
           Home
@@ -26,7 +31,13 @@ export default function GuidePage({ guide }: { guide: Guide }) {
         <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
           {guide.brand}: {guide.title}
         </h1>
-        <p className="mt-3 text-lg text-[var(--muted-foreground)]">{guide.shortDescription}</p>
+        {/* Introduction — same place as TechBone intro, before the simulator */}
+        <div
+          className="prose prose-slate mt-3 max-w-none text-base leading-relaxed text-[var(--muted-foreground)] dark:prose-invert sm:text-lg"
+          dangerouslySetInnerHTML={{
+            __html: guide.shortDescription || "",
+          }}
+        />
         <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-[var(--muted-foreground)]">
           <span className="inline-flex items-center gap-1.5">
             <Calendar className="h-4 w-4" />
@@ -69,15 +80,7 @@ export default function GuidePage({ guide }: { guide: Guide }) {
           </section>
 
           <section>
-            <h2 className="mb-4 text-xl font-bold tracking-tight">Frequently asked questions</h2>
-            <div className="space-y-4">
-              {guide.faqs.map((f, i) => (
-                <div key={i} className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
-                  <h3 className="font-semibold">{f.q}</h3>
-                  <p className="mt-2 text-sm text-[var(--muted-foreground)]">{f.a}</p>
-                </div>
-              ))}
-            </div>
+            <GuideFAQ faqs={guide.faqs} />
           </section>
         </div>
 
