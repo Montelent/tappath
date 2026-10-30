@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { GuideVersion } from "@/data/guides";
-import PhoneFrame, { TapMarker } from "@/components/guide/PhoneFrame";
+import PhoneFrame, { ScreenshotLayer } from "@/components/guide/PhoneFrame";
 
 type Props = { versions: GuideVersion[]; brandName: string; deviceModel?: string };
 type MenuItem = {
@@ -133,13 +133,12 @@ export default function LiveSimulator({ versions, brandName, deviceModel = "Gala
         <div className="flex flex-col items-center">
           <PhoneFrame deviceModel={deviceModel}>
             {hasScreenshot && current?.imageUrl ? (
-              <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={current.imageUrl} alt={plain(current.instruction)} className="absolute inset-0 h-full w-full object-cover object-top" />
-                {current.markerX != null && current.markerY != null && (
-                  <TapMarker x={current.markerX} y={current.markerY} />
-                )}
-              </>
+              <ScreenshotLayer
+                imageUrl={current.imageUrl}
+                markerX={current.markerX}
+                markerY={current.markerY}
+                alt={plain(current.instruction)}
+              />
             ) : (
               <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950">
                 <div className="border-b border-slate-200/80 px-3 py-2 dark:border-slate-700/80">
