@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getStore, saveStore } from "@/lib/store";
+import { getSql, isNeonConfigured } from "@/lib/db/neon";
 
 export async function POST(req: NextRequest) {
   let body: { guideSlug?: string; correct?: boolean };
@@ -16,6 +17,38 @@ export async function POST(req: NextRequest) {
   }
 
   const session = await getSession();
+
+  if (isNeonConfigured()) {
+    try {
+      const sql = getSql()!;
+      try {
+        await sql`
+          INSERT INTO guide_feedback (guide_slug, user_id, correct)
+          VALUES (${guideSlug}, ${session?.sub ?? null}, ${body.correct})
+        `;
+      } catch {
+        await sql`
+          INSERT INTO guide_feedback (guide_slug, correct)
+          VALUES (${guideSlug}, ${body.correct})
+        `;
+      }
+      const counts = await sql`
+        SELECT
+          count(*) FILTER (WHERE correct)::int AS yes,
+          count(*) FILTER (WHERE NOT correct)::int AS no,
+          count(*)::int AS total
+        FROM guide_feedback
+        WHERE guide_slug = ${guideSlug}
+      `;
+      const c = counts[0] as { yes: number; no: number; total: number };
+      return NextResponse.json({ ok: true, yes: c.yes, no: c.no, total: c.total });
+    } catch (e) {
+      return NextResponse.json(
+        { error: e instanceof Error ? e.message : "Feedback save failed" },
+        { status: 500 }
+      );
+    }
+  }
 
   saveStore((db) => {
     db.feedback.push({
@@ -36,9 +69,20 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   const guideSlug = req.nextUrl.searchParams.get("guideSlug");
+
+  if (isNeonConfigured()) {
+    try {
+      const sql = getSql()!;
+      const rows = guideSlug
+        ? await sql`SELECT * FROM guide_feedback WHERE guide_slug = ${guideSlug} ORDER BY created_at DESC`
+        : await sql`SELECT * FROM guide_feedback ORDER BY created_at DESC LIMIT 500`;
+      return NextResponse.json({ feedback: rows });
+    } catch {
+      /* fall through */
+    }
+  }
+
   const feedback = getStore().feedback;
   const filtered = guideSlug ? feedback.filter((f) => f.guideSlug === guideSlug) : feedback;
-  const yes = filtered.filter((f) => f.correct).length;
-  const no = filtered.filter((f) => !f.correct).length;
-  return NextResponse.json({ yes, no, total: filtered.length });
+  return NextResponse.json({ feedback: filtered });
 }
