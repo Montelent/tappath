@@ -14,6 +14,9 @@ import {
   Users,
   MessageCircleHeart,
   Sparkles,
+  Download,
+  Image,
+  Languages,
   ExternalLink,
   LogOut,
   Shield,
@@ -34,6 +37,9 @@ const NAV = [
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/settings", label: "Site settings", icon: Settings },
   { href: "/admin/copilot", label: "Copilot", icon: Sparkles },
+  { href: "/admin/export", label: "Export", icon: Download },
+  { href: "/admin/media", label: "Media", icon: Image },
+  { href: "/admin/i18n", label: "i18n", icon: Languages },
 ];
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
