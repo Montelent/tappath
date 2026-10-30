@@ -22,7 +22,16 @@ export async function POST(req: NextRequest) {
 
   const user = await authenticateUser(email, password);
   if (!user) {
-    return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Invalid email or password.",
+        backend: isNeonConfigured() ? "neon" : "mock",
+        hint: isNeonConfigured()
+          ? "Neon is on but this account was not found. Open /api/health — if profiles is 0, schema/seed is incomplete."
+          : "DATABASE_URL is missing on Vercel — you are on MOCK auth only.",
+      },
+      { status: 401 }
+    );
   }
 
   await setSessionCookie({
@@ -32,5 +41,8 @@ export async function POST(req: NextRequest) {
     role: user.role,
   });
 
-  return NextResponse.json({ user: publicUser(user) });
+  return NextResponse.json({
+    user: publicUser(user),
+    backend: isNeonConfigured() ? "neon" : "mock",
+  });
 }
