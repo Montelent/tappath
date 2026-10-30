@@ -1,17 +1,12 @@
 import Link from "next/link";
-import { ChevronRight, Clock, Calendar } from "lucide-react";
+import { Calendar, Clock, ChevronRight } from "lucide-react";
 import type { Guide } from "@/data/guides";
 import LiveSimulator from "./LiveSimulator";
 import GuideFeedback from "./GuideFeedback";
-import GuideFAQ from "./GuideFAQ";
 
-type Props = {
-  guide: Guide;
-};
-
-export default function GuidePage({ guide }: Props) {
+export default function GuidePage({ guide }: { guide: Guide }) {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-[var(--muted-foreground)]">
         <Link href="/" className="hover:text-[var(--foreground)]">
           Home
@@ -21,7 +16,7 @@ export default function GuidePage({ guide }: Props) {
           {guide.brand}
         </Link>
         <ChevronRight className="h-3.5 w-3.5" />
-        <span className="text-[var(--foreground)] line-clamp-1">{guide.title}</span>
+        <span className="line-clamp-1 text-[var(--foreground)]">{guide.title}</span>
       </nav>
 
       <header className="mb-8 max-w-3xl">
@@ -45,7 +40,11 @@ export default function GuidePage({ guide }: Props) {
       </header>
 
       <section className="mb-10">
-        <LiveSimulator versions={guide.versions} brandName={guide.brand} />
+        <LiveSimulator
+          versions={guide.versions}
+          brandName={guide.brand}
+          deviceModel="Galaxy S23+"
+        />
       </section>
 
       <section className="mb-10 max-w-xl">
@@ -62,7 +61,7 @@ export default function GuidePage({ guide }: Props) {
             <h2 className="text-xl font-bold tracking-tight">
               {guide.title} on {guide.brand}
             </h2>
-            <div className="mt-4 space-y-4 text-[var(--muted-foreground)] leading-relaxed">
+            <div className="mt-4 space-y-4 leading-relaxed text-[var(--muted-foreground)]">
               {guide.article.map((p, i) => (
                 <p key={i}>{p}</p>
               ))}
@@ -71,77 +70,52 @@ export default function GuidePage({ guide }: Props) {
 
           <section>
             <h2 className="mb-4 text-xl font-bold tracking-tight">Frequently asked questions</h2>
-            <GuideFAQ faqs={guide.faqs} />
-          </section>
-
-          <section>
-            <h2 className="mb-4 text-xl font-bold tracking-tight">
-              More guides for {guide.brand}
-            </h2>
-            <ul className="divide-y divide-[var(--border)] rounded-2xl border border-[var(--border)] bg-[var(--card)]">
-              {guide.related.map((r) => (
-                <li key={r.href}>
-                  <Link
-                    href={r.href}
-                    className="flex items-center justify-between gap-4 px-4 py-3.5 transition hover:bg-[var(--muted)]/50"
-                  >
-                    <div>
-                      <div className="font-medium">{r.title}</div>
-                      <div className="text-xs text-[var(--muted-foreground)]">{r.category}</div>
-                    </div>
-                    <span className="text-sm font-medium text-brand-600 dark:text-brand-400">
-                      Open →
-                    </span>
-                  </Link>
-                </li>
+            <div className="space-y-4">
+              {guide.faqs.map((f, i) => (
+                <div key={i} className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
+                  <h3 className="font-semibold">{f.q}</h3>
+                  <p className="mt-2 text-sm text-[var(--muted-foreground)]">{f.a}</p>
+                </div>
               ))}
-            </ul>
+            </div>
           </section>
         </div>
 
-        <aside className="space-y-6">
-          {guide.compatibleDevices.length > 0 && (
+        <aside className="space-y-8">
+          {guide.compatibleDevices?.length > 0 && (
             <section>
-              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
                 Compatible devices
-              </h3>
-              <ul className="space-y-2">
+              </h2>
+              <ul className="mt-3 space-y-2">
                 {guide.compatibleDevices.map((d) => (
                   <li key={d.href}>
-                    <Link
-                      href={d.href}
-                      className="block rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2.5 transition hover:border-brand-300 dark:hover:border-brand-700"
-                    >
-                      <div className="text-sm font-medium">{d.name}</div>
-                      <div className="text-xs text-[var(--muted-foreground)]">{d.os}</div>
+                    <Link href={d.href} className="text-sm text-brand-600 hover:underline dark:text-brand-400">
+                      {d.name}
                     </Link>
+                    <span className="text-xs text-[var(--muted-foreground)]"> · {d.os}</span>
                   </li>
                 ))}
               </ul>
             </section>
           )}
-
-          <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
-            <h3 className="text-sm font-semibold">Explore topics</h3>
-            <ul className="mt-3 space-y-1.5 text-sm">
-              {[
-                { name: "Display & Home Screen", href: "/topics/display" },
-                { name: "Network & Connectivity", href: "/topics/network" },
-                { name: "Battery & Power", href: "/topics/battery" },
-                { name: "Security & Privacy", href: "/topics/security" },
-                { name: "All topics", href: "/topics" },
-              ].map((t) => (
-                <li key={t.href}>
-                  <Link
-                    href={t.href}
-                    className="text-[var(--muted-foreground)] transition hover:text-brand-600 dark:hover:text-brand-400"
-                  >
-                    {t.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
+          {guide.related?.length > 0 && (
+            <section>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+                Related guides
+              </h2>
+              <ul className="mt-3 space-y-2">
+                {guide.related.map((r) => (
+                  <li key={r.href}>
+                    <Link href={r.href} className="text-sm font-medium hover:text-brand-600">
+                      {r.title}
+                    </Link>
+                    <div className="text-xs text-[var(--muted-foreground)]">{r.category}</div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </aside>
       </div>
     </div>
