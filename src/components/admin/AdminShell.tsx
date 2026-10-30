@@ -36,7 +36,7 @@ const NAV = [
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
 
   const isActive = (href: string, exact?: boolean) => {
     if (exact) return pathname === href;
@@ -91,7 +91,11 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             <Link href="/" className="mb-1 flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)]">
               <ExternalLink className="h-4 w-4" /> View site
             </Link>
-            <button type="button" onClick={() => logout()} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)]">
+            <button
+              type="button"
+              onClick={() => signOut()}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
+            >
               <LogOut className="h-4 w-4" /> Sign out
             </button>
           </div>
