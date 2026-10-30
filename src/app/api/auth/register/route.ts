@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { hashPassword } from "@/lib/crypto";
 import { setSessionCookie } from "@/lib/session";
-import { findUserByEmail, publicUser, saveStore } from "@/lib/store";
+import { createUser, findUserByEmail, publicUser } from "@/lib/db/users";
 
 export async function POST(req: NextRequest) {
   let body: { name?: string; email?: string; password?: string };
@@ -21,30 +20,30 @@ export async function POST(req: NextRequest) {
   if (password.length < 8) {
     return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
   }
-  if (findUserByEmail(email)) {
+
+  const existing = await findUserByEmail(email);
+  if (existing) {
     return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
   }
 
-  const id = `user-${Date.now()}`;
-  const user = {
-    id,
-    email,
-    name: name || "User",
-    passwordHash: hashPassword(password),
-    role: "user" as const,
-    createdAt: new Date().toISOString(),
-  };
+  try {
+    const user = await createUser({
+      email,
+      name: name || "User",
+      password,
+      role: "user",
+    });
 
-  saveStore((db) => {
-    db.users.push(user);
-  });
+    await setSessionCookie({
+      sub: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    });
 
-  await setSessionCookie({
-    sub: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-  });
-
-  return NextResponse.json({ user: publicUser(user) });
+    return NextResponse.json({ user: publicUser(user) });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Registration failed";
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }

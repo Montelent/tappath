@@ -2,7 +2,7 @@
   "name": "tappath",
   "version": "0.1.0",
   "private": true,
-  "description": "TapPath – Visual step-by-step smartphone settings guides with interactive live simulator.",
+  "description": "TapPath – Visual step-by-step smartphone settings guides.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,13 +10,13 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.454.0",
     "next": "^15.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.454.0",
-    "tailwind-merge": "^2.5.4",
-    "@supabase/supabase-js": "^2.49.1"
+    "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
     "@types/node": "^20",

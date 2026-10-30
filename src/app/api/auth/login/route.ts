@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyPassword } from "@/lib/crypto";
 import { setSessionCookie } from "@/lib/session";
-import { findUserByEmail, publicUser } from "@/lib/store";
+import { authenticateUser, ensureDemoUsers, publicUser } from "@/lib/db/users";
+import { isNeonConfigured } from "@/lib/db/neon";
 
 export async function POST(req: NextRequest) {
   let body: { email?: string; password?: string };
@@ -14,8 +14,14 @@ export async function POST(req: NextRequest) {
   const email = (body.email || "").trim().toLowerCase();
   const password = body.password || "";
 
-  const user = findUserByEmail(email);
-  if (!user || !verifyPassword(password, user.passwordHash)) {
+  try {
+    if (isNeonConfigured()) await ensureDemoUsers();
+  } catch {
+    /* schema may not exist yet */
+  }
+
+  const user = await authenticateUser(email, password);
+  if (!user) {
     return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }
 

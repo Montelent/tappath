@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { signSession, verifySession, type SessionPayload } from "./crypto";
-import { findUserById, publicUser } from "./store";
+import { findUserById, publicUser } from "./db/users";
 
 export const SESSION_COOKIE = "tappath_session";
 
@@ -42,8 +42,15 @@ export async function getSession(): Promise<SessionPayload | null> {
 export async function requireUser() {
   const session = await getSession();
   if (!session) return null;
-  const user = findUserById(session.sub);
-  if (!user) return null;
+  const user = await findUserById(session.sub);
+  if (!user) {
+    return {
+      id: session.sub,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    };
+  }
   return publicUser(user);
 }
 
