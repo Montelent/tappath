@@ -79,104 +79,174 @@ export const guides: Record<string, Guide> = {
           },
         ],
       },
-      {
-        id: "oneui-5",
-        label: "Android 13 · One UI 5",
-        steps: [
-          {
-            id: 1,
-            instruction: "Tap and hold the **Google Search Bar**",
-            highlight: "Google Search Bar",
-            detail: "Long-press the search widget.",
-          },
-          {
-            id: 2,
-            instruction: "Tap **Remove**",
-            highlight: "Remove",
-            detail: "Confirm removal from the menu.",
-          },
-        ],
-      },
     ],
     article: [
-      "The Google search bar on Samsung phones is a preinstalled widget, not a fixed system element. It ships pinned to the home screen so you get a shortcut for web searches and Google Assistant without opening the browser first.",
-      "Because it is a normal widget, it behaves like any other one you place on your screen. That means you can move it, resize it, or remove it entirely without affecting the Google app itself or your search history.",
-      "To remove it, tap and hold the widget until the option menu appears. From there use Tap and hold the Google Search Bar → Tap on Remove and it disappears from the home screen immediately.",
-      "Removing the widget only clears it from your layout. Google Assistant, Google Search, and the Google app stay installed and fully functional, so you can still search or use voice commands through the app icon or another shortcut.",
-      "If you actually use the search bar daily but want it out of the way, moving it to a secondary home screen panel is a better fix than removing it. That keeps the shortcut available without it sitting on your main screen.",
+      "Long-press the Google search bar widget on your home screen.",
+      "Tap Remove from the menu that appears.",
     ],
     faqs: [
       {
-        q: "Does removing the Google search bar delete the Google app?",
-        a: "No. The widget and the app are separate. Removing the widget only clears the home screen shortcut; the Google app stays installed.",
-      },
-      {
-        q: "Can I add the Google search bar back later?",
-        a: "Yes. Long-press an empty area on the home screen → Widgets → Google → drag the search bar back onto a panel.",
-      },
-      {
-        q: "Will removing the widget affect Google Assistant?",
-        a: "No. Google Assistant remains available via the app icon, the power button long-press (if enabled), or voice “Hey Google”.",
-      },
-      {
-        q: "Why does the search bar come back after a restart or reset?",
-        a: "Factory reset or some system updates can restore the default home-screen layout, which includes the Google search widget. Simply remove it again.",
+        q: "Will Google Search still work?",
+        a: "Yes. You can still swipe up or use the Google app. Only the home-screen widget is removed.",
       },
     ],
     related: [
-      { title: "Change Always On Display Clock Style", href: "/samsung/galaxy/always-on-display-clock", category: "Display & Home Screen" },
-      { title: "Restore Default Theme", href: "/samsung/galaxy/restore-default-theme", category: "Display & Home Screen" },
-      { title: "Turn Screen Rotation On or Off", href: "/samsung/galaxy/screen-rotation", category: "Display & Home Screen" },
-      { title: "Set Default Home Screen Launcher", href: "/samsung/galaxy/default-system-launcher", category: "Display & Home Screen" },
+      {
+        title: "Show battery percentage",
+        href: "/samsung/galaxy/battery-percentage",
+        category: "Display & Home Screen",
+      },
     ],
     compatibleDevices: [
       { name: "Samsung Galaxy S24 Ultra", os: "One UI 7 / Android 15", href: "/samsung/galaxy-s24-ultra" },
-      { name: "Samsung Galaxy S23", os: "One UI 7 / Android 15", href: "/samsung/galaxy-s23" },
-      { name: "Samsung Galaxy A55 5G", os: "One UI 6 / Android 14", href: "/samsung/galaxy-a55-5g" },
-      { name: "Samsung Galaxy A35", os: "One UI 6 / Android 14", href: "/samsung/galaxy-a35" },
     ],
-    confirmations: 84,
+    confirmations: 128,
     forumVerified: true,
   },
-
   "samsung-galaxy-battery-percentage": {
     slug: "battery-percentage",
     brand: "Samsung",
     brandSlug: "samsung",
     productLine: "Galaxy",
     title: "Show Battery Percentage in Status Bar",
-    shortDescription:
-      "Show the exact battery percentage next to the battery icon in the status bar on Samsung Galaxy phones.",
+    shortDescription: "Display the numeric battery percentage next to the battery icon on Samsung Galaxy.",
     updated: "12.08.2026",
     readTime: "2 min",
-    category: "Battery & Power",
+    category: "Display & Home Screen",
     versions: [
       {
         id: "oneui-7",
         label: "Android 15 · One UI 7",
         steps: [
-          { id: 1, instruction: "Open **Settings**", highlight: "Settings", detail: "Open the Settings app." },
-          { id: 2, instruction: "Tap **Battery and device care**", highlight: "Battery and device care" },
-          { id: 3, instruction: "Tap **Battery**", highlight: "Battery" },
-          { id: 4, instruction: "Enable **Show battery percentage**", highlight: "Show battery percentage", detail: "Toggle on to display the percentage." },
+          { id: 1, instruction: "Open **Settings**", highlight: "Settings" },
+          { id: 2, instruction: "Tap **Battery**", highlight: "Battery" },
+          { id: 3, instruction: "Enable **Show battery percentage**", highlight: "Show battery percentage" },
         ],
       },
     ],
     article: [
-      "Samsung hides the numeric battery percentage by default on some models. Enabling it is under Battery and device care.",
-      "Once enabled, the percentage appears next to the battery icon in the status bar.",
+      "Open Settings on your Galaxy phone.",
+      "Go to Battery and turn on Show battery percentage.",
     ],
     faqs: [
       { q: "Does this drain battery?", a: "No. Showing a percentage uses negligible power." },
     ],
     related: [
-      { title: "Remove Google Search Bar from Home Screen", href: "/samsung/galaxy/remove-google-search-bar", category: "Display & Home Screen" },
+      {
+        title: "Remove Google Search Bar from Home Screen",
+        href: "/samsung/galaxy/remove-google-search-bar",
+        category: "Display & Home Screen",
+      },
     ],
     compatibleDevices: [
       { name: "Samsung Galaxy S24 Ultra", os: "One UI 7 / Android 15", href: "/samsung/galaxy-s24-ultra" },
-      { name: "Samsung Galaxy A55 5G", os: "One UI 6 / Android 14", href: "/samsung/galaxy-a55-5g" },
     ],
     confirmations: 42,
+    forumVerified: true,
+  },
+  "xiaomi-smartphone-add-fingerprint": {
+    slug: "add-fingerprint",
+    brand: "Xiaomi",
+    brandSlug: "xiaomi",
+    productLine: "Smartphone",
+    title: "Add a Fingerprint",
+    shortDescription:
+      "Register a fingerprint on your Xiaomi or Redmi phone so you can unlock and confirm payments quickly.",
+    updated: "28.10.2026",
+    readTime: "3 min",
+    category: "Security",
+    versions: [
+      {
+        id: "hyperos",
+        label: "HyperOS · Android 14",
+        steps: [
+          {
+            id: 1,
+            instruction: "Open **Settings**",
+            highlight: "Settings",
+            detail: "From the home screen or app drawer.",
+          },
+          {
+            id: 2,
+            instruction: "Tap **Fingerprint, face data & password** (or **Passwords & security**)",
+            highlight: "Fingerprint, face data & password",
+          },
+          {
+            id: 3,
+            instruction: "Tap **Fingerprint unlock**",
+            highlight: "Fingerprint unlock",
+          },
+          {
+            id: 4,
+            instruction:
+              "Enter your screen lock, then **Add fingerprint** and follow the on-screen prompts",
+            highlight: "Add fingerprint",
+          },
+        ],
+      },
+    ],
+    article: [
+      "Open Settings on your Xiaomi phone.",
+      "Go to Fingerprint, face data & password (wording may vary by MIUI/HyperOS version).",
+      "Choose Fingerprint unlock and authenticate with your PIN, pattern, or password.",
+      "Tap Add fingerprint and place your finger on the sensor until the print is fully registered.",
+    ],
+    faqs: [
+      {
+        q: "Where is the fingerprint sensor?",
+        a: "On many Xiaomi models it is under the display or on the power button. The setup screen shows where to touch.",
+      },
+    ],
+    related: [],
+    compatibleDevices: [
+      { name: "Xiaomi 14", os: "HyperOS", href: "/xiaomi" },
+      { name: "Redmi Note 13", os: "HyperOS", href: "/xiaomi" },
+    ],
+    confirmations: 12,
+    forumVerified: true,
+  },
+  "samsung-galaxy-add-fingerprint": {
+    slug: "add-fingerprint",
+    brand: "Samsung",
+    brandSlug: "samsung",
+    productLine: "Galaxy",
+    title: "Add a Fingerprint",
+    shortDescription: "Set up fingerprint unlock on Samsung Galaxy with One UI.",
+    updated: "28.10.2026",
+    readTime: "3 min",
+    category: "Security",
+    versions: [
+      {
+        id: "oneui-7",
+        label: "Android 15 · One UI 7",
+        steps: [
+          {
+            id: 1,
+            instruction: "Open **Settings** → **Security and privacy**",
+            highlight: "Security and privacy",
+          },
+          {
+            id: 2,
+            instruction: "Tap **Biometrics** → **Fingerprints**",
+            highlight: "Fingerprints",
+          },
+          {
+            id: 3,
+            instruction: "Unlock, then **Add fingerprint** and follow the prompts",
+            highlight: "Add fingerprint",
+          },
+        ],
+      },
+    ],
+    article: [
+      "Open Settings and go to Security and privacy.",
+      "Open Biometrics, then Fingerprints.",
+      "Authenticate and add a new fingerprint following the on-screen guide.",
+    ],
+    faqs: [],
+    related: [],
+    compatibleDevices: [],
+    confirmations: 8,
     forumVerified: true,
   },
 };
