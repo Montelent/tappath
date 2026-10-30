@@ -11,12 +11,16 @@ function mapVersions(raw: unknown): GuideVersion[] {
       return {
         id: String(v.id || `v-${i}`),
         label: String(v.label || `Version ${i + 1}`),
-        steps: v.steps.map((s: any, j: number) => ({
-          id: Number(s.id) || j + 1,
-          instruction: String(s.instruction || s.text || ""),
-          highlight: String(s.highlight || ""),
-          detail: s.detail ? String(s.detail) : undefined,
-        })),
+        steps: v.steps.map((s: any, j: number) => {
+          const instruction = String(s.instruction || s.text || "");
+          const bold = instruction.match(/\*\*(.+?)\*\*/);
+          return {
+            id: Number(s.id) || j + 1,
+            instruction,
+            highlight: String(s.highlight || (bold ? bold[1] : "")),
+            detail: s.detail ? String(s.detail) : undefined,
+          };
+        }),
       };
     }
     return {
@@ -35,12 +39,15 @@ export function dbGuideToGuide(db: DbGuide): Guide {
       {
         id: "from-article",
         label: versions[0]?.label || "Guide",
-        steps: article.map((text, i) => ({
-          id: i + 1,
-          instruction: text,
-          highlight: "",
-          detail: undefined,
-        })),
+        steps: article.map((text, i) => {
+          const m = String(text).match(/\*\*(.+?)\*\*/);
+          return {
+            id: i + 1,
+            instruction: text,
+            highlight: m ? m[1] : String(text).slice(0, 40),
+            detail: undefined,
+          };
+        }),
       },
     ];
   }
