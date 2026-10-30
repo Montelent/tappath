@@ -5,7 +5,7 @@ import { getSql, isNeonConfigured } from "@/lib/db/neon";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const MAX_BYTES = 1_500_000;
+const MAX_BYTES = 2_000_000;
 
 async function ensureMediaTable() {
   const sql = getSql()!;
@@ -71,11 +71,18 @@ export async function POST(req: NextRequest) {
       )
       RETURNING id, filename, mime, size_bytes, created_at::text
     `;
-    const row = rows[0] as { id: string; filename: string; mime: string; size_bytes: number };
+    const row = rows[0] as {
+      id: string;
+      filename: string;
+      mime: string;
+      size_bytes: number;
+    };
+    // Short URL so guide.versions stays small and every step can load
+    const publicUrl = `/api/media/${row.id}`;
     return NextResponse.json({
       ok: true,
       id: row.id,
-      url: dataUrl,
+      url: publicUrl,
       filename: row.filename,
       mime: row.mime,
       size_bytes: row.size_bytes,

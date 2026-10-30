@@ -2,50 +2,78 @@ import { guides, type Guide, type GuideVersion } from "@/data/guides";
 import { getGuideByPath, listGuides, isDatabaseConfigured } from "@/lib/db/content";
 import type { DbGuide } from "@/lib/db/types";
 
+function parseJsonField(raw: unknown): unknown {
+  if (raw == null) return null;
+  if (typeof raw === "string") {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+  return raw;
+}
+
+function mapStep(s: Record<string, unknown>, j: number) {
+  const instruction = String(s.instruction || s.text || "");
+  const bold = instruction.match(/\*\*(.+?)\*\*/);
+  const imageUrl =
+    (s.imageUrl as string) ||
+    (s.image_url as string) ||
+    (s.screenshot as string) ||
+    undefined;
+  const markerX =
+    s.markerX != null
+      ? Number(s.markerX)
+      : s.marker_x != null
+        ? Number(s.marker_x)
+        : undefined;
+  const markerY =
+    s.markerY != null
+      ? Number(s.markerY)
+      : s.marker_y != null
+        ? Number(s.marker_y)
+        : undefined;
+  return {
+    id: Number(s.id) || j + 1,
+    instruction,
+    highlight: String(s.highlight || (bold ? bold[1] : "")),
+    detail: s.detail ? String(s.detail) : undefined,
+    imageUrl: imageUrl && String(imageUrl).trim() ? String(imageUrl).trim() : undefined,
+    markerX: Number.isFinite(markerX as number) ? (markerX as number) : undefined,
+    markerY: Number.isFinite(markerY as number) ? (markerY as number) : undefined,
+  };
+}
+
 function mapVersions(raw: unknown): GuideVersion[] {
-  if (!Array.isArray(raw) || raw.length === 0) {
+  const parsed = parseJsonField(raw);
+  if (!Array.isArray(parsed) || parsed.length === 0) {
     return [{ id: "default", label: "Default", steps: [] }];
   }
-  return raw.map((v: any, i: number) => {
-    if (v && Array.isArray(v.steps)) {
-      return {
-        id: String(v.id || `v-${i}`),
-        label: String(v.label || `Version ${i + 1}`),
-        steps: v.steps.map((s: any, j: number) => {
-          const instruction = String(s.instruction || s.text || "");
-          const bold = instruction.match(/\*\*(.+?)\*\*/);
-          return {
-            id: Number(s.id) || j + 1,
-            instruction,
-            highlight: String(s.highlight || (bold ? bold[1] : "")),
-            detail: s.detail ? String(s.detail) : undefined,
-            imageUrl: s.imageUrl || s.image_url || undefined,
-            markerX:
-              s.markerX != null
-                ? Number(s.markerX)
-                : s.marker_x != null
-                  ? Number(s.marker_x)
-                  : undefined,
-            markerY:
-              s.markerY != null
-                ? Number(s.markerY)
-                : s.marker_y != null
-                  ? Number(s.marker_y)
-                  : undefined,
-          };
-        }),
-      };
+  return parsed.map((v: unknown, i: number) => {
+    const ver = (v || {}) as Record<string, unknown>;
+    let stepsRaw = ver.steps;
+    if (typeof stepsRaw === "string") {
+      try {
+        stepsRaw = JSON.parse(stepsRaw);
+      } catch {
+        stepsRaw = [];
+      }
     }
+    const steps = Array.isArray(stepsRaw)
+      ? stepsRaw.map((s, j) => mapStep((s || {}) as Record<string, unknown>, j))
+      : [];
     return {
-      id: String(v?.id || `v-${i}`),
-      label: String(v?.label || `Version ${i + 1}`),
-      steps: [],
+      id: String(ver.id || `v-${i}`),
+      label: String(ver.label || `Version ${i + 1}`),
+      steps,
     };
   });
 }
 
 export function dbGuideToGuide(db: DbGuide): Guide {
-  const article = Array.isArray(db.article) ? db.article.map(String) : [];
+  const articleRaw = parseJsonField(db.article);
+  const article = Array.isArray(articleRaw) ? articleRaw.map(String) : [];
   let versions = mapVersions(db.versions);
   if (versions.every((v) => v.steps.length === 0) && article.length) {
     versions = [
@@ -64,6 +92,10 @@ export function dbGuideToGuide(db: DbGuide): Guide {
       },
     ];
   }
+  const faqsRaw = parseJsonField(db.faqs);
+  const relatedRaw = parseJsonField(db.related);
+  const devicesRaw = parseJsonField(db.compatible_devices);
+
   return {
     slug: db.slug,
     brand: db.brand,
@@ -76,10 +108,10 @@ export function dbGuideToGuide(db: DbGuide): Guide {
     category: db.category || "General",
     versions,
     article,
-    faqs: Array.isArray(db.faqs) ? (db.faqs as Guide["faqs"]) : [],
-    related: Array.isArray(db.related) ? (db.related as Guide["related"]) : [],
-    compatibleDevices: Array.isArray(db.compatible_devices)
-      ? (db.compatible_devices as Guide["compatibleDevices"])
+    faqs: Array.isArray(faqsRaw) ? (faqsRaw as Guide["faqs"]) : [],
+    related: Array.isArray(relatedRaw) ? (relatedRaw as Guide["related"]) : [],
+    compatibleDevices: Array.isArray(devicesRaw)
+      ? (devicesRaw as Guide["compatibleDevices"])
       : [],
     confirmations: db.confirmations || 0,
     forumVerified: !!db.forum_verified,
@@ -102,7 +134,6 @@ export async function resolveGuide(
   const brand = brandSlug.toLowerCase();
   const product = productLine.toLowerCase();
 
-  // Prefer Neon (admin edits with screenshots) over static seed data
   if (isDatabaseConfigured()) {
     try {
       const db = await getGuideByPath(brand, productLine, slug);
@@ -117,7 +148,7 @@ export async function resolveGuide(
       );
       if (hit) return dbGuideToGuide(hit);
     } catch {
-      /* fall through to static */
+      /* fall through */
     }
   }
 
