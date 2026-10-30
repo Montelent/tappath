@@ -142,12 +142,19 @@ export async function getGuideByPath(
   if (isNeonConfigured()) {
     try {
       const sql = getSql()!;
+      const pl = productLine.toLowerCase();
+      const plHyphen = pl.replace(/\s+/g, "-");
+      const plSpace = pl.replace(/-/g, " ");
       const rows = await sql`
         SELECT * FROM guides
         WHERE brand_slug = ${brandSlug}
-          AND lower(product_line) = ${productLine.toLowerCase()}
           AND slug = ${slug}
           AND published = true
+          AND (
+            lower(product_line) = ${pl}
+            OR lower(replace(product_line, ' ', '-')) = ${plHyphen}
+            OR lower(product_line) = ${plSpace}
+          )
         LIMIT 1
       `;
       if (rows[0]) return rows[0] as DbGuide;
@@ -159,7 +166,9 @@ export async function getGuideByPath(
       (g) =>
         g.slug === slug &&
         g.brand_slug === brandSlug &&
-        g.product_line.toLowerCase() === productLine.toLowerCase()
+        (g.product_line.toLowerCase() === productLine.toLowerCase() ||
+          g.product_line.toLowerCase().replace(/\s+/g, "-") ===
+            productLine.toLowerCase().replace(/\s+/g, "-"))
     ) ?? null
   );
 }
