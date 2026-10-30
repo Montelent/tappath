@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Crosshair, Image as ImageIcon, Loader2, Upload } from "lucide-react";
-import { TapMarker } from "@/components/guide/PhoneFrame";
+import { ScreenshotLayer } from "@/components/guide/PhoneFrame";
 
 export type StepShot = {
   id?: number;
@@ -22,22 +22,9 @@ type Props = {
 };
 
 export default function StepScreenshotEditor({ step, stepNumber, onChange, onRemove }: Props) {
-  const imgRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
-
-  const placeMarker = (e: React.MouseEvent) => {
-    if (!step.imageUrl || !imgRef.current) return;
-    const rect = imgRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    onChange({
-      ...step,
-      markerX: Math.round(Math.min(98, Math.max(2, x)) * 10) / 10,
-      markerY: Math.round(Math.min(98, Math.max(2, y)) * 10) / 10,
-    });
-  };
 
   const onFile = async (file: File | null) => {
     if (!file) return;
@@ -74,28 +61,44 @@ export default function StepScreenshotEditor({ step, stepNumber, onChange, onRem
     <div className="rounded-xl border border-[var(--border)] bg-[var(--background)] p-3">
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs font-semibold text-[var(--muted-foreground)]">Step {stepNumber}</span>
-        <button type="button" onClick={onRemove} className="text-xs text-red-600">Remove</button>
+        <button type="button" onClick={onRemove} className="text-xs text-red-600">
+          Remove
+        </button>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-2">
         <div className="space-y-2">
-          <input value={step.instruction} onChange={(e) => onChange({ ...step, instruction: e.target.value })}
+          <input
+            value={step.instruction}
+            onChange={(e) => onChange({ ...step, instruction: e.target.value })}
             placeholder='Instruction e.g. Tap on **Settings**'
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-sm" />
-          <input value={step.highlight} onChange={(e) => onChange({ ...step, highlight: e.target.value })}
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-sm"
+          />
+          <input
+            value={step.highlight}
+            onChange={(e) => onChange({ ...step, highlight: e.target.value })}
             placeholder="Highlight label (menu name)"
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-sm" />
-          <input value={step.detail || ""} onChange={(e) => onChange({ ...step, detail: e.target.value })}
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-sm"
+          />
+          <input
+            value={step.detail || ""}
+            onChange={(e) => onChange({ ...step, detail: e.target.value })}
             placeholder="Optional detail"
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-sm" />
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-sm"
+          />
 
           <div className="rounded-lg border border-dashed border-[var(--border)] p-2">
             <span className="mb-1 flex items-center gap-1 text-[11px] font-medium text-[var(--muted-foreground)]">
               <Upload className="h-3 w-3" /> Upload screenshot
             </span>
-            <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif"
-              className="block w-full text-xs" disabled={uploading}
-              onChange={(e) => onFile(e.target.files?.[0] || null)} />
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              className="block w-full text-xs"
+              disabled={uploading}
+              onChange={(e) => onFile(e.target.files?.[0] || null)}
+            />
             {uploading && (
               <p className="mt-1 flex items-center gap-1 text-[11px] text-brand-600">
                 <Loader2 className="h-3 w-3 animate-spin" /> Uploading…
@@ -103,7 +106,7 @@ export default function StepScreenshotEditor({ step, stepNumber, onChange, onRem
             )}
             {uploadError && <p className="mt-1 text-[11px] text-red-600">{uploadError}</p>}
             <p className="mt-1 text-[10px] text-[var(--muted-foreground)]">
-              PNG / JPG / WebP, max ~1.5 MB. Or paste a public URL below.
+              PNG / JPG / WebP, max ~2 MB. Or paste a public URL below.
             </p>
           </div>
 
@@ -112,39 +115,50 @@ export default function StepScreenshotEditor({ step, stepNumber, onChange, onRem
               <ImageIcon className="h-3 w-3" /> Screenshot URL
             </span>
             <input
-              value={step.imageUrl?.startsWith("data:") ? "(uploaded image)" : step.imageUrl || ""}
+              value={
+                step.imageUrl?.startsWith("data:")
+                  ? "(uploaded image)"
+                  : step.imageUrl || ""
+              }
               onChange={(e) => {
                 const v = e.target.value.trim();
                 if (v === "(uploaded image)") return;
                 onChange({ ...step, imageUrl: v });
               }}
-              placeholder="https://…/step-1.webp"
+              placeholder="https://… or /api/media/…"
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 font-mono text-xs"
             />
           </label>
 
           {step.imageUrl && (
             <p className="flex items-center gap-1 text-[11px] text-[var(--muted-foreground)]">
-              <Crosshair className="h-3 w-3" /> Click the preview to place the tap arrow
+              <Crosshair className="h-3 w-3" /> Click the phone preview to place the finger
               {step.markerX != null && step.markerY != null && (
-                <span className="ml-1 font-mono text-brand-600">({step.markerX}%, {step.markerY}%)</span>
+                <span className="ml-1 font-mono text-brand-600">
+                  ({step.markerX}%, {step.markerY}%)
+                </span>
               )}
             </p>
           )}
         </div>
 
-        <div>
+        <div className="mx-auto w-full max-w-[160px]">
           {step.imageUrl ? (
-            <div ref={imgRef} onClick={placeMarker}
-              className="relative mx-auto aspect-[9/19] max-h-64 w-full max-w-[160px] cursor-crosshair overflow-hidden rounded-2xl border-4 border-slate-900 bg-black"
-              title="Click to place marker">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={step.imageUrl} alt="" className="h-full w-full object-cover object-top" />
-              {step.markerX != null && step.markerY != null && <TapMarker x={step.markerX} y={step.markerY} />}
+            <div className="overflow-hidden rounded-[1.25rem] border-[5px] border-slate-900 bg-black shadow-lg">
+              <div className="relative aspect-[9/19] w-full">
+                <ScreenshotLayer
+                  imageUrl={step.imageUrl}
+                  markerX={step.markerX}
+                  markerY={step.markerY}
+                  onPlace={(x, y) => onChange({ ...step, markerX: x, markerY: y })}
+                />
+              </div>
             </div>
           ) : (
-            <div className="flex aspect-[9/19] max-h-64 max-w-[160px] items-center justify-center rounded-2xl border border-dashed border-[var(--border)] text-center text-[11px] text-[var(--muted-foreground)]">
-              Upload or paste URL then click to place arrow
+            <div className="flex aspect-[9/19] items-center justify-center rounded-[1.25rem] border border-dashed border-[var(--border)] text-center text-[11px] text-[var(--muted-foreground)]">
+              Upload or paste URL
+              <br />
+              then click to place finger
             </div>
           )}
         </div>
