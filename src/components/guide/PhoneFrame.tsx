@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -40,7 +41,7 @@ export default function PhoneFrame({ children, deviceModel = "Galaxy S23+", clas
   );
 }
 
-/** Index-finger marker. (x,y) are % of the screenshot box. Blue dot = exact hotspot. */
+/** Index-finger marker. (x,y) are % of the *image content* box. Blue dot = exact hotspot. */
 export function TapMarker({ x, y }: { x: number; y: number }) {
   const left = Math.min(99, Math.max(1, x));
   const top = Math.min(99, Math.max(1, y));
@@ -108,7 +109,25 @@ export function TapMarker({ x, y }: { x: number; y: number }) {
   );
 }
 
-/** Shared screenshot + marker so Admin and Frontend use identical fit and coordinates. */
+type ImageBox = { left: number; top: number; width: number; height: number };
+
+/** object-contain + object-top geometry inside a container */
+function computeContainTop(cw: number, ch: number, nw: number, nh: number): ImageBox {
+  if (!cw || !ch || !nw || !nh) {
+    return { left: 0, top: 0, width: cw, height: ch };
+  }
+  const scale = Math.min(cw / nw, ch / nh);
+  const width = nw * scale;
+  const height = nh * scale;
+  const left = (cw - width) / 2;
+  const top = 0; // object-top
+  return { left, top, width, height };
+}
+
+/**
+ * Marker coords are % of the *actual displayed image*, not the letterboxed frame.
+ * Admin and Frontend therefore always match.
+ */
 export function ScreenshotLayer({
   imageUrl,
   markerX,
@@ -124,12 +143,39 @@ export function ScreenshotLayer({
   onPlace?: (x: number, y: number) => void;
   className?: string;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [box, setBox] = useState<ImageBox | null>(null);
+
+  const recalc = useCallback(() => {
+    const container = containerRef.current;
+    const img = imgRef.current;
+    if (!container || !img) return;
+    const cw = container.clientWidth;
+    const ch = container.clientHeight;
+    const nw = img.naturalWidth;
+    const nh = img.naturalHeight;
+    if (!nw || !nh || !cw || !ch) return;
+    setBox(computeContainTop(cw, ch, nw, nh));
+  }, []);
+
+  useEffect(() => {
+    recalc();
+    const container = containerRef.current;
+    if (!container) return;
+    const ro = new ResizeObserver(() => recalc());
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [recalc, imageUrl]);
+
   const onClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!onPlace) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return;
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    if (!onPlace || !box || !containerRef.current) return;
+    const crect = containerRef.current.getBoundingClientRect();
+    const px = e.clientX - crect.left - box.left;
+    const py = e.clientY - crect.top - box.top;
+    if (px < 0 || py < 0 || px > box.width || py > box.height) return;
+    const x = (px / box.width) * 100;
+    const y = (py / box.height) * 100;
     onPlace(
       Math.round(Math.min(99, Math.max(1, x)) * 10) / 10,
       Math.round(Math.min(99, Math.max(1, y)) * 10) / 10
@@ -138,8 +184,9 @@ export function ScreenshotLayer({
 
   return (
     <div
+      ref={containerRef}
       className={cn(
-        "relative h-full w-full bg-slate-900",
+        "relative h-full w-full overflow-hidden bg-slate-900",
         onPlace && "cursor-crosshair",
         className
       )}
@@ -147,12 +194,26 @@ export function ScreenshotLayer({
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
+        ref={imgRef}
         src={imageUrl}
         alt={alt}
         draggable={false}
+        onLoad={recalc}
         className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain object-top"
       />
-      {markerX != null && markerY != null && <TapMarker x={markerX} y={markerY} />}
+      {box && markerX != null && markerY != null && (
+        <div
+          className="pointer-events-none absolute"
+          style={{
+            left: box.left,
+            top: box.top,
+            width: box.width,
+            height: box.height,
+          }}
+        >
+          <TapMarker x={markerX} y={markerY} />
+        </div>
+      )}
     </div>
   );
 }
