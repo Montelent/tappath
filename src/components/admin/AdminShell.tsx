@@ -13,6 +13,7 @@ import {
   Settings,
   Users,
   MessageCircleHeart,
+  Sparkles,
   ExternalLink,
   LogOut,
   Shield,
@@ -31,7 +32,8 @@ const NAV = [
   { href: "/admin/forum", label: "Forum", icon: MessageSquare },
   { href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart },
   { href: "/admin/users", label: "Users", icon: Users },
-  { href: "/admin/settings", label: "Site settings", icon: Settings, soon: true },
+  { href: "/admin/settings", label: "Site settings", icon: Settings },
+  { href: "/admin/copilot", label: "Copilot", icon: Sparkles },
 ];
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
@@ -57,18 +59,6 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             {NAV.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href, item.exact);
-              if (item.soon) {
-                return (
-                  <div
-                    key={item.href}
-                    className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-[var(--muted-foreground)] opacity-60"
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span className="flex-1">{item.label}</span>
-                    <span className="rounded bg-[var(--muted)] px-1.5 text-[10px] font-medium uppercase">Soon</span>
-                  </div>
-                );
-              }
               return (
                 <Link
                   key={item.href}
@@ -118,7 +108,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           </header>
 
           <div className="flex gap-1 overflow-x-auto border-b border-[var(--border)] px-2 py-2 lg:hidden">
-            {NAV.filter((n) => !n.soon).map((item) => {
+            {NAV.map((item) => {
               const active = isActive(item.href, item.exact);
               return (
                 <Link
