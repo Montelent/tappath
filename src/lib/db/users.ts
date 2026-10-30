@@ -102,6 +102,7 @@ export async function authenticateUser(
   return user;
 }
 
+/** Ensure demo accounts exist in Neon (idempotent; refreshes passwords). */
 export async function ensureDemoUsers() {
   if (!isNeonConfigured()) return;
   const sql = getSql()!;
@@ -112,6 +113,9 @@ export async function ensureDemoUsers() {
     VALUES
       ('admin@tappath.com', 'Admin', ${adminHash}, 'admin'),
       ('user@tappath.com', 'Demo User', ${userHash}, 'user')
-    ON CONFLICT (email) DO NOTHING
+    ON CONFLICT (email) DO UPDATE SET
+      password_hash = EXCLUDED.password_hash,
+      role = EXCLUDED.role,
+      name = EXCLUDED.name
   `;
 }
