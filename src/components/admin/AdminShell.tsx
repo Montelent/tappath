@@ -29,8 +29,8 @@ const NAV = [
   { href: "/admin/devices", label: "Devices", icon: Smartphone },
   { href: "/admin/glossary", label: "Glossary", icon: BookMarked },
   { href: "/admin/forum", label: "Forum", icon: MessageSquare },
-  { href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart, soon: true },
-  { href: "/admin/users", label: "Users", icon: Users, soon: true },
+  { href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart },
+  { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/settings", label: "Site settings", icon: Settings, soon: true },
 ];
 
@@ -65,9 +65,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                   >
                     <Icon className="h-4 w-4" />
                     <span className="flex-1">{item.label}</span>
-                    <span className="rounded bg-[var(--muted)] px-1.5 text-[10px] font-medium uppercase">
-                      Soon
-                    </span>
+                    <span className="rounded bg-[var(--muted)] px-1.5 text-[10px] font-medium uppercase">Soon</span>
                   </div>
                 );
               }
@@ -89,23 +87,12 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             })}
           </nav>
           <div className="border-t border-[var(--border)] p-3">
-            <div className="mb-2 truncate px-2 text-xs text-[var(--muted-foreground)]">
-              {user?.email}
-            </div>
-            <Link
-              href="/"
-              className="mb-1 flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
-            >
-              <ExternalLink className="h-4 w-4" />
-              View site
+            <div className="mb-2 truncate px-2 text-xs text-[var(--muted-foreground)]">{user?.email}</div>
+            <Link href="/" className="mb-1 flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)]">
+              <ExternalLink className="h-4 w-4" /> View site
             </Link>
-            <button
-              type="button"
-              onClick={() => logout()}
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign out
+            <button type="button" onClick={() => logout()} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)]">
+              <LogOut className="h-4 w-4" /> Sign out
             </button>
           </div>
         </aside>
@@ -117,19 +104,12 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
               <span className="font-semibold text-[var(--foreground)]">Admin</span>
             </div>
             <div className="hidden items-center gap-1 text-sm text-[var(--muted-foreground)] lg:flex">
-              <Link href="/admin" className="hover:text-[var(--foreground)]">
-                Admin
-              </Link>
+              <Link href="/admin" className="hover:text-[var(--foreground)]">Admin</Link>
               <ChevronRight className="h-3.5 w-3.5" />
               <span className="font-medium text-[var(--foreground)]">{current}</span>
             </div>
             <div className="ml-auto flex items-center gap-2 lg:hidden">
-              <Link
-                href="/"
-                className="rounded-full border border-[var(--border)] px-3 py-1 text-xs font-medium"
-              >
-                Site
-              </Link>
+              <Link href="/" className="rounded-full border border-[var(--border)] px-3 py-1 text-xs font-medium">Site</Link>
             </div>
           </header>
 
@@ -142,9 +122,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                   href={item.href}
                   className={cn(
                     "whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium",
-                    active
-                      ? "bg-brand-600 text-white"
-                      : "bg-[var(--muted)] text-[var(--muted-foreground)]"
+                    active ? "bg-brand-600 text-white" : "bg-[var(--muted)] text-[var(--muted-foreground)]"
                   )}
                 >
                   {item.label}
