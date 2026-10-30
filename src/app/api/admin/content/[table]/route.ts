@@ -16,6 +16,62 @@ const ALLOWED = new Set([
 ]);
 
 type Ctx = { params: Promise<{ table: string }> };
+type Sql = NonNullable<ReturnType<typeof getSql>>;
+
+/** Explicit queries — Neon cannot bind table names as $1 parameters. */
+async function selectAll(sql: Sql, table: string) {
+  switch (table) {
+    case "brands":
+      return sql`SELECT * FROM brands ORDER BY sort_order ASC NULLS LAST, name ASC LIMIT 500`;
+    case "topics":
+      return sql`SELECT * FROM topics ORDER BY sort_order ASC NULLS LAST, name ASC LIMIT 500`;
+    case "devices":
+      return sql`SELECT * FROM devices ORDER BY name ASC LIMIT 500`;
+    case "glossary_terms":
+      return sql`SELECT * FROM glossary_terms ORDER BY term ASC LIMIT 500`;
+    case "guides":
+      return sql`SELECT * FROM guides ORDER BY created_at DESC NULLS LAST LIMIT 500`;
+    case "forum_topics":
+      return sql`SELECT * FROM forum_topics ORDER BY created_at DESC NULLS LAST LIMIT 500`;
+    case "forum_replies":
+      return sql`SELECT * FROM forum_replies ORDER BY created_at DESC NULLS LAST LIMIT 500`;
+    case "site_settings":
+      return sql`SELECT * FROM site_settings LIMIT 100`;
+    case "guide_feedback":
+      return sql`SELECT * FROM guide_feedback ORDER BY created_at DESC NULLS LAST LIMIT 500`;
+    case "profiles":
+      return sql`SELECT id, email, name, role, created_at FROM profiles ORDER BY created_at DESC NULLS LAST LIMIT 500`;
+    default:
+      throw new Error("Unknown table");
+  }
+}
+
+async function deleteById(sql: Sql, table: string, id: string) {
+  switch (table) {
+    case "brands":
+      return sql`DELETE FROM brands WHERE id::text = ${id}`;
+    case "topics":
+      return sql`DELETE FROM topics WHERE id::text = ${id}`;
+    case "devices":
+      return sql`DELETE FROM devices WHERE id::text = ${id}`;
+    case "glossary_terms":
+      return sql`DELETE FROM glossary_terms WHERE id::text = ${id}`;
+    case "guides":
+      return sql`DELETE FROM guides WHERE id::text = ${id}`;
+    case "forum_topics":
+      return sql`DELETE FROM forum_topics WHERE id::text = ${id}`;
+    case "forum_replies":
+      return sql`DELETE FROM forum_replies WHERE id::text = ${id}`;
+    case "site_settings":
+      return sql`DELETE FROM site_settings WHERE id::text = ${id}`;
+    case "guide_feedback":
+      return sql`DELETE FROM guide_feedback WHERE id::text = ${id}`;
+    case "profiles":
+      return sql`DELETE FROM profiles WHERE id::text = ${id}`;
+    default:
+      throw new Error("Unknown table");
+  }
+}
 
 export async function GET(_req: NextRequest, ctx: Ctx) {
   const admin = await requireAdmin();
@@ -34,18 +90,18 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
 
   const sql = getSql()!;
   try {
-    const rows = await sql`SELECT * FROM ${sql(table)} ORDER BY updated_at DESC NULLS LAST LIMIT 500`;
-    return NextResponse.json({ rows, usingSupabase: true });
-  } catch {
-    try {
-      const rows = await sql`SELECT * FROM ${sql(table)} LIMIT 500`;
-      return NextResponse.json({ rows, usingSupabase: true });
-    } catch (e) {
-      return NextResponse.json(
-        { error: e instanceof Error ? e.message : "Query failed", rows: [], usingSupabase: true },
-        { status: 500 }
-      );
-    }
+    const rows = await selectAll(sql, table);
+    return NextResponse.json({ rows, usingSupabase: true, backend: "neon" });
+  } catch (e) {
+    return NextResponse.json(
+      {
+        error: e instanceof Error ? e.message : "Query failed",
+        rows: [],
+        usingSupabase: true,
+        backend: "neon",
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -78,13 +134,10 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       const row = await insertBrand(sql, body);
       return NextResponse.json({ row }, { status: 201 });
     }
-    const json = JSON.stringify(body);
-    const rows = await sql`
-      INSERT INTO ${sql(table)}
-      SELECT * FROM json_populate_record(null::${sql(table)}, ${json}::json)
-      RETURNING *
-    `;
-    return NextResponse.json({ row: rows[0] }, { status: 201 });
+    return NextResponse.json(
+      { error: `Create via dedicated editor not yet for ${table}` },
+      { status: 400 }
+    );
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Insert failed" },
@@ -121,19 +174,11 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       const row = await updateBrand(sql, id, body);
       return NextResponse.json({ row });
     }
-    const existing = await sql`SELECT * FROM ${sql(table)} WHERE id::text = ${id} LIMIT 1`;
-    if (!existing[0]) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    const merged = { ...(existing[0] as object), ...body };
-    delete (merged as { updated_at?: unknown }).updated_at;
-    delete (merged as { created_at?: unknown }).created_at;
-    const json = JSON.stringify(merged);
-    await sql`DELETE FROM ${sql(table)} WHERE id::text = ${id}`;
-    const rows = await sql`
-      INSERT INTO ${sql(table)}
-      SELECT * FROM json_populate_record(null::${sql(table)}, ${json}::json)
-      RETURNING *
-    `;
-    return NextResponse.json({ row: rows[0] });
+    if (table === "forum_topics") {
+      const row = await updateForumTopic(sql, id, body);
+      return NextResponse.json({ row });
+    }
+    return NextResponse.json({ error: `Update not implemented for ${table}` }, { status: 400 });
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Update failed" },
@@ -156,7 +201,7 @@ export async function DELETE(req: NextRequest, ctx: Ctx) {
 
   const sql = getSql()!;
   try {
-    await sql`DELETE FROM ${sql(table)} WHERE id::text = ${id}`;
+    await deleteById(sql, table, id);
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json(
@@ -165,8 +210,6 @@ export async function DELETE(req: NextRequest, ctx: Ctx) {
     );
   }
 }
-
-type Sql = NonNullable<ReturnType<typeof getSql>>;
 
 async function insertGuide(sql: Sql, b: Record<string, unknown>) {
   const rows = await sql`
@@ -271,5 +314,24 @@ async function updateBrand(sql: Sql, id: string, b: Record<string, unknown>) {
     RETURNING *
   `;
   if (!rows[0]) throw new Error("Brand not found");
+  return rows[0];
+}
+
+async function updateForumTopic(sql: Sql, id: string, b: Record<string, unknown>) {
+  const rows = await sql`
+    UPDATE forum_topics SET
+      title = ${String(b.title || "")},
+      brand = ${String(b.brand || "General")},
+      brand_slug = ${String(b.brand_slug || "general")},
+      category = ${String(b.category || "General")},
+      author_name = ${String(b.author_name || "Anonymous")},
+      excerpt = ${String(b.excerpt || "")},
+      body = ${String(b.body || "")},
+      solved = ${Boolean(b.solved)},
+      views = ${Number(b.views) || 0}
+    WHERE id::text = ${id}
+    RETURNING *
+  `;
+  if (!rows[0]) throw new Error("Topic not found");
   return rows[0];
 }
