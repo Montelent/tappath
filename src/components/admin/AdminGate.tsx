@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { Loader2, Shield } from "lucide-react";
+import AdminShell from "./AdminShell";
 
 export default function AdminGate({ children }: { children: React.ReactNode }) {
   const { user, loading, isAdmin } = useAuth();
@@ -21,7 +22,7 @@ export default function AdminGate({ children }: { children: React.ReactNode }) {
         <Shield className="h-12 w-12 text-amber-600" />
         <h1 className="mt-4 text-xl font-bold">Admin access required</h1>
         <p className="mt-2 text-sm text-[var(--muted-foreground)]">
-          Sign in with an admin account to view the content dashboard.
+          Sign in with an admin account to manage content and control the frontend.
         </p>
         <p className="mt-2 text-xs text-[var(--muted-foreground)]">
           Demo: <code>admin@tappath.com</code> / <code>admin1234</code>
@@ -36,5 +37,5 @@ export default function AdminGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return <AdminShell>{children}</AdminShell>;
 }
