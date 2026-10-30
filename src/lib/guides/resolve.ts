@@ -19,6 +19,19 @@ function mapVersions(raw: unknown): GuideVersion[] {
             instruction,
             highlight: String(s.highlight || (bold ? bold[1] : "")),
             detail: s.detail ? String(s.detail) : undefined,
+            imageUrl: s.imageUrl || s.image_url || undefined,
+            markerX:
+              s.markerX != null
+                ? Number(s.markerX)
+                : s.marker_x != null
+                  ? Number(s.marker_x)
+                  : undefined,
+            markerY:
+              s.markerY != null
+                ? Number(s.markerY)
+                : s.marker_y != null
+                  ? Number(s.marker_y)
+                  : undefined,
           };
         }),
       };
