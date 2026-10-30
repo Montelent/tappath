@@ -6,12 +6,25 @@ import {
   Loader2, Plus, Trash2, Save, RefreshCw, Database, ExternalLink, Eye, EyeOff,
 } from "lucide-react";
 import SearchableSelect from "@/components/admin/SearchableSelect";
+import GuideVersionsEditor from "@/components/admin/GuideVersionsEditor";
 import {
   slugify, formatUpdatedLabel, formatModifiedDate, estimateReadTime, GUIDE_CATEGORIES,
 } from "@/lib/admin/guideHelpers";
 
 type Faq = { q: string; a: string };
-type Version = { label: string; steps?: { instruction?: string; detail?: string }[] };
+type Version = {
+  id?: string;
+  label: string;
+  steps?: {
+    id?: number;
+    instruction?: string;
+    highlight?: string;
+    detail?: string;
+    imageUrl?: string;
+    markerX?: number;
+    markerY?: number;
+  }[];
+};
 type GuideRow = {
   id?: string; slug: string; brand: string; brand_slug: string; product_line: string;
   title: string; short_description: string; updated_label: string; read_time: string;
@@ -27,9 +40,10 @@ type BrandOpt = { name: string; slug: string; product_lines: { name: string }[] 
 const emptyGuide = (): GuideRow => ({
   slug: "", brand: "Samsung", brand_slug: "samsung", product_line: "Galaxy",
   title: "", short_description: "", updated_label: formatUpdatedLabel(), read_time: "1 min",
-  category: "Display & Home Screen", versions: [{ label: "Latest" }], article: [""],
-  faqs: [{ q: "", a: "" }], related: [], compatible_devices: [], confirmations: 0,
-  forum_verified: false, published: false,
+  category: "Display & Home Screen",
+  versions: [{ id: "v1", label: "Latest", steps: [{ instruction: "", highlight: "" }] }],
+  article: [""], faqs: [{ q: "", a: "" }], related: [], compatible_devices: [],
+  confirmations: 0, forum_verified: false, published: false,
 });
 
 function previewHref(g: GuideRow) {
@@ -129,7 +143,19 @@ export default function GuideEditor() {
         ...editing,
         article: (editing.article || []).filter((p) => p.trim()),
         faqs: (editing.faqs || []).filter((f) => f.q.trim()),
-        versions: editing.versions || [],
+        versions: (editing.versions || []).map((v, vi) => ({
+          id: v.id || `v-${vi}`,
+          label: v.label,
+          steps: (v.steps || []).map((s, si) => ({
+            id: s.id || si + 1,
+            instruction: s.instruction || "",
+            highlight: s.highlight || "",
+            detail: s.detail,
+            imageUrl: s.imageUrl,
+            markerX: s.markerX,
+            markerY: s.markerY,
+          })),
+        })),
         related: editing.related || [],
         compatible_devices: editing.compatible_devices || [],
         read_time: estimateReadTime(editing.article, editing.versions),
@@ -228,7 +254,7 @@ export default function GuideEditor() {
             <div>
               <h2 className="font-semibold">{editing.id ? "Edit guide" : "Create guide"}</h2>
               <p className="text-xs text-[var(--muted-foreground)]">
-                Pick brand → product line → category. Slug, read time & updated date are automatic.
+                Brand → product line → category. Add screenshots under each OS version step.
               </p>
             </div>
             <label className="flex items-center gap-2 text-sm">
@@ -262,34 +288,32 @@ export default function GuideEditor() {
                 setEditing({ ...editing, brand: name, brand_slug: slug, product_line: firstLine });
               }} />
             <SearchableSelect label="Product line" value={editing.product_line} options={productLineOptions}
-              help="Lines for the selected brand (or type a new one)"
+              help="Lines for the selected brand"
               onChange={(val) => setEditing({ ...editing, product_line: val })} />
             <SearchableSelect label="Category" value={editing.category} options={categoryOptions}
-              help="What topic is this guide about?"
+              help="Topic category"
               onChange={(val) => setEditing({ ...editing, category: val })} />
             <label>
               <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">
-                URL slug {slugLocked ? "(manual)" : "(auto from title)"}
+                URL slug {slugLocked ? "(manual)" : "(auto)"}
               </span>
               <div className="flex gap-2">
                 <input value={editing.slug}
                   onChange={(e) => { setSlugLocked(true); setEditing({ ...editing, slug: slugify(e.target.value) }); }}
                   className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 font-mono text-sm" />
                 <button type="button" className="shrink-0 rounded-xl border border-[var(--border)] px-2 text-xs"
-                  onClick={() => { setSlugLocked(false); setEditing({ ...editing, slug: slugify(editing.title) }); }}>
-                  Auto
-                </button>
+                  onClick={() => { setSlugLocked(false); setEditing({ ...editing, slug: slugify(editing.title) }); }}>Auto</button>
               </div>
             </label>
           </div>
 
           <div className="grid gap-3 rounded-xl bg-[var(--muted)]/40 p-3 sm:grid-cols-3">
             <div>
-              <div className="text-[11px] font-medium uppercase tracking-wide text-[var(--muted-foreground)]">Read time (auto)</div>
+              <div className="text-[11px] font-medium uppercase tracking-wide text-[var(--muted-foreground)]">Read time</div>
               <div className="mt-0.5 text-sm font-semibold">{estimateReadTime(editing.article, editing.versions)}</div>
             </div>
             <div>
-              <div className="text-[11px] font-medium uppercase tracking-wide text-[var(--muted-foreground)]">Updated label (auto)</div>
+              <div className="text-[11px] font-medium uppercase tracking-wide text-[var(--muted-foreground)]">Updated</div>
               <div className="mt-0.5 text-sm font-semibold">{formatUpdatedLabel()}</div>
             </div>
             <div>
@@ -297,9 +321,6 @@ export default function GuideEditor() {
               <div className="mt-0.5 text-sm font-semibold">
                 {editing.updated_at ? formatModifiedDate(new Date(editing.updated_at)) : formatModifiedDate()}
               </div>
-            </div>
-            <div className="sm:col-span-3 text-[11px] text-[var(--muted-foreground)]">
-              Brand slug: <code>{editing.brand_slug}</code> · Product path: <code>{slugify(editing.product_line)}</code> · Preview: <code>{previewHref(editing) || "—"}</code>
             </div>
           </div>
 
@@ -310,16 +331,20 @@ export default function GuideEditor() {
               rows={2} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
           </label>
 
+          <GuideVersionsEditor
+            versions={editing.versions || []}
+            onChange={(versions) => setEditing({ ...editing, versions })}
+          />
+
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-sm font-semibold">Article steps</h3>
+              <h3 className="text-sm font-semibold">Article paragraphs</h3>
               <button type="button" className="text-xs text-brand-600"
-                onClick={() => setEditing({ ...editing, article: [...(editing.article || []), ""] })}>+ Add step</button>
+                onClick={() => setEditing({ ...editing, article: [...(editing.article || []), ""] })}>+ Add</button>
             </div>
             <div className="space-y-2">
               {(editing.article || []).map((p, i) => (
                 <div key={i} className="flex gap-2">
-                  <span className="mt-2 w-6 text-xs text-[var(--muted-foreground)]">{i + 1}.</span>
                   <textarea value={p} onChange={(e) => {
                     const article = [...editing.article]; article[i] = e.target.value;
                     setEditing({ ...editing, article });
@@ -328,50 +353,6 @@ export default function GuideEditor() {
                     onClick={() => setEditing({ ...editing, article: editing.article.filter((_, j) => j !== i) })}>
                     <Trash2 className="h-4 w-4" />
                   </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-sm font-semibold">FAQs</h3>
-              <button type="button" className="text-xs text-brand-600"
-                onClick={() => setEditing({ ...editing, faqs: [...(editing.faqs || []), { q: "", a: "" }] })}>+ Add FAQ</button>
-            </div>
-            <div className="space-y-3">
-              {(editing.faqs || []).map((f, i) => (
-                <div key={i} className="rounded-xl border border-[var(--border)] p-3">
-                  <input placeholder="Question" value={f.q} onChange={(e) => {
-                    const faqs = [...editing.faqs]; faqs[i] = { ...faqs[i], q: e.target.value };
-                    setEditing({ ...editing, faqs });
-                  }} className="mb-2 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-1.5 text-sm" />
-                  <textarea placeholder="Answer" value={f.a} onChange={(e) => {
-                    const faqs = [...editing.faqs]; faqs[i] = { ...faqs[i], a: e.target.value };
-                    setEditing({ ...editing, faqs });
-                  }} rows={2} className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-1.5 text-sm" />
-                  <button type="button" className="mt-1 text-xs text-red-500"
-                    onClick={() => setEditing({ ...editing, faqs: editing.faqs.filter((_, j) => j !== i) })}>Remove</button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-sm font-semibold">OS / UI versions</h3>
-              <button type="button" className="text-xs text-brand-600"
-                onClick={() => setEditing({ ...editing, versions: [...(editing.versions || []), { label: "" }] })}>+ Version</button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {(editing.versions || []).map((v, i) => (
-                <div key={i} className="flex items-center gap-1">
-                  <input value={v.label} onChange={(e) => {
-                    const versions = [...editing.versions]; versions[i] = { ...versions[i], label: e.target.value };
-                    setEditing({ ...editing, versions });
-                  }} className="rounded-lg border border-[var(--border)] bg-[var(--background)] px-2 py-1 text-sm" placeholder="One UI 6" />
-                  <button type="button" className="text-red-500"
-                    onClick={() => setEditing({ ...editing, versions: editing.versions.filter((_, j) => j !== i) })}>×</button>
                 </div>
               ))}
             </div>
@@ -420,8 +401,8 @@ export default function GuideEditor() {
                     <td className="px-3 py-2.5 text-xs">{row.category}</td>
                     <td className="px-3 py-2.5">
                       {row.published
-                        ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">Live</span>
-                        : <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800 dark:bg-amber-950 dark:text-amber-200">Draft</span>}
+                        ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800">Live</span>
+                        : <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">Draft</span>}
                     </td>
                     <td className="px-3 py-2.5 text-xs text-[var(--muted-foreground)]">
                       {row.updated_at ? formatModifiedDate(new Date(row.updated_at)) : row.updated_label || "—"}
