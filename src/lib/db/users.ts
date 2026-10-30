@@ -106,16 +106,26 @@ export async function authenticateUser(
 export async function ensureDemoUsers() {
   if (!isNeonConfigured()) return;
   const sql = getSql()!;
-  const adminHash = hashPassword("admin1234");
-  const userHash = hashPassword("user1234");
-  await sql`
-    INSERT INTO profiles (email, name, password_hash, role)
-    VALUES
-      ('admin@tappath.com', 'Admin', ${adminHash}, 'admin'),
-      ('user@tappath.com', 'Demo User', ${userHash}, 'user')
-    ON CONFLICT (email) DO UPDATE SET
-      password_hash = EXCLUDED.password_hash,
-      role = EXCLUDED.role,
-      name = EXCLUDED.name
-  `;
+  const demos: { email: string; name: string; password: string; role: Role }[] = [
+    { email: "admin@tappath.com", name: "Admin", password: "admin1234", role: "admin" },
+    { email: "user@tappath.com", name: "Demo User", password: "user1234", role: "user" },
+  ];
+  for (const d of demos) {
+    const hash = hashPassword(d.password);
+    const existing = (await sql`
+      SELECT id FROM profiles WHERE lower(email) = ${d.email} LIMIT 1
+    `) as { id: string }[];
+    if (existing[0]) {
+      await sql`
+        UPDATE profiles
+        SET password_hash = ${hash}, role = ${d.role}, name = ${d.name}
+        WHERE id::text = ${String(existing[0].id)}
+      `;
+    } else {
+      await sql`
+        INSERT INTO profiles (email, name, password_hash, role)
+        VALUES (${d.email}, ${d.name}, ${hash}, ${d.role})
+      `;
+    }
+  }
 }
