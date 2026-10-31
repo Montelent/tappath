@@ -26,13 +26,40 @@ export type SiteSettings = {
   homepage_brands_heading: string;
   homepage_topics_heading: string;
   homepage_coming_soon_label: string;
+  homepage_all_topics_label: string;
+  homepage_no_brands_text: string;
+
+  // Navigation labels
+  nav_home: string;
+  nav_topics: string;
+  nav_devices: string;
+  nav_glossary: string;
+  nav_forum: string;
+  nav_admin: string;
+  nav_sign_in: string;
+  nav_sign_up: string;
 
   // Footer
   footer_tagline: string;
   footer_copyright: string;
+  footer_browse_heading: string;
+  footer_account_heading: string;
+  footer_support_label: string;
 
-  // Feature flags
+  // Social links (empty = hide)
+  social_twitter: string;
+  social_github: string;
+  social_youtube: string;
+  social_discord: string;
+  social_linkedin: string;
+  social_facebook: string;
+  social_instagram: string;
+
+  // Maintenance
   maintenance_mode: boolean;
+  maintenance_message: string;
+
+  // Features
   allow_signups: boolean;
   default_locale: string;
 };
@@ -60,12 +87,37 @@ export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
   homepage_brands_heading: "Brands",
   homepage_topics_heading: "Topics",
   homepage_coming_soon_label: "Coming soon",
+  homepage_all_topics_label: "All topics",
+  homepage_no_brands_text: "No brands with published guides yet.",
+
+  nav_home: "Home",
+  nav_topics: "Topics",
+  nav_devices: "Devices",
+  nav_glossary: "Glossary",
+  nav_forum: "Forum",
+  nav_admin: "Admin",
+  nav_sign_in: "Sign in",
+  nav_sign_up: "Sign up",
 
   footer_tagline:
     "Phone settings paths written as clear steps — for people who just want the menu to work.",
   footer_copyright: "Paths verified on real devices when screenshots are attached.",
+  footer_browse_heading: "Browse",
+  footer_account_heading: "Account",
+  footer_support_label: "Support",
+
+  social_twitter: "",
+  social_github: "",
+  social_youtube: "",
+  social_discord: "",
+  social_linkedin: "",
+  social_facebook: "",
+  social_instagram: "",
 
   maintenance_mode: false,
+  maintenance_message:
+    "We're doing a short maintenance window. Some features may be temporarily unavailable.",
+
   allow_signups: true,
   default_locale: "en",
 };
@@ -102,4 +154,24 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   }
 
   return settings;
+}
+
+/** Social links that have a non-empty URL, for rendering icons/links. */
+export function activeSocialLinks(s: SiteSettings): { key: string; label: string; href: string }[] {
+  const map: { key: keyof SiteSettings; label: string }[] = [
+    { key: "social_twitter", label: "X / Twitter" },
+    { key: "social_github", label: "GitHub" },
+    { key: "social_youtube", label: "YouTube" },
+    { key: "social_discord", label: "Discord" },
+    { key: "social_linkedin", label: "LinkedIn" },
+    { key: "social_facebook", label: "Facebook" },
+    { key: "social_instagram", label: "Instagram" },
+  ];
+  return map
+    .map(({ key, label }) => ({
+      key: key as string,
+      label,
+      href: String(s[key] || "").trim(),
+    }))
+    .filter((x) => x.href.length > 0);
 }
