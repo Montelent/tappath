@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 import Link from "next/link";
 import { CheckCircle2, Loader2, MessageSquarePlus } from "lucide-react";
 import { useAuthOptional } from "@/context/AuthContext";
@@ -128,13 +129,13 @@ export default function ForumBoard({ brand }: { brand?: string }) {
             className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3.5 py-2.5 text-sm outline-none focus:border-brand-400"
             required
           />
-          <textarea
+          <RichTextEditor
+            label=""
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={setContent}
+            minHeight={160}
+            compact
             placeholder="Describe the issue or tip…"
-            rows={4}
-            className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3.5 py-2.5 text-sm outline-none focus:border-brand-400"
-            required
           />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button
