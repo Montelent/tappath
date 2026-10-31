@@ -2,13 +2,18 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Loader2, Plus, Trash2, Save, RefreshCw, Database } from "lucide-react";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 
 type Props = {
   table: string;
   title: string;
   columns: { key: string; label: string }[];
   emptyRow: Record<string, unknown>;
-  fields: { key: string; label: string; type?: "text" | "textarea" | "number" | "boolean" | "json" }[];
+  fields: {
+    key: string;
+    label: string;
+    type?: "text" | "textarea" | "richtext" | "number" | "boolean" | "json";
+  }[];
 };
 
 export default function ContentManager({ table, title, columns, emptyRow, fields }: Props) {
@@ -20,6 +25,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
   const [saving, setSaving] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const [message, setMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -32,7 +38,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
         setRows([]);
       } else {
         setRows(data.rows || []);
-        setUsingDb(!!data.usingSupabase);
+        setUsingDb(!!data.usingSupabase || !!data.usingDb);
         if (data.error) setError(data.error);
       }
     } catch {
@@ -111,6 +117,12 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
     return String(v).slice(0, 80);
   };
 
+  const filteredRows = rows.filter((row) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return Object.values(row).some((v) => String(v ?? "").toLowerCase().includes(q));
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -123,12 +135,19 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
               </span>
             ) : (
               <span className="text-amber-600">
-                DATABASE_URL not set — add Neon connection string on Vercel, then Seed
+                DATABASE_URL not set — add Neon on Vercel, then Seed
               </span>
             )}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search…"
+            className="rounded-full border border-[var(--border)] bg-[var(--background)] px-3 py-1.5 text-sm"
+          />
           <button
             type="button"
             onClick={() => load()}
@@ -169,7 +188,14 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
           <h2 className="mb-4 font-semibold">{editing.id ? "Edit" : "Create"}</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {fields.map((f) => (
-              <label key={f.key} className={f.type === "textarea" || f.type === "json" ? "sm:col-span-2" : ""}>
+              <label
+                key={f.key}
+                className={
+                  f.type === "textarea" || f.type === "richtext" || f.type === "json"
+                    ? "sm:col-span-2"
+                    : ""
+                }
+              >
                 <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">
                   {f.label}
                 </span>
@@ -180,28 +206,40 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                     onChange={(e) => setEditing({ ...editing, [f.key]: e.target.checked })}
                     className="h-4 w-4"
                   />
-                ) : f.type === "textarea" || f.type === "json" ? (
+                ) : f.type === "json" ? (
                   <textarea
                     value={
-                      f.type === "json"
-                        ? typeof editing[f.key] === "string"
-                          ? (editing[f.key] as string)
-                          : JSON.stringify(editing[f.key] ?? "", null, 2)
-                        : String(editing[f.key] ?? "")
+                      typeof editing[f.key] === "string"
+                        ? (editing[f.key] as string)
+                        : JSON.stringify(editing[f.key] ?? "", null, 2)
                     }
                     onChange={(e) => {
-                      if (f.type === "json") {
-                        try {
-                          setEditing({ ...editing, [f.key]: JSON.parse(e.target.value) });
-                        } catch {
-                          setEditing({ ...editing, [f.key]: e.target.value });
-                        }
-                      } else {
+                      try {
+                        setEditing({ ...editing, [f.key]: JSON.parse(e.target.value) });
+                      } catch {
                         setEditing({ ...editing, [f.key]: e.target.value });
                       }
                     }}
-                    rows={f.type === "json" ? 8 : 3}
+                    rows={8}
                     className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 font-mono text-sm"
+                  />
+                ) : f.type === "richtext" ? (
+                  <RichTextEditor
+                    label=""
+                    value={String(editing[f.key] ?? "")}
+                    onChange={(html) => setEditing({ ...editing, [f.key]: html })}
+                    minHeight={280}
+                    compact={false}
+                    placeholder={f.label}
+                  />
+                ) : f.type === "textarea" ? (
+                  <RichTextEditor
+                    label=""
+                    value={String(editing[f.key] ?? "")}
+                    onChange={(html) => setEditing({ ...editing, [f.key]: html })}
+                    minHeight={160}
+                    compact
+                    placeholder={f.label}
                   />
                 ) : (
                   <input
@@ -259,7 +297,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
-              {rows.map((row) => (
+              {filteredRows.map((row) => (
                 <tr key={String(row.id)} className="hover:bg-[var(--muted)]/30">
                   {columns.map((c) => (
                     <td key={c.key} className="px-3 py-2.5">
@@ -285,7 +323,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                   </td>
                 </tr>
               ))}
-              {rows.length === 0 && (
+              {filteredRows.length === 0 && (
                 <tr>
                   <td
                     colSpan={columns.length + 1}
