@@ -1,6 +1,7 @@
 /**
  * Content data access — Neon when DATABASE_URL is set, else static files (dev only).
  * Counts are always computed live from guides/devices when Neon is connected.
+ * When Neon is connected, list functions never fall back to mock static data.
  */
 import { getSql, isNeonConfigured } from "./neon";
 import type {
@@ -198,29 +199,23 @@ export async function getGuideByPath(
         WHERE brand_slug = ${brandSlug}
           AND slug = ${slug}
           AND published = true
-          AND (
-            lower(product_line) = ${pl}
-            OR lower(replace(product_line, ' ', '-')) = ${plHyphen}
-            OR lower(product_line) = ${plSpace}
-          )
+        ORDER BY
+          CASE
+            WHEN lower(product_line) = ${pl} THEN 0
+            WHEN lower(replace(product_line, ' ', '-')) = ${plHyphen} THEN 0
+            WHEN lower(product_line) = ${plSpace} THEN 0
+            ELSE 1
+          END
         LIMIT 1
       `;
       if (rows[0]) return rows[0] as DbGuide;
-    } catch {
-      /* fall through */
+    } catch (e) {
+      console.error("[getGuideByPath]", e);
     }
+    return null;
   }
   const list = await listGuides();
-  return (
-    list.find(
-      (g) =>
-        g.slug === slug &&
-        g.brand_slug === brandSlug &&
-        (g.product_line.toLowerCase() === productLine.toLowerCase() ||
-          g.product_line.toLowerCase().replace(/\s+/g, "-") ===
-            productLine.toLowerCase().replace(/\s+/g, "-"))
-    ) ?? null
-  );
+  return list.find((g) => g.slug === slug && g.brand_slug === brandSlug) ?? null;
 }
 
 export async function getAdminStats(): Promise<AdminStats> {
@@ -262,7 +257,6 @@ export async function getAdminStats(): Promise<AdminStats> {
   };
 }
 
-/** Single brand for public pages — live guide/device counts. */
 export async function getBrandBySlug(slug: string): Promise<DbBrand | null> {
   const all = await listBrands();
   const hit = all.find((b) => b.slug === slug.toLowerCase());
