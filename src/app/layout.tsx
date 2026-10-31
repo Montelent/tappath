@@ -4,6 +4,8 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import MaintenanceBanner from "@/components/MaintenanceBanner";
+import CustomCode from "@/components/CustomCode";
+import AdSlot from "@/components/ads/AdSlot";
 import CopilotWidget from "@/components/copilot/CopilotWidget";
 import OrganizationJsonLd from "@/components/seo/OrganizationJsonLd";
 import { LanguageProvider } from "@/i18n/LanguageProvider";
@@ -56,7 +58,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description,
     keywords,
-    authors: [{ name: s.site_name }],
+    authors: [{ name: s.author_name || s.site_name }],
     creator: s.site_name,
     icons,
     openGraph: {
@@ -96,13 +98,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
     >
       <body className="min-h-screen flex flex-col font-sans">
+        <CustomCode slot="body_start" />
         <AuthProvider>
           <LanguageProvider>
             <OrganizationJsonLd />
+            <CustomCode slot="head" />
             <MaintenanceBanner />
+            <AdSlot placement="header" />
             <Header />
             <main className="flex-1 pb-24 md:pb-16">{children}</main>
+            <AdSlot placement="before_footer" />
             <Footer />
+            <CustomCode slot="footer" />
             <CopilotWidget />
           </LanguageProvider>
         </AuthProvider>
