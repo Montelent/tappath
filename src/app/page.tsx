@@ -7,6 +7,7 @@ import {
   listDevices,
   isDatabaseConfigured,
 } from "@/lib/db/content";
+import { guideHref } from "@/lib/guides/resolve";
 
 export const dynamic = "force-dynamic";
 
@@ -58,12 +59,11 @@ export default async function HomePage() {
     { label: "Devices", value: formatCount(deviceCount), icon: Users },
   ];
 
+  // Only published Neon guides — href always matches resolveGuide paths
   const featured = guides.slice(0, 8).map((g) => ({
     brand: g.brand,
     title: g.title,
-    href: `/${g.brand_slug}/${String(g.product_line || "galaxy")
-      .toLowerCase()
-      .replace(/\s+/g, "-")}/${g.slug}`,
+    href: guideHref(g),
   }));
 
   return (
