@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import TermPage from "@/components/glossary/TermPage";
+import DefinedTermJsonLd from "@/components/seo/DefinedTermJsonLd";
 import { getTerm, glossaryTerms } from "@/data/glossary";
 
 type Props = {
@@ -25,5 +26,16 @@ export default async function GlossaryTermPage({ params }: Props) {
   const { slug } = await params;
   const term = getTerm(slug);
   if (!term) notFound();
-  return <TermPage term={term} />;
+  return (
+    <>
+      <DefinedTermJsonLd
+        term={term.term}
+        slug={term.slug}
+        short={term.short}
+        definition={term.definition}
+        category={term.category}
+      />
+      <TermPage term={term} />
+    </>
+  );
 }

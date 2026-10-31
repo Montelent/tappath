@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import GlossaryIndex from "@/components/glossary/GlossaryIndex";
+import CollectionJsonLd from "@/components/seo/CollectionJsonLd";
+import { glossaryTerms } from "@/data/glossary";
 
 export const metadata: Metadata = {
   title: "Tech glossary: smartphone & technology terms explained",
@@ -8,5 +10,21 @@ export const metadata: Metadata = {
 };
 
 export default function GlossaryPage() {
-  return <GlossaryIndex />;
+  const items = glossaryTerms.map((term) => ({
+    name: term.term,
+    url: `/glossary/${term.slug}`,
+    description: term.short,
+  }));
+
+  return (
+    <>
+      <CollectionJsonLd
+        name="Tech glossary"
+        description="Smartphone and technology terms explained simply."
+        path="/glossary"
+        items={items}
+      />
+      <GlossaryIndex />
+    </>
+  );
 }

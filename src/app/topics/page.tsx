@@ -2,73 +2,92 @@ export const dynamic = "force-dynamic";
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  Wifi, Monitor, Battery, Shield, Bell, MessageSquare, Package, Camera,
-  Settings, HardDrive, Accessibility, Cloud, Languages, MoreHorizontal, ChevronRight,
-} from "lucide-react";
 import { listTopicsForIndex } from "@/lib/topics/resolve";
-import { isDatabaseConfigured } from "@/lib/db/content";
+import CollectionJsonLd from "@/components/seo/CollectionJsonLd";
 
 export const metadata: Metadata = {
-  title: "Topic hubs — Guides & tips",
+  title: "Topics — Settings guides by category",
   description:
-    "Cross-brand guides for the most important smartphone topics — grouped by category, filterable by brand.",
-};
-
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Wifi, Monitor, Battery, Shield, Bell, MessageSquare, Package, Camera,
-  Settings, HardDrive, Accessibility, Cloud, Languages, MoreHorizontal,
+    "Cross-brand guides grouped by topic: battery, display, network, security and more.",
 };
 
 export default async function TopicsIndexPage() {
   const topics = await listTopicsForIndex();
-  const live = isDatabaseConfigured();
+  const withGuides = topics.filter((t) => t.guideCount > 0);
+  const empty = topics.filter((t) => t.guideCount === 0);
+
+  const items = topics.map((tp) => ({
+    name: tp.name,
+    url: `/topics/${tp.slug}`,
+    description: tp.description || undefined,
+  }));
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <nav className="mb-6 flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-        <Link href="/" className="hover:text-[var(--foreground)]">Home</Link>
-        <ChevronRight className="h-3.5 w-3.5" />
+    <div className="page-pad">
+      <CollectionJsonLd
+        name="Topics"
+        description="Cross-brand guides grouped by topic: battery, display, network, security and more."
+        path="/topics"
+        items={items}
+      />
+      <nav
+        className="max-wide mb-8 flex items-center gap-2 text-sm text-[var(--muted-foreground)]"
+        aria-label="Breadcrumb"
+      >
+        <Link href="/" className="link-quiet hover:text-[var(--foreground)]">
+          Home
+        </Link>
+        <span aria-hidden>/</span>
         <span className="text-[var(--foreground)]">Topics</span>
       </nav>
 
-      <header className="mb-10 max-w-2xl">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Topic hubs</h1>
-        <p className="mt-3 text-lg text-[var(--muted-foreground)]">
-          Cross-brand guides for the most important smartphone topics.
-          {live ? " Only published topics from the database are listed." : ""}
+      <header className="max-wide mb-10 max-w-2xl">
+        <p className="label-caps mb-2">Index</p>
+        <h1 className="font-display text-3xl sm:text-4xl">Topics</h1>
+        <p className="mt-3 text-[var(--muted-foreground)] leading-relaxed">
+          Guides grouped by what you are trying to change — battery, display,
+          network, security and the rest.
         </p>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {topics.map((t) => {
-          const Icon = iconMap[t.icon] ?? Settings;
-          return (
-            <Link
-              key={t.slug}
-              href={`/topics/${t.slug}`}
-              className="group flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 transition hover:border-brand-300 hover:shadow-md dark:hover:border-brand-700"
-            >
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-100 text-brand-600 dark:bg-brand-950 dark:text-brand-400">
-                <Icon className="h-5 w-5" />
-              </div>
-              <h2 className="font-semibold group-hover:text-brand-600 dark:group-hover:text-brand-400">{t.name}</h2>
-              <p className="mt-1.5 flex-1 text-sm text-[var(--muted-foreground)] line-clamp-3">{t.description}</p>
-              <div className="mt-4 flex items-center justify-between text-sm">
-                <span className="text-[var(--muted-foreground)]">
-                  {t.guideCount} guide{t.guideCount === 1 ? "" : "s"}
-                </span>
-                <span className="font-medium text-brand-600 dark:text-brand-400">Open topic hub →</span>
-              </div>
-            </Link>
-          );
-        })}
-        {topics.length === 0 && (
-          <p className="col-span-full text-sm text-[var(--muted-foreground)]">
-            No topics published yet. Add and publish topics in Admin.
+      <section className="max-wide pb-16">
+        {withGuides.length > 0 ? (
+          <ul className="border-t border-[var(--border)]">
+            {withGuides.map((t) => (
+              <li key={t.slug} className="border-b border-[var(--border)]">
+                <Link
+                  href={`/topics/${t.slug}`}
+                  className="group flex items-baseline justify-between gap-4 py-3.5 link-quiet"
+                >
+                  <span className="min-w-0">
+                    <span className="font-display text-lg group-hover:text-[var(--accent)] transition-colors duration-fast">
+                      {t.name}
+                    </span>
+                    {t.description && (
+                      <span className="mt-1 block text-sm text-[var(--muted-foreground)] line-clamp-2">
+                        {t.description}
+                      </span>
+                    )}
+                  </span>
+                  <span className="font-path text-sm text-[var(--muted-foreground)] tabular-nums shrink-0">
+                    {t.guideCount} {t.guideCount === 1 ? "guide" : "guides"}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-[var(--muted-foreground)]">
+            No topics with published guides yet.
           </p>
         )}
-      </div>
+
+        {empty.length > 0 && (
+          <p className="mt-8 text-sm text-[var(--muted-foreground)]">
+            Coming soon: {empty.map((t) => t.name).join(", ")}.
+          </p>
+        )}
+      </section>
     </div>
   );
 }
