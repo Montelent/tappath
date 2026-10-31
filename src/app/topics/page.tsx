@@ -1,23 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  Wifi,
-  Monitor,
-  Battery,
-  Shield,
-  Bell,
-  MessageSquare,
-  Package,
-  Camera,
-  Settings,
-  HardDrive,
-  Accessibility,
-  Cloud,
-  Languages,
-  MoreHorizontal,
-  ChevronRight,
+  Wifi, Monitor, Battery, Shield, Bell, MessageSquare, Package, Camera,
+  Settings, HardDrive, Accessibility, Cloud, Languages, MoreHorizontal, ChevronRight,
 } from "lucide-react";
-import { topics } from "@/data/topics";
+import { listTopics, isDatabaseConfigured } from "@/lib/db/content";
+import { topics as staticTopics } from "@/data/topics";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Topic hubs — Guides & tips",
@@ -26,29 +16,34 @@ export const metadata: Metadata = {
 };
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Wifi,
-  Monitor,
-  Battery,
-  Shield,
-  Bell,
-  MessageSquare,
-  Package,
-  Camera,
-  Settings,
-  HardDrive,
-  Accessibility,
-  Cloud,
-  Languages,
-  MoreHorizontal,
+  Wifi, Monitor, Battery, Shield, Bell, MessageSquare, Package, Camera,
+  Settings, HardDrive, Accessibility, Cloud, Languages, MoreHorizontal,
 };
 
-export default function TopicsIndexPage() {
+export default async function TopicsIndexPage() {
+  const dbTopics = await listTopics();
+  const live = isDatabaseConfigured();
+
+  const topics = live
+    ? dbTopics.map((t) => ({
+        slug: t.slug,
+        name: t.name,
+        description: t.description,
+        icon: t.icon || "Settings",
+        guideCount: Number(t.guide_count) || 0,
+      }))
+    : staticTopics.map((t) => ({
+        slug: t.slug,
+        name: t.name,
+        description: t.description,
+        icon: t.icon,
+        guideCount: t.guideCount,
+      }));
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <nav className="mb-6 flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-        <Link href="/" className="hover:text-[var(--foreground)]">
-          Home
-        </Link>
+        <Link href="/" className="hover:text-[var(--foreground)]">Home</Link>
         <ChevronRight className="h-3.5 w-3.5" />
         <span className="text-[var(--foreground)]">Topics</span>
       </nav>
@@ -56,8 +51,8 @@ export default function TopicsIndexPage() {
       <header className="mb-10 max-w-2xl">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Topic hubs</h1>
         <p className="mt-3 text-lg text-[var(--muted-foreground)]">
-          Cross-brand guides for the most important smartphone topics — grouped by category,
-          filterable by brand.
+          Cross-brand guides for the most important smartphone topics.
+          {live ? " Counts are live from the database." : ""}
         </p>
       </header>
 
@@ -73,21 +68,22 @@ export default function TopicsIndexPage() {
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-100 text-brand-600 dark:bg-brand-950 dark:text-brand-400">
                 <Icon className="h-5 w-5" />
               </div>
-              <h2 className="font-semibold group-hover:text-brand-600 dark:group-hover:text-brand-400">
-                {t.name}
-              </h2>
-              <p className="mt-1.5 flex-1 text-sm text-[var(--muted-foreground)] line-clamp-3">
-                {t.description}
-              </p>
+              <h2 className="font-semibold group-hover:text-brand-600 dark:group-hover:text-brand-400">{t.name}</h2>
+              <p className="mt-1.5 flex-1 text-sm text-[var(--muted-foreground)] line-clamp-3">{t.description}</p>
               <div className="mt-4 flex items-center justify-between text-sm">
-                <span className="text-[var(--muted-foreground)]">{t.guideCount} guides</span>
-                <span className="font-medium text-brand-600 dark:text-brand-400">
-                  Open topic hub →
+                <span className="text-[var(--muted-foreground)]">
+                  {t.guideCount} guide{t.guideCount === 1 ? "" : "s"}
                 </span>
+                <span className="font-medium text-brand-600 dark:text-brand-400">Open topic hub →</span>
               </div>
             </Link>
           );
         })}
+        {topics.length === 0 && (
+          <p className="col-span-full text-sm text-[var(--muted-foreground)]">
+            No topics published yet. Add topics in Admin.
+          </p>
+        )}
       </div>
     </div>
   );

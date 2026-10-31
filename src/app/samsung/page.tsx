@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import BrandPage from "@/components/brand/BrandPage";
-import { brands } from "@/data/brands";
+import { resolveBrandPage } from "@/lib/brands/resolve";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Samsung Guides, Help & Settings",
   description:
-    "Step-by-step guides and verified menu paths for Samsung devices running One UI. Interactive live simulator included.",
+    "Step-by-step guides and verified menu paths for Samsung. Interactive live simulator included.",
 };
 
-export default function SamsungPage() {
-  return <BrandPage brand={brands.samsung} />;
+export default async function Page() {
+  const brand = await resolveBrandPage("samsung");
+  if (!brand) notFound();
+  return <BrandPage brand={brand} />;
 }

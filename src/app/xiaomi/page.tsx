@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import BrandPage from "@/components/brand/BrandPage";
-import { brands } from "@/data/brands";
+import { resolveBrandPage } from "@/lib/brands/resolve";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Xiaomi Guides, Help & Settings",
   description:
-    "Step-by-step guides and verified menu paths for Xiaomi phones and tablets. Live Simulator ready.",
+    "Step-by-step guides and verified menu paths for Xiaomi. Interactive live simulator included.",
 };
 
-export default function XiaomiPage() {
-  return <BrandPage brand={brands.xiaomi} />;
+export default async function Page() {
+  const brand = await resolveBrandPage("xiaomi");
+  if (!brand) notFound();
+  return <BrandPage brand={brand} />;
 }
