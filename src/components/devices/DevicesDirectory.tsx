@@ -4,14 +4,14 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search, Smartphone, ChevronRight } from "lucide-react";
 import type { Device } from "@/data/devices";
-import { brandFilters } from "@/data/devices";
 import { cn } from "@/lib/utils";
 
 type Props = {
   devices: Device[];
+  brandFilters?: { slug: string; name: string }[];
 };
 
-export default function DevicesDirectory({ devices }: Props) {
+export default function DevicesDirectory({ devices, brandFilters = [] }: Props) {
   const [query, setQuery] = useState("");
   const [brand, setBrand] = useState("all");
 
@@ -48,7 +48,7 @@ export default function DevicesDirectory({ devices }: Props) {
           Device directory
         </h1>
         <p className="mt-3 text-lg text-[var(--muted-foreground)]">
-          All smartphone models with guides and specs. Search by name, brand or OS version.
+          Smartphone models from the database. Search by name, brand or OS.
         </p>
       </header>
 
@@ -58,7 +58,7 @@ export default function DevicesDirectory({ devices }: Props) {
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search devices (e.g. Galaxy S24, Pixel 9, HyperOS)..."
+          placeholder="Search devices…"
           className="w-full bg-transparent py-2.5 pr-3 text-sm outline-none placeholder:text-[var(--muted-foreground)]"
         />
       </div>
@@ -67,6 +67,7 @@ export default function DevicesDirectory({ devices }: Props) {
         {brandFilters.map((b) => (
           <button
             key={b.slug}
+            type="button"
             onClick={() => setBrand(b.slug)}
             className={cn(
               "rounded-full px-4 py-1.5 text-sm font-medium transition",
@@ -88,7 +89,7 @@ export default function DevicesDirectory({ devices }: Props) {
 
       {filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[var(--border)] p-10 text-center text-[var(--muted-foreground)]">
-          No devices match your search. Try a different brand or keyword.
+          No devices yet. Publish devices in Admin, or clear your search.
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -102,7 +103,7 @@ export default function DevicesDirectory({ devices }: Props) {
                 <Smartphone className="h-5 w-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="font-semibold group-hover:text-brand-600 dark:group-hover:text-brand-400 truncate">
+                <div className="truncate font-semibold group-hover:text-brand-600 dark:group-hover:text-brand-400">
                   {d.name}
                 </div>
                 <div className="text-sm text-[var(--muted-foreground)]">{d.os}</div>
