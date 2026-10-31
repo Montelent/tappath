@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import BrandPage from "@/components/brand/BrandPage";
-import { brands } from "@/data/brands";
+import { resolveBrandPage } from "@/lib/brands/resolve";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Realme Guides, Help & Settings",
-  description:
-    "Interactive guides for Realme devices running Realme UI. High number of topic hubs and community activity.",
+  description: "Step-by-step guides for Realme. Interactive live simulator included.",
 };
 
-export default function RealmePage() {
-  return <BrandPage brand={brands.realme} />;
+export default async function Page() {
+  const brand = await resolveBrandPage("realme");
+  if (!brand) notFound();
+  return <BrandPage brand={brand} />;
 }

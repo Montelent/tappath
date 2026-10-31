@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import BrandPage from "@/components/brand/BrandPage";
-import { brands } from "@/data/brands";
+import { resolveBrandPage } from "@/lib/brands/resolve";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Oppo Guides, Help & Settings",
-  description:
-    "Step-by-step guides for Oppo devices running ColorOS. Interactive Live Simulator included.",
+  description: "Step-by-step guides for Oppo. Interactive live simulator included.",
 };
 
-export default function OppoPage() {
-  return <BrandPage brand={brands.oppo} />;
+export default async function Page() {
+  const brand = await resolveBrandPage("oppo");
+  if (!brand) notFound();
+  return <BrandPage brand={brand} />;
 }

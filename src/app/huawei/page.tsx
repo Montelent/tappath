@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import BrandPage from "@/components/brand/BrandPage";
-import { brands } from "@/data/brands";
+import { resolveBrandPage } from "@/lib/brands/resolve";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Huawei Guides, Help & Settings",
-  description:
-    "Step-by-step guides and verified menu paths for Huawei devices running EMUI and HarmonyOS.",
+  description: "Step-by-step guides for Huawei. Interactive live simulator included.",
 };
 
-export default function HuaweiPage() {
-  return <BrandPage brand={brands.huawei} />;
+export default async function Page() {
+  const brand = await resolveBrandPage("huawei");
+  if (!brand) notFound();
+  return <BrandPage brand={brand} />;
 }
