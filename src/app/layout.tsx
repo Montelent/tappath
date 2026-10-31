@@ -7,6 +7,7 @@ import CopilotWidget from "@/components/copilot/CopilotWidget";
 import OrganizationJsonLd from "@/components/seo/OrganizationJsonLd";
 import { LanguageProvider } from "@/i18n/LanguageProvider";
 import { AuthProvider } from "@/context/AuthContext";
+import { getSiteSettings } from "@/lib/site-settings";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -29,43 +30,53 @@ const plexMono = IBM_Plex_Mono({
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://tappath.com";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(BASE),
-  title: {
-    default: "TapPath — Phone settings, step by step",
-    template: "%s · TapPath",
-  },
-  description:
-    "Exact menu paths for Samsung, Xiaomi, Huawei, OnePlus, Oppo, Realme, Android and Google phones. Verified screenshots and steps.",
-  keywords: [
-    "smartphone settings",
-    "Android how to",
-    "Samsung One UI",
-    "Xiaomi HyperOS",
-    "menu path",
-  ],
-  authors: [{ name: "TapPath" }],
-  creator: "TapPath",
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: BASE,
-    siteName: "TapPath",
-    title: "TapPath — Phone settings, step by step",
-    description:
-      "Exact menu paths for major Android phones. Verified screenshots and steps.",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "TapPath" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "TapPath — Phone settings, step by step",
-    description:
-      "Exact menu paths for major Android phones. Verified screenshots and steps.",
-    images: ["/og.png"],
-  },
-  robots: { index: true, follow: true },
-  alternates: { canonical: BASE },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSiteSettings();
+  const title = s.meta_title || `${s.site_name} — Phone settings, step by step`;
+  const description = s.meta_description;
+  const keywords = s.meta_keywords
+    .split(",")
+    .map((k) => k.trim())
+    .filter(Boolean);
+  const ogImage = s.og_image_url || "/og.png";
+  const icons = s.favicon_url
+    ? {
+        icon: [{ url: s.favicon_url }],
+        shortcut: [s.favicon_url],
+        apple: [{ url: s.favicon_url }],
+      }
+    : undefined;
+
+  return {
+    metadataBase: new URL(BASE),
+    title: {
+      default: title,
+      template: `%s · ${s.site_name}`,
+    },
+    description,
+    keywords,
+    authors: [{ name: s.site_name }],
+    creator: s.site_name,
+    icons,
+    openGraph: {
+      type: "website",
+      locale: "en_US",
+      url: BASE,
+      siteName: s.site_name,
+      title,
+      description,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: s.site_name }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImage],
+    },
+    robots: { index: true, follow: true },
+    alternates: { canonical: BASE },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: [
