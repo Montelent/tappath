@@ -1,6 +1,7 @@
 import type { Brand } from "@/data/brands";
 import { brands as staticBrands } from "@/data/brands";
 import { getBrandBySlug, listGuides, listDevices, isDatabaseConfigured } from "@/lib/db/content";
+import { guideHref } from "@/lib/guides/resolve";
 import { isNeonConfigured } from "@/lib/db/neon";
 
 /** Public brand page model with live guide/device/product-line counts from Neon. */
@@ -22,30 +23,33 @@ export async function resolveBrandPage(slug: string): Promise<Brand | null> {
           lineMap.set(line, (lineMap.get(line) || 0) + 1);
         }
 
-        const rawLines = Array.isArray(db.product_lines) ? db.product_lines : [];
+        // Prefer lines derived from live guides; fall back to stored product_lines
         let productLines =
-          rawLines.length > 0
-            ? rawLines.map((pl: { name?: string; href?: string }) => {
-                const name = String(pl.name || "Guides");
-                const href =
-                  pl.href || `/${key}/${name.toLowerCase().replace(/\s+/g, "-")}`;
-                return { name, count: lineMap.get(name) || 0, href };
-              })
-            : Array.from(lineMap.entries()).map(([name, count]) => ({
+          lineMap.size > 0
+            ? Array.from(lineMap.entries()).map(([name, count]) => ({
                 name,
                 count,
                 href: `/${key}/${name.toLowerCase().replace(/\s+/g, "-")}`,
-              }));
+              }))
+            : (Array.isArray(db.product_lines) ? db.product_lines : []).map(
+                (pl: { name?: string; href?: string; count?: number }) => ({
+                  name: String(pl.name || "Guides"),
+                  count: Number(pl.count) || 0,
+                  href:
+                    pl.href ||
+                    `/${key}/${String(pl.name || "guides")
+                      .toLowerCase()
+                      .replace(/\s+/g, "-")}`,
+                })
+              );
 
         if (productLines.length === 0 && brandGuides.length > 0) {
           productLines = [{ name: "All", count: brandGuides.length, href: `/${key}` }];
         }
 
-        const topGuides = brandGuides.slice(0, 8).map((g) => ({
+        const topGuides = brandGuides.slice(0, 24).map((g) => ({
           title: g.title,
-          href: `/${g.brand_slug}/${String(g.product_line || "galaxy")
-            .toLowerCase()
-            .replace(/\s+/g, "-")}/${g.slug}`,
+          href: guideHref(g),
           category: g.category || "General",
         }));
 
@@ -58,8 +62,8 @@ export async function resolveBrandPage(slug: string): Promise<Brand | null> {
         return {
           slug: db.slug,
           name: db.name,
-          guides: Number(db.guides_count) || brandGuides.length,
-          devices: Number(db.devices_count) || brandDevices.length,
+          guides: brandGuides.length || Number(db.guides_count) || 0,
+          devices: brandDevices.length || Number(db.devices_count) || 0,
           topicHubs: 0,
           color: db.color || "bg-slate-500",
           description: db.description || `${db.name} settings guides and help.`,

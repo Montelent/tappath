@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function AdminGlossaryPage() {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <div className="mx-auto max-w-6xl">
       <ContentManager
         table="glossary_terms"
         title="Glossary"
@@ -30,8 +30,12 @@ export default function AdminGlossaryPage() {
           { key: "term", label: "Term" },
           { key: "slug", label: "Slug" },
           { key: "category", label: "Category" },
-          { key: "short", label: "Short", type: "textarea" },
-          { key: "definition", label: "Definition", type: "textarea" },
+          { key: "short", label: "Short summary", type: "textarea" },
+          {
+            key: "definition",
+            label: "Definition (full rich text)",
+            type: "richtext",
+          },
           { key: "published", label: "Published", type: "boolean" },
           { key: "related_guides", label: "Related guides (JSON)", type: "json" },
         ]}
