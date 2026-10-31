@@ -156,7 +156,7 @@ export default async function HomePage() {
           </ul>
         ) : (
           <p className="text-sm text-[var(--muted-foreground)]">
-            No brands with published guides yet.
+            {settings.homepage_no_brands_text}
           </p>
         )}
         {brandsComingSoon.length > 0 && (
@@ -181,7 +181,7 @@ export default async function HomePage() {
               href="/topics"
               className="text-sm text-[var(--muted-foreground)] link-quiet hover:text-[var(--foreground)]"
             >
-              All topics
+              {settings.homepage_all_topics_label}
             </Link>
           </div>
           <ul className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
