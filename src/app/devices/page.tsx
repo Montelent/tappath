@@ -1,6 +1,8 @@
+export const dynamic = "force-dynamic";
+
 import type { Metadata } from "next";
 import DevicesDirectory from "@/components/devices/DevicesDirectory";
-import { getAllDevices } from "@/data/devices";
+import { listDevicesPublic, deviceBrandFilters } from "@/lib/devices/resolve";
 
 export const metadata: Metadata = {
   title: "All smartphone models & specs",
@@ -8,7 +10,8 @@ export const metadata: Metadata = {
     "Device directory — search and filter smartphone models with guides, OS versions and specs.",
 };
 
-export default function DevicesPage() {
-  const devices = getAllDevices();
-  return <DevicesDirectory devices={devices} />;
+export default async function DevicesPage() {
+  const devices = await listDevicesPublic();
+  const brands = [{ slug: "all", name: "All" }, ...deviceBrandFilters(devices)];
+  return <DevicesDirectory devices={devices} brandFilters={brands} />;
 }
