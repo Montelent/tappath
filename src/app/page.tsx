@@ -1,59 +1,71 @@
 import Link from "next/link";
-import HeroPhone from "@/components/HeroPhone";
-import { Search, Smartphone, Layers, BookOpen, Users } from "lucide-react";
+import { BookOpen, Layers, Smartphone, Users, ArrowRight, Search } from "lucide-react";
+import {
+  listBrands,
+  listGuides,
+  listTopics,
+  listDevices,
+  isDatabaseConfigured,
+} from "@/lib/db/content";
 
-const brands = [
-  { name: "Samsung", guides: 558, href: "/samsung", color: "bg-blue-500" },
-  { name: "Xiaomi", guides: 556, href: "/xiaomi", color: "bg-orange-500" },
-  { name: "Huawei", guides: 471, href: "/huawei", color: "bg-red-500" },
-  { name: "OnePlus", guides: 444, href: "/oneplus", color: "bg-red-600" },
-  { name: "Oppo", guides: 427, href: "/oppo", color: "bg-green-500" },
-  { name: "Realme", guides: 353, href: "/realme", color: "bg-yellow-500" },
-  { name: "Android", guides: 326, href: "/android", color: "bg-emerald-500" },
-  { name: "Google", guides: 120, href: "/google", color: "bg-blue-600" },
-];
+export const dynamic = "force-dynamic";
 
-const popularTopics = [
-  {
-    brand: "Xiaomi",
-    title: "Split Screen on Xiaomi Phones",
-    href: "/xiaomi/smartphone/split-screen",
-  },
-  {
-    brand: "Realme",
-    title: "Developer Options Explained",
-    href: "/realme/smartphone/developer-options",
-  },
-  {
-    brand: "Google",
-    title: "Pixel Settings, Tools and Troubleshooting",
-    href: "/google/pixel/pixel-help",
-  },
-  {
-    brand: "Realme",
-    title: "App Lock: Protecting Individual Apps",
-    href: "/realme/smartphone/app-lock",
-  },
-  {
-    brand: "Realme",
-    title: "Status Bar Settings & Icons",
-    href: "/realme/smartphone/status-bar",
-  },
-  {
-    brand: "Realme",
-    title: "Multiple User Accounts & Guest Mode",
-    href: "/realme/smartphone/multiple-users",
-  },
-];
+const FALLBACK_BRAND_COLORS: Record<string, string> = {
+  samsung: "bg-blue-500",
+  xiaomi: "bg-orange-500",
+  huawei: "bg-red-500",
+  oneplus: "bg-red-600",
+  oppo: "bg-green-500",
+  realme: "bg-yellow-500",
+  android: "bg-emerald-500",
+  google: "bg-blue-600",
+};
 
-const stats = [
-  { label: "Guides", value: "3,100+", icon: BookOpen },
-  { label: "Topic Hubs", value: "71", icon: Layers },
-  { label: "Brands", value: "8", icon: Smartphone },
-  { label: "Devices", value: "4,600+", icon: Users },
-];
+function formatCount(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, "")}k+`;
+  return String(n);
+}
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [brands, guides, topics, devices] = await Promise.all([
+    listBrands(),
+    listGuides(),
+    listTopics(),
+    listDevices(),
+  ]);
+
+  const live = isDatabaseConfigured();
+  const guideCount = guides.length;
+  const brandCount = brands.length || 0;
+  const topicCount = topics.length;
+  const deviceCount = devices.length;
+
+  const brandCards = brands.map((b) => ({
+    name: b.name,
+    slug: b.slug,
+    href: `/${b.slug}`,
+    color: b.color || FALLBACK_BRAND_COLORS[b.slug] || "bg-slate-500",
+    guides:
+      typeof b.guides_count === "number" && b.guides_count > 0
+        ? b.guides_count
+        : guides.filter((g) => g.brand_slug === b.slug).length,
+  }));
+
+  const stats = [
+    { label: "Guides", value: formatCount(guideCount), icon: BookOpen },
+    { label: "Topic Hubs", value: formatCount(topicCount), icon: Layers },
+    { label: "Brands", value: formatCount(brandCount), icon: Smartphone },
+    { label: "Devices", value: formatCount(deviceCount), icon: Users },
+  ];
+
+  const featured = guides.slice(0, 8).map((g) => ({
+    brand: g.brand,
+    title: g.title,
+    href: `/${g.brand_slug}/${String(g.product_line || "galaxy")
+      .toLowerCase()
+      .replace(/\s+/g, "-")}/${g.slug}`,
+  }));
+
   return (
     <>
       <section className="relative overflow-hidden border-b border-[var(--border)] bg-gradient-to-b from-brand-50/80 to-transparent dark:from-brand-950/30">
@@ -62,7 +74,7 @@ export default function HomePage() {
           <div className="animate-fade-in">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700 dark:border-brand-800 dark:bg-brand-950 dark:text-brand-300">
               <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
-              TapPath · Premium Hub
+              TapPath · Live guides
             </div>
 
             <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl lg:text-6xl">
@@ -74,132 +86,119 @@ export default function HomePage() {
             </h1>
 
             <p className="mt-5 max-w-xl text-lg text-[var(--muted-foreground)]">
-              3,100+ interactive guides for 8 brands – step by step, visual, accurate.
-              No hallucinated menu paths — curated click solutions.
+              {guideCount > 0
+                ? `${formatCount(guideCount)} interactive guides across ${brandCount} brands — step by step, visual, accurate.`
+                : "Interactive smartphone settings guides with a live simulator — step by step, visual, accurate."}
             </p>
 
-            <div className="mt-8 flex max-w-md items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-1.5 shadow-sm">
-              <Search className="ml-3 h-5 w-5 shrink-0 text-[var(--muted-foreground)]" />
-              <input
-                type="search"
-                placeholder="Search brands or devices (e.g. Samsung, Galaxy S24)..."
-                className="w-full bg-transparent py-2.5 pr-3 text-sm outline-none placeholder:text-[var(--muted-foreground)]"
-              />
-              <kbd className="hidden rounded border border-[var(--border)] bg-[var(--muted)] px-2 py-0.5 text-[10px] font-medium text-[var(--muted-foreground)] sm:inline">
-                /
-              </kbd>
-            </div>
+            <form action="/search" method="get" className="mt-8 flex max-w-md gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted-foreground)]" />
+                <input
+                  name="q"
+                  placeholder="Search brands or devices…"
+                  className="w-full rounded-full border border-[var(--border)] bg-[var(--background)] py-2.5 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-brand-500"
+                />
+              </div>
+              <button
+                type="submit"
+                className="rounded-full bg-brand-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-700"
+              >
+                Search
+              </button>
+            </form>
 
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="#brands"
-                className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
+                className="inline-flex items-center gap-1.5 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-700"
               >
-                <Smartphone className="h-4 w-4" />
-                Choose a brand
-              </Link>
-              <Link
-                href="/devices"
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-5 py-2.5 text-sm font-medium transition hover:bg-[var(--muted)]"
-              >
-                Find a product
+                Browse brands <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/topics"
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-5 py-2.5 text-sm font-medium transition hover:bg-[var(--muted)]"
+                className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-5 py-2.5 text-sm font-medium hover:bg-[var(--muted)]"
               >
-                Popular topics →
+                Topic hubs
               </Link>
             </div>
           </div>
 
-          <div className="flex justify-center lg:justify-end">
-            <HeroPhone />
-          </div>
-        </div>
-
-        <div className="relative border-t border-[var(--border)] bg-[var(--card)]/60 backdrop-blur">
-          <div className="mx-auto grid max-w-7xl grid-cols-2 gap-4 px-4 py-8 sm:grid-cols-4 sm:px-6 lg:px-8">
-            {stats.map((s) => (
-              <div key={s.label} className="text-center">
-                <div className="text-2xl font-bold tracking-tight sm:text-3xl">{s.value}</div>
-                <div className="mt-1 text-xs font-medium uppercase tracking-wider text-[var(--muted-foreground)]">
-                  {s.label}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            {stats.map((s) => {
+              const Icon = s.icon;
+              return (
+                <div
+                  key={s.label}
+                  className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm"
+                >
+                  <Icon className="h-5 w-5 text-brand-600" />
+                  <div className="mt-3 text-2xl font-bold tracking-tight">{s.value}</div>
+                  <div className="text-xs text-[var(--muted-foreground)]">{s.label}</div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
 
       <section id="brands" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-end justify-between">
+        <div className="flex items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Choose a brand</h2>
-            <p className="mt-1 text-[var(--muted-foreground)]">8 / 8 brands with verified guides</p>
+            <h2 className="text-2xl font-bold tracking-tight">Brands</h2>
+            <p className="mt-1 text-[var(--muted-foreground)]">
+              {brandCount} brand{brandCount === 1 ? "" : "s"}
+              {live ? " · live from database" : ""}
+            </p>
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {brands.map((b) => (
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {brandCards.map((b) => (
             <Link
-              key={b.name}
+              key={b.slug}
               href={b.href}
-              className="group relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 transition hover:border-brand-300 hover:shadow-lg dark:hover:border-brand-700"
+              className="group rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 transition hover:border-brand-300 hover:shadow-md"
             >
-              <div className={`mb-3 h-10 w-10 rounded-xl ${b.color} opacity-90`} />
-              <h3 className="font-semibold group-hover:text-brand-600 dark:group-hover:text-brand-400">
-                {b.name}
-              </h3>
+              <div className={`mb-3 h-2 w-10 rounded-full ${b.color}`} />
+              <h3 className="font-semibold group-hover:text-brand-600">{b.name}</h3>
               <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-                {b.guides} guides · Topic hubs
+                {b.guides} guide{b.guides === 1 ? "" : "s"}
               </p>
             </Link>
           ))}
+          {brandCards.length === 0 && (
+            <p className="col-span-full text-sm text-[var(--muted-foreground)]">
+              No brands published yet. Add brands in Admin.
+            </p>
+          )}
         </div>
       </section>
 
-      <section className="border-t border-[var(--border)] bg-[var(--muted)]/30">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Popular topics</h2>
-          <p className="mt-1 text-[var(--muted-foreground)]">
-            Cross-brand guides for the most important smartphone settings
-          </p>
-
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {popularTopics.map((t) => (
-              <Link
-                key={t.href}
-                href={t.href}
-                className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 transition hover:border-brand-300 hover:shadow-md dark:hover:border-brand-700"
-              >
-                <span className="text-xs font-medium uppercase tracking-wider text-brand-600 dark:text-brand-400">
-                  {t.brand}
-                </span>
-                <h3 className="mt-2 font-semibold">{t.title}</h3>
-                <span className="mt-3 inline-block text-sm text-[var(--muted-foreground)]">
-                  Open topic →
-                </span>
-              </Link>
-            ))}
+      {featured.length > 0 && (
+        <section className="border-t border-[var(--border)] bg-[var(--muted)]/30">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <h2 className="text-2xl font-bold tracking-tight">Latest guides</h2>
+            <p className="mt-1 text-[var(--muted-foreground)]">Recently published from the database</p>
+            <ul className="mt-8 grid gap-3 sm:grid-cols-2">
+              {featured.map((g) => (
+                <li key={g.href}>
+                  <Link
+                    href={g.href}
+                    className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 text-sm hover:border-brand-300"
+                  >
+                    <span>
+                      <span className="text-[var(--muted-foreground)]">{g.brand}: </span>
+                      {g.title}
+                    </span>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-[var(--muted-foreground)]" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          No more guessing menu paths.
-        </h2>
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-[var(--muted-foreground)]">
-          Pick your brand and follow the visual tap path – live simulated, always up to date.
-        </p>
-        <Link
-          href="#brands"
-          className="mt-8 inline-flex items-center gap-2 rounded-full bg-brand-600 px-8 py-3.5 text-base font-medium text-white transition hover:bg-brand-700"
-        >
-          Find a solution now
-        </Link>
-      </section>
+        </section>
+      )}
     </>
   );
 }
