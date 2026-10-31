@@ -6,6 +6,7 @@ import {
   SITE_SETTINGS_DEFAULTS,
   type SiteSettings as Settings,
 } from "@/lib/site-settings";
+import SettingsExtraFields from "@/components/admin/SettingsExtraFields";
 
 type FieldDef = {
   key: keyof Settings;
@@ -273,20 +274,20 @@ export default function SiteSettings() {
       >
         <ImageField
           label="Logo"
-          help="Shown in the header (and footer if no separate mark). PNG/SVG recommended."
+          help="Shown in the header and footer. PNG/SVG recommended."
           value={settings.logo_url}
           onChange={(v) => set("logo_url", v)}
         />
         <ImageField
           label="Favicon"
-          help="Browser tab icon. Square PNG or ICO, 32×32 or 64×64 works best."
+          help="Browser tab icon. Square PNG or ICO, 32×32 or 64×64."
           value={settings.favicon_url}
           onChange={(v) => set("favicon_url", v)}
           accept="image/png,image/x-icon,image/svg+xml,image/webp"
         />
         <ImageField
           label="Open Graph image"
-          help="Social share preview (1200×630 recommended). Defaults to /og.png."
+          help="Social share preview (1200×630). Defaults to /og.png."
           value={settings.og_image_url}
           onChange={(v) => set("og_image_url", v)}
         />
@@ -296,37 +297,25 @@ export default function SiteSettings() {
           onChange={(v) => set("site_name", v)}
         />
         <TextField
-          def={{
-            key: "site_tagline",
-            label: "Tagline",
-            help: "Short line used in SEO and marketing copy.",
-          }}
+          def={{ key: "site_tagline", label: "Tagline" }}
           value={settings.site_tagline}
           onChange={(v) => set("site_tagline", v)}
         />
       </Section>
 
-      <Section title="SEO & contact" description="Default document title, description, and support email.">
+      <Section title="SEO & contact">
         <TextField
           def={{ key: "meta_title", label: "Default page title" }}
           value={settings.meta_title}
           onChange={(v) => set("meta_title", v)}
         />
         <TextField
-          def={{
-            key: "meta_description",
-            label: "Meta description",
-            multiline: true,
-          }}
+          def={{ key: "meta_description", label: "Meta description", multiline: true }}
           value={settings.meta_description}
           onChange={(v) => set("meta_description", v)}
         />
         <TextField
-          def={{
-            key: "meta_keywords",
-            label: "Meta keywords",
-            help: "Comma-separated.",
-          }}
+          def={{ key: "meta_keywords", label: "Meta keywords", help: "Comma-separated." }}
           value={settings.meta_keywords}
           onChange={(v) => set("meta_keywords", v)}
         />
@@ -337,10 +326,7 @@ export default function SiteSettings() {
         />
       </Section>
 
-      <Section
-        title="Homepage hero"
-        description="Eyebrow, headline, subtitle, and search box on the public home page."
-      >
+      <Section title="Homepage hero">
         <TextField
           def={{ key: "homepage_eyebrow", label: "Eyebrow (small label above title)" }}
           value={settings.homepage_eyebrow}
@@ -352,25 +338,18 @@ export default function SiteSettings() {
           onChange={(v) => set("homepage_hero_title", v)}
         />
         <TextField
-          def={{
-            key: "homepage_hero_subtitle",
-            label: "Hero subtitle",
-            multiline: true,
-          }}
+          def={{ key: "homepage_hero_subtitle", label: "Hero subtitle", multiline: true }}
           value={settings.homepage_hero_subtitle}
           onChange={(v) => set("homepage_hero_subtitle", v)}
         />
         <TextField
-          def={{
-            key: "homepage_search_placeholder",
-            label: "Search placeholder",
-          }}
+          def={{ key: "homepage_search_placeholder", label: "Search placeholder" }}
           value={settings.homepage_search_placeholder}
           onChange={(v) => set("homepage_search_placeholder", v)}
         />
       </Section>
 
-      <Section title="Homepage sections" description="Headings for guides, brands, and topics blocks.">
+      <Section title="Homepage sections">
         <TextField
           def={{ key: "homepage_guides_heading", label: "Latest guides heading" }}
           value={settings.homepage_guides_heading}
@@ -387,16 +366,13 @@ export default function SiteSettings() {
           onChange={(v) => set("homepage_topics_heading", v)}
         />
         <TextField
-          def={{
-            key: "homepage_coming_soon_label",
-            label: "Coming soon label (brands without guides)",
-          }}
+          def={{ key: "homepage_coming_soon_label", label: "Coming soon label" }}
           value={settings.homepage_coming_soon_label}
           onChange={(v) => set("homepage_coming_soon_label", v)}
         />
       </Section>
 
-      <Section title="Footer" description="Tagline and copyright line under the year.">
+      <Section title="Footer">
         <TextField
           def={{ key: "footer_tagline", label: "Footer tagline", multiline: true }}
           value={settings.footer_tagline}
@@ -413,25 +389,14 @@ export default function SiteSettings() {
         />
       </Section>
 
+      <SettingsExtraFields settings={settings} set={set} />
+
       <Section title="Features">
         <TextField
-          def={{
-            key: "default_locale",
-            label: "Default locale",
-            help: "e.g. en or de",
-          }}
+          def={{ key: "default_locale", label: "Default locale", help: "e.g. en or de" }}
           value={settings.default_locale}
           onChange={(v) => set("default_locale", v)}
         />
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={!!settings.maintenance_mode}
-            onChange={(e) => set("maintenance_mode", e.target.checked)}
-            className="h-4 w-4"
-          />
-          Maintenance mode (show banner / limit public writes)
-        </label>
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -439,7 +404,7 @@ export default function SiteSettings() {
             onChange={(e) => set("allow_signups", e.target.checked)}
             className="h-4 w-4"
           />
-          Allow new user sign-ups
+          Allow new user sign-ups (hides Sign up in footer when off)
         </label>
       </Section>
 
