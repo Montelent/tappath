@@ -13,6 +13,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 
 type ProductLine = { name: string; count: number; href: string };
 type TopGuide = { title: string; href: string; category: string };
@@ -60,6 +61,8 @@ export default function BrandEditor() {
   const [saving, setSaving] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const [message, setMessage] = useState("");
+  const [autoGuides, setAutoGuides] = useState<TopGuide[]>([]);
+  const [loadingGuides, setLoadingGuides] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -73,7 +76,7 @@ export default function BrandEditor() {
         setUsingDb(false);
       } else {
         setRows((data.rows || []) as BrandRow[]);
-        setUsingDb(!!data.usingSupabase);
+        setUsingDb(!!data.usingSupabase || !!data.usingDb);
         if (data.error) setError(data.error);
       }
     } catch {
@@ -87,6 +90,73 @@ export default function BrandEditor() {
     load();
   }, [load]);
 
+  useEffect(() => {
+    if (editing?.slug) void loadAutoGuides(editing.slug);
+    else setAutoGuides([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing?.slug]);
+
+  const guidePath = (g: Record<string, unknown>, brand: string) => {
+    if (g.href && typeof g.href === "string") return g.href;
+    const line = String(g.product_line || "guides")
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "") || "guides";
+    return `/${brand}/${line}/${g.slug}`;
+  };
+
+  /** Auto: all published guides with this brand_slug — no manual entry needed. */
+  const loadAutoGuides = async (slug: string) => {
+    if (!slug) {
+      setAutoGuides([]);
+      return;
+    }
+    setLoadingGuides(true);
+    try {
+      const res = await fetch("/api/admin/content/guides", { credentials: "include" });
+      const data = await res.json();
+      const guideRows = (data.rows || []) as Record<string, unknown>[];
+      const brandGuides = guideRows.filter(
+        (g) =>
+          String(g.brand_slug || "").toLowerCase() === slug.toLowerCase() &&
+          g.published !== false
+      );
+      const mapped: TopGuide[] = brandGuides.map((g) => ({
+        title: String(g.title || g.slug || ""),
+        href: guidePath(g, slug),
+        category: String(g.category || "General"),
+      }));
+      setAutoGuides(mapped);
+
+      setEditing((prev) => {
+        if (!prev || prev.slug.toLowerCase() !== slug.toLowerCase()) return prev;
+        const lineMap = new Map<string, number>();
+        for (const g of brandGuides) {
+          const line = String(g.product_line || "Guides");
+          lineMap.set(line, (lineMap.get(line) || 0) + 1);
+        }
+        const product_lines =
+          lineMap.size > 0
+            ? Array.from(lineMap.entries()).map(([name, count]) => ({
+                name,
+                count,
+                href: `/${slug}/${name.toLowerCase().replace(/\s+/g, "-")}`,
+              }))
+            : prev.product_lines;
+        return {
+          ...prev,
+          guides_count: brandGuides.length,
+          top_guides: mapped,
+          product_lines,
+        };
+      });
+    } catch {
+      setAutoGuides([]);
+    } finally {
+      setLoadingGuides(false);
+    }
+  };
+
   const save = async () => {
     if (!editing) return;
     if (!editing.name.trim() || !editing.slug.trim()) {
@@ -97,11 +167,16 @@ export default function BrandEditor() {
     setMessage("");
     try {
       const isNew = !editing.id;
+      const payload = {
+        ...editing,
+        top_guides: autoGuides.length > 0 ? autoGuides : editing.top_guides,
+        guides_count: autoGuides.length > 0 ? autoGuides.length : editing.guides_count,
+      };
       const res = await fetch("/api/admin/content/brands", {
         method: isNew ? "POST" : "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(editing),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) setMessage(data.error || "Save failed — is DATABASE_URL set?");
@@ -201,7 +276,12 @@ export default function BrandEditor() {
             </label>
             <label>
               <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">Slug</span>
-              <input value={editing.slug} onChange={(e) => setEditing({ ...editing, slug: e.target.value })} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
+              <input
+                value={editing.slug}
+                onChange={(e) => setEditing({ ...editing, slug: e.target.value })}
+                onBlur={() => { if (editing.slug) void loadAutoGuides(editing.slug); }}
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
+              />
             </label>
             <label>
               <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">Color class</span>
@@ -211,56 +291,78 @@ export default function BrandEditor() {
               <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">Sort order</span>
               <input type="number" value={editing.sort_order} onChange={(e) => setEditing({ ...editing, sort_order: Number(e.target.value) })} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
             </label>
-            <label className="sm:col-span-2">
-              <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">Description</span>
-              <textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} rows={2} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
-            </label>
-            <label className="sm:col-span-2">
-              <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">SEO — Updates text</span>
-              <textarea value={editing.seo_updates} onChange={(e) => setEditing({ ...editing, seo_updates: e.target.value })} rows={2} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
-            </label>
-            <label className="sm:col-span-2">
-              <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">SEO — Help text</span>
-              <textarea value={editing.seo_help} onChange={(e) => setEditing({ ...editing, seo_help: e.target.value })} rows={2} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
-            </label>
-          </div>
-
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-sm font-semibold">Product lines</h3>
-              <button type="button" className="text-xs text-brand-600" onClick={() => setEditing({ ...editing, product_lines: [...(editing.product_lines || []), { name: "", count: 0, href: "" }] })}>
-                + Line
-              </button>
+            <div className="sm:col-span-2">
+              <RichTextEditor
+                label="Description"
+                value={editing.description || ""}
+                onChange={(html) => setEditing({ ...editing, description: html })}
+                minHeight={140}
+                compact
+                placeholder="Brand description…"
+              />
             </div>
-            <div className="space-y-2">
-              {(editing.product_lines || []).map((pl, i) => (
-                <div key={i} className="grid gap-2 sm:grid-cols-4">
-                  <input placeholder="Name" value={pl.name} onChange={(e) => { const product_lines = [...editing.product_lines]; product_lines[i] = { ...pl, name: e.target.value }; setEditing({ ...editing, product_lines }); }} className="rounded-lg border border-[var(--border)] bg-[var(--background)] px-2 py-1.5 text-sm" />
-                  <input type="number" placeholder="Count" value={pl.count} onChange={(e) => { const product_lines = [...editing.product_lines]; product_lines[i] = { ...pl, count: Number(e.target.value) }; setEditing({ ...editing, product_lines }); }} className="rounded-lg border border-[var(--border)] bg-[var(--background)] px-2 py-1.5 text-sm" />
-                  <input placeholder="/samsung/galaxy" value={pl.href} onChange={(e) => { const product_lines = [...editing.product_lines]; product_lines[i] = { ...pl, href: e.target.value }; setEditing({ ...editing, product_lines }); }} className="rounded-lg border border-[var(--border)] bg-[var(--background)] px-2 py-1.5 text-sm" />
-                  <button type="button" className="text-left text-xs text-red-500" onClick={() => setEditing({ ...editing, product_lines: editing.product_lines.filter((_, j) => j !== i) })}>Remove</button>
-                </div>
-              ))}
+            <div className="sm:col-span-2">
+              <RichTextEditor
+                label="SEO — Updates text"
+                value={editing.seo_updates || ""}
+                onChange={(html) => setEditing({ ...editing, seo_updates: html })}
+                minHeight={120}
+                compact
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <RichTextEditor
+                label="SEO — Help text"
+                value={editing.seo_help || ""}
+                onChange={(html) => setEditing({ ...editing, seo_help: html })}
+                minHeight={120}
+                compact
+              />
             </div>
           </div>
 
           <div>
-            <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-sm font-semibold">Top guides</h3>
-              <button type="button" className="text-xs text-brand-600" onClick={() => setEditing({ ...editing, top_guides: [...(editing.top_guides || []), { title: "", href: "", category: "" }] })}>
-                + Guide
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-semibold">Guides (automatic)</h3>
+                <p className="text-[11px] text-[var(--muted-foreground)]">
+                  Pulled from published guides with brand_slug “{editing.slug || "…"}”. No need to add them by hand — the public brand page uses the same list.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 text-xs text-brand-600"
+                disabled={!editing.slug || loadingGuides}
+                onClick={() => loadAutoGuides(editing.slug)}
+              >
+                {loadingGuides ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                Refresh guides
               </button>
             </div>
-            <div className="space-y-2">
-              {(editing.top_guides || []).map((g, i) => (
-                <div key={i} className="grid gap-2 sm:grid-cols-4">
-                  <input placeholder="Title" value={g.title} onChange={(e) => { const top_guides = [...editing.top_guides]; top_guides[i] = { ...g, title: e.target.value }; setEditing({ ...editing, top_guides }); }} className="rounded-lg border border-[var(--border)] bg-[var(--background)] px-2 py-1.5 text-sm" />
-                  <input placeholder="/samsung/..." value={g.href} onChange={(e) => { const top_guides = [...editing.top_guides]; top_guides[i] = { ...g, href: e.target.value }; setEditing({ ...editing, top_guides }); }} className="rounded-lg border border-[var(--border)] bg-[var(--background)] px-2 py-1.5 text-sm" />
-                  <input placeholder="Category" value={g.category} onChange={(e) => { const top_guides = [...editing.top_guides]; top_guides[i] = { ...g, category: e.target.value }; setEditing({ ...editing, top_guides }); }} className="rounded-lg border border-[var(--border)] bg-[var(--background)] px-2 py-1.5 text-sm" />
-                  <button type="button" className="text-left text-xs text-red-500" onClick={() => setEditing({ ...editing, top_guides: editing.top_guides.filter((_, j) => j !== i) })}>Remove</button>
-                </div>
-              ))}
-            </div>
+            {autoGuides.length === 0 && !loadingGuides ? (
+              <p className="rounded-xl border border-dashed border-[var(--border)] px-3 py-4 text-sm text-[var(--muted-foreground)]">
+                No published guides for this brand yet. Create guides under{" "}
+                <Link href="/admin/guides" className="text-brand-600 underline">Admin → Guides</Link>
+                {" "}with this brand slug — they appear here and on the public brand page automatically.
+              </p>
+            ) : (
+              <ul className="divide-y divide-[var(--border)] rounded-xl border border-[var(--border)]">
+                {(autoGuides.length > 0 ? autoGuides : editing.top_guides || []).map((g, i) => (
+                  <li key={`${g.href}-${i}`} className="flex flex-wrap items-baseline justify-between gap-2 px-3 py-2.5 text-sm">
+                    <span className="min-w-0">
+                      <span className="font-medium">{g.title || "Untitled"}</span>
+                      {g.category && <span className="ml-2 text-xs text-[var(--muted-foreground)]">{g.category}</span>}
+                    </span>
+                    <Link href={g.href || "#"} target="_blank" className="shrink-0 font-mono text-xs text-brand-600 hover:underline">
+                      {g.href}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="mt-2 text-[11px] text-[var(--muted-foreground)]">
+              Count: {editing.guides_count} · Product lines are derived from these guides when you refresh.
+            </p>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -307,7 +409,23 @@ export default function BrandEditor() {
                   </td>
                   <td className="px-3 py-2.5 text-right whitespace-nowrap">
                     <Link href={`/${row.slug}`} target="_blank" className="mr-2 text-[var(--muted-foreground)]"><ExternalLink className="inline h-3.5 w-3.5" /></Link>
-                    <button type="button" onClick={() => setEditing({ ...emptyBrand(), ...row, product_lines: Array.isArray(row.product_lines) ? row.product_lines : [], top_guides: Array.isArray(row.top_guides) ? row.top_guides : [], devices_list: Array.isArray(row.devices_list) ? row.devices_list : [] })} className="mr-2 text-brand-600">Edit</button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = {
+                          ...emptyBrand(),
+                          ...row,
+                          product_lines: Array.isArray(row.product_lines) ? row.product_lines : [],
+                          top_guides: Array.isArray(row.top_guides) ? row.top_guides : [],
+                          devices_list: Array.isArray(row.devices_list) ? row.devices_list : [],
+                        };
+                        setEditing(next);
+                        void loadAutoGuides(String(next.slug || ""));
+                      }}
+                      className="mr-2 text-brand-600"
+                    >
+                      Edit
+                    </button>
                     <button type="button" onClick={() => row.id && remove(String(row.id))} className="text-red-600"><Trash2 className="inline h-4 w-4" /></button>
                   </td>
                 </tr>
