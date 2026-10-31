@@ -22,9 +22,29 @@ type Sql = NonNullable<ReturnType<typeof getSql>>;
 async function selectAll(sql: Sql, table: string) {
   switch (table) {
     case "brands":
-      return sql`SELECT * FROM brands ORDER BY sort_order ASC NULLS LAST, name ASC LIMIT 500`;
+      return sql`
+        SELECT
+          b.*,
+          (SELECT count(*)::int FROM guides g WHERE g.brand_slug = b.slug) AS guides_count,
+          (SELECT count(*)::int FROM devices d WHERE d.brand_slug = b.slug) AS devices_count
+        FROM brands b
+        ORDER BY b.sort_order ASC NULLS LAST, b.name ASC
+        LIMIT 500
+      `;
     case "topics":
-      return sql`SELECT * FROM topics ORDER BY sort_order ASC NULLS LAST, name ASC LIMIT 500`;
+      return sql`
+        SELECT
+          t.*,
+          (
+            SELECT count(*)::int FROM guides g
+            WHERE lower(g.category) = lower(t.name)
+               OR lower(g.category) LIKE '%' || lower(t.name) || '%'
+               OR lower(t.name) LIKE '%' || lower(g.category) || '%'
+          ) AS guide_count
+        FROM topics t
+        ORDER BY t.sort_order ASC NULLS LAST, t.name ASC
+        LIMIT 500
+      `;
     case "devices":
       return sql`SELECT * FROM devices ORDER BY name ASC LIMIT 500`;
     case "glossary_terms":
