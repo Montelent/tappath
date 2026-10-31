@@ -3,13 +3,17 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Moon, Sun, Menu, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { useT } from "@/i18n/LanguageProvider";
 import { useAuthOptional } from "@/context/AuthContext";
+import type { SiteSettings } from "@/lib/site-settings";
 
 export default function Header() {
   const [dark, setDark] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [siteName, setSiteName] = useState("TapPath");
+  const [logoUrl, setLogoUrl] = useState("");
   const t = useT();
   const auth = useAuthOptional();
 
@@ -20,6 +24,22 @@ export default function Header() {
         window.matchMedia("(prefers-color-scheme: dark)").matches);
     setDark(isDark);
     document.documentElement.classList.toggle("dark", isDark);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/site-settings")
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        const s = (data.settings || {}) as Partial<SiteSettings>;
+        if (s.site_name) setSiteName(s.site_name);
+        if (typeof s.logo_url === "string") setLogoUrl(s.logo_url);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const toggleDark = () => {
@@ -40,8 +60,13 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-sm">
       <div className="max-wide page-pad flex h-14 items-center justify-between gap-4">
-        <Link href="/" className="font-display text-lg tracking-tight link-quiet shrink-0">
-          TapPath
+        <Link href="/" className="font-display text-lg tracking-tight link-quiet shrink-0 flex items-center gap-2">
+          {logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logoUrl} alt={siteName} className="h-7 w-auto max-w-[140px] object-contain" />
+          ) : (
+            siteName
+          )}
         </Link>
 
         <nav className="hidden md:flex items-center gap-6" aria-label="Main">

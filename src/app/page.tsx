@@ -6,14 +6,16 @@ import {
   isDatabaseConfigured,
 } from "@/lib/db/content";
 import { guideHref } from "@/lib/guides/resolve";
+import { getSiteSettings } from "@/lib/site-settings";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [brands, guides, topics] = await Promise.all([
+  const [brands, guides, topics, settings] = await Promise.all([
     listBrands(),
     listGuides(),
     listTopics(),
+    getSiteSettings(),
   ]);
 
   const live = isDatabaseConfigured();
@@ -50,29 +52,42 @@ export default async function HomePage() {
   return (
     <div className="page-pad">
       <section className="max-wide border-b border-[var(--border)] py-12 sm:py-16 md:py-20">
-        <p className="label-caps mb-3">Phone settings</p>
+        {settings.homepage_eyebrow && (
+          <p className="label-caps mb-3">{settings.homepage_eyebrow}</p>
+        )}
         <h1 className="font-display text-3xl sm:text-4xl md:text-[2.75rem] max-w-2xl text-balance">
-          Find the exact path in Settings.
+          {settings.homepage_hero_title}
         </h1>
         <p className="mt-4 max-w-xl text-[var(--muted-foreground)] text-base sm:text-lg leading-relaxed">
-          Step-by-step menu routes for Samsung, Xiaomi, Huawei, OnePlus, Oppo,
-          Realme, Android and Google — with screenshots when you need them.
+          {settings.homepage_hero_subtitle}
         </p>
 
         <form action="/search" method="get" className="relative mt-8 max-w-lg">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" aria-hidden>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <span
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]"
+            aria-hidden
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <circle cx="11" cy="11" r="7" />
               <path d="M20 20l-3-3" />
             </svg>
           </span>
-          <label htmlFor="home-search" className="sr-only">Search guides</label>
+          <label htmlFor="home-search" className="sr-only">
+            Search guides
+          </label>
           <input
             id="home-search"
             name="q"
             type="search"
             className="search-field"
-            placeholder="Try “fingerprint”, “battery %”, “private DNS”…"
+            placeholder={settings.homepage_search_placeholder}
             autoComplete="off"
           />
         </form>
@@ -81,7 +96,9 @@ export default async function HomePage() {
       {featured.length > 0 && (
         <section className="max-wide py-12 sm:py-16">
           <div className="flex items-baseline justify-between gap-4 mb-6">
-            <h2 className="font-display text-xl sm:text-2xl">Latest guides</h2>
+            <h2 className="font-display text-xl sm:text-2xl">
+              {settings.homepage_guides_heading}
+            </h2>
             {live && (
               <span className="label-caps">{guides.length} published</span>
             )}
@@ -118,7 +135,9 @@ export default async function HomePage() {
       )}
 
       <section className="max-wide border-t border-[var(--border)] py-12 sm:py-16">
-        <h2 className="font-display text-xl sm:text-2xl mb-6">Brands</h2>
+        <h2 className="font-display text-xl sm:text-2xl mb-6">
+          {settings.homepage_brands_heading}
+        </h2>
         {brandsWithGuides.length > 0 ? (
           <ul className="border-t border-[var(--border)]">
             {brandsWithGuides.map((b) => (
@@ -127,44 +146,52 @@ export default async function HomePage() {
                   href={`/${b.slug}`}
                   className="group flex items-baseline justify-between gap-4 py-3.5 link-quiet"
                 >
-                  <span className="font-display text-lg group-hover:text-[var(--accent)] transition-colors duration-fast">
+                  <span className="font-medium group-hover:text-[var(--accent)] transition-colors duration-fast">
                     {b.name}
                   </span>
-                  <span className="font-path text-sm text-[var(--muted-foreground)] tabular-nums shrink-0">
-                    {b.count} {b.count === 1 ? "guide" : "guides"}
-                  </span>
+                  <span className="label-caps shrink-0">{b.count}</span>
                 </Link>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-[var(--muted-foreground)] text-sm">
-            No brand guides published yet.
+          <p className="text-sm text-[var(--muted-foreground)]">
+            No brands with published guides yet.
           </p>
         )}
         {brandsComingSoon.length > 0 && (
-          <p className="mt-6 text-sm text-[var(--muted-foreground)]">
-            Coming soon: {brandsComingSoon.map((b) => b.name).join(", ")}.
-          </p>
+          <div className="mt-8">
+            <p className="label-caps mb-3">{settings.homepage_coming_soon_label}</p>
+            <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-[var(--muted-foreground)]">
+              {brandsComingSoon.map((b) => (
+                <li key={b.slug}>{b.name}</li>
+              ))}
+            </ul>
+          </div>
         )}
       </section>
 
       {topics.length > 0 && (
         <section className="max-wide border-t border-[var(--border)] py-12 sm:py-16">
-          <h2 className="font-display text-xl sm:text-2xl mb-6">Topics</h2>
-          <ul className="flex flex-wrap gap-x-4 gap-y-2">
-            {topics.map((t) => (
-              <li key={t.slug}>
+          <div className="flex items-baseline justify-between gap-4 mb-6">
+            <h2 className="font-display text-xl sm:text-2xl">
+              {settings.homepage_topics_heading}
+            </h2>
+            <Link
+              href="/topics"
+              className="text-sm text-[var(--muted-foreground)] link-quiet hover:text-[var(--foreground)]"
+            >
+              All topics
+            </Link>
+          </div>
+          <ul className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
+            {topics.slice(0, 12).map((t) => (
+              <li key={t.slug || t.id}>
                 <Link
                   href={`/topics/${t.slug}`}
-                  className="text-sm link-quiet border-b border-transparent hover:border-[var(--accent)]"
+                  className="block rounded-xl border border-[var(--border)] px-4 py-3 text-sm link-quiet hover:border-[var(--accent)] transition-colors"
                 >
                   {t.name}
-                  {Number(t.guide_count) > 0 && (
-                    <span className="ml-1.5 font-path text-xs text-[var(--muted-foreground)]">
-                      {t.guide_count}
-                    </span>
-                  )}
                 </Link>
               </li>
             ))}
