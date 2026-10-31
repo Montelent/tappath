@@ -1,5 +1,6 @@
 import { guides, type Guide, type GuideVersion } from "@/data/guides";
 import { getGuideByPath, listGuides, isDatabaseConfigured } from "@/lib/db/content";
+import { isNeonConfigured } from "@/lib/db/neon";
 import type { DbGuide } from "@/lib/db/types";
 
 function parseJsonField(raw: unknown): unknown {
@@ -78,20 +79,17 @@ export function dbGuideToGuide(db: DbGuide): Guide {
   if (versions.every((v) => v.steps.length === 0) && article.length) {
     versions = [
       {
-        id: "from-article",
-        label: versions[0]?.label || "Guide",
-        steps: article.map((text, i) => {
-          const m = String(text).match(/\*\*(.+?)\*\*/);
-          return {
-            id: i + 1,
-            instruction: text,
-            highlight: m ? m[1] : String(text).slice(0, 40),
-            detail: undefined,
-          };
-        }),
+        id: "default",
+        label: "Default",
+        steps: article.slice(0, 8).map((text, i) => ({
+          id: i + 1,
+          instruction: text,
+          highlight: "",
+        })),
       },
     ];
   }
+
   const faqsRaw = parseJsonField(db.faqs);
   const relatedRaw = parseJsonField(db.related);
   const devicesRaw = parseJsonField(db.compatible_devices);
@@ -118,14 +116,40 @@ export function dbGuideToGuide(db: DbGuide): Guide {
   };
 }
 
+/** Public URL path for a guide (always lowercase hyphenated product line). */
+export function guideHref(g: {
+  brand_slug?: string;
+  brandSlug?: string;
+  product_line?: string;
+  productLine?: string;
+  slug: string;
+}): string {
+  const brand = (g.brand_slug || g.brandSlug || "").toLowerCase();
+  const line = String(g.product_line || g.productLine || "guides")
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+  return `/${brand}/${line || "guides"}/${g.slug}`;
+}
+
 function productMatches(stored: string, requested: string): boolean {
   const a = stored.toLowerCase().replace(/\s+/g, "-");
   const b = requested.toLowerCase().replace(/\s+/g, "-");
   const aSpace = stored.toLowerCase().replace(/-/g, " ");
   const bSpace = requested.toLowerCase().replace(/-/g, " ");
-  return a === b || aSpace === bSpace || stored.toLowerCase() === requested.toLowerCase();
+  return (
+    a === b ||
+    aSpace === bSpace ||
+    stored.toLowerCase() === requested.toLowerCase() ||
+    a.includes(b) ||
+    b.includes(a)
+  );
 }
 
+/**
+ * Resolve a guide for a public URL.
+ * When Neon is connected: only database guides (never static mock).
+ */
 export async function resolveGuide(
   brandSlug: string,
   productLine: string,
@@ -138,25 +162,32 @@ export async function resolveGuide(
     try {
       const db = await getGuideByPath(brand, productLine, slug);
       if (db) return dbGuideToGuide(db);
+
       const all = await listGuides();
-      const hit = all.find(
+      const exact = all.find(
         (g) =>
           g.brand_slug === brand &&
           g.slug === slug &&
-          productMatches(g.product_line, product) &&
-          g.published !== false
+          productMatches(String(g.product_line || ""), product)
       );
-      if (hit) return dbGuideToGuide(hit);
-    } catch {
-      /* fall through */
+      if (exact) return dbGuideToGuide(exact);
+
+      const bySlug = all.find((g) => g.brand_slug === brand && g.slug === slug);
+      if (bySlug) return dbGuideToGuide(bySlug);
+    } catch (e) {
+      console.error("[resolveGuide]", e);
     }
+    return null;
   }
 
   for (const g of Object.values(guides)) {
-    if (g.brandSlug === brand && g.slug === slug && productMatches(g.productLine, product)) {
+    if (
+      g.brandSlug === brand &&
+      g.slug === slug &&
+      productMatches(g.productLine, product)
+    ) {
       return g;
     }
   }
-
   return null;
 }

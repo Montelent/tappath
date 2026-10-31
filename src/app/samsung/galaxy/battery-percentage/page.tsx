@@ -1,27 +1,25 @@
+export const dynamic = "force-dynamic";
+
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import GuidePage from "@/components/guide/GuidePage";
 import HowToJsonLd from "@/components/seo/HowToJsonLd";
-import { guides } from "@/data/guides";
+import { resolveGuide } from "@/lib/guides/resolve";
 
-const guide = guides["samsung-galaxy-battery-percentage"];
-
-if (!guide) {
-  // Build-time safety: never access properties on undefined
+export async function generateMetadata(): Promise<Metadata> {
+  const guide = await resolveGuide("samsung", "galaxy", "battery-percentage");
+  if (!guide) return { title: "Guide not found" };
+  return {
+    title: `${guide.brand}: ${guide.title}`,
+    description: guide.shortDescription,
+  };
 }
 
-const path = guide ? `/samsung/galaxy/${guide.slug}` : "/samsung";
-const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://tappath.com";
-const url = `${BASE}${path}`;
-
-export const metadata: Metadata = {
-  title: guide ? `Samsung: ${guide.title}` : "Guide not found",
-  description: guide?.shortDescription ?? "",
-  alternates: guide ? { canonical: path } : undefined,
-};
-
-export default function BatteryPercentagePage() {
+export default async function Page() {
+  const guide = await resolveGuide("samsung", "galaxy", "battery-percentage");
   if (!guide) notFound();
+  const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://tappath.com";
+  const url = `${BASE}/samsung/galaxy/battery-percentage`;
   return (
     <>
       <HowToJsonLd guide={guide} url={url} />
