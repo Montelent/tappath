@@ -1,3 +1,6 @@
+/**
+ * Content data access — Neon when DATABASE_URL is set, else static files (dev only).
+ */
 import { getSql, isNeonConfigured } from "./neon";
 import type {
   AdminStats,
@@ -20,8 +23,11 @@ export async function listBrands(): Promise<DbBrand[]> {
     try {
       const sql = getSql()!;
       const rows = await sql`SELECT * FROM brands WHERE published = true ORDER BY sort_order`;
-      if (rows.length) return rows as DbBrand[];
-    } catch { /* fall through */ }
+      return rows as DbBrand[];
+    } catch (e) {
+      console.error("[listBrands]", e);
+      return [];
+    }
   }
   return Object.values(staticBrands).map((b, i) => ({
     id: b.slug,
@@ -46,8 +52,11 @@ export async function listTopics(): Promise<DbTopic[]> {
     try {
       const sql = getSql()!;
       const rows = await sql`SELECT * FROM topics WHERE published = true ORDER BY sort_order`;
-      if (rows.length) return rows as DbTopic[];
-    } catch { /* fall through */ }
+      return rows as DbTopic[];
+    } catch (e) {
+      console.error("[listTopics]", e);
+      return [];
+    }
   }
   return staticTopics.map((t, i) => ({
     id: t.slug,
@@ -67,8 +76,11 @@ export async function listDevices(): Promise<DbDevice[]> {
     try {
       const sql = getSql()!;
       const rows = await sql`SELECT * FROM devices WHERE published = true`;
-      if (rows.length) return rows as DbDevice[];
-    } catch { /* fall through */ }
+      return rows as DbDevice[];
+    } catch (e) {
+      console.error("[listDevices]", e);
+      return [];
+    }
   }
   return staticDevices().map((d) => ({
     id: d.slug,
@@ -89,8 +101,11 @@ export async function listGlossary(): Promise<DbGlossaryTerm[]> {
     try {
       const sql = getSql()!;
       const rows = await sql`SELECT * FROM glossary_terms WHERE published = true ORDER BY term`;
-      if (rows.length) return rows as DbGlossaryTerm[];
-    } catch { /* fall through */ }
+      return rows as DbGlossaryTerm[];
+    } catch (e) {
+      console.error("[listGlossary]", e);
+      return [];
+    }
   }
   return staticGlossary.map((t) => ({
     id: t.slug,
@@ -109,8 +124,11 @@ export async function listGuides(): Promise<DbGuide[]> {
     try {
       const sql = getSql()!;
       const rows = await sql`SELECT * FROM guides WHERE published = true ORDER BY updated_at DESC`;
-      if (rows.length) return rows as DbGuide[];
-    } catch { /* fall through */ }
+      return rows as DbGuide[];
+    } catch (e) {
+      console.error("[listGuides]", e);
+      return [];
+    }
   }
   return Object.values(staticGuides).map((g) => ({
     id: `${g.brandSlug}-${g.slug}`,
@@ -158,7 +176,9 @@ export async function getGuideByPath(
         LIMIT 1
       `;
       if (rows[0]) return rows[0] as DbGuide;
-    } catch { /* fall through */ }
+    } catch {
+      /* fall through */
+    }
   }
   const list = await listGuides();
   return (
@@ -196,7 +216,9 @@ export async function getAdminStats(): Promise<AdminStats> {
         feedback: (fb[0] as { c: number }).c,
         usingSupabase: true,
       };
-    } catch { /* fall through */ }
+    } catch {
+      /* fall through */
+    }
   }
   return {
     guides: Object.keys(staticGuides).length,
