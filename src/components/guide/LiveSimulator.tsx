@@ -134,6 +134,7 @@ export default function LiveSimulator({ versions, brandName, deviceModel = "Gala
           <PhoneFrame deviceModel={deviceModel}>
             {hasScreenshot && current?.imageUrl ? (
               <ScreenshotLayer
+                key={`step-${stepIndex}-${current.imageUrl}`}
                 imageUrl={current.imageUrl}
                 markerX={current.markerX}
                 markerY={current.markerY}
