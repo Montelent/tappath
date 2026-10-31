@@ -7,32 +7,42 @@ type Props = {
   children: React.ReactNode;
   deviceModel?: string;
   className?: string;
+  hideStatusBar?: boolean;
 };
 
-export default function PhoneFrame({ children, deviceModel = "Galaxy S23+", className }: Props) {
+export default function PhoneFrame({
+  children,
+  deviceModel = "Galaxy S23+",
+  className,
+  hideStatusBar = false,
+}: Props) {
   return (
     <div className={cn("relative w-full max-w-[280px]", className)}>
       {deviceModel && (
-        <div className="mb-2 text-center text-[11px] font-medium text-[var(--muted-foreground)]">
+        <div className="mb-2 text-center font-path text-[11px] text-[var(--muted-foreground)]">
           {deviceModel}
         </div>
       )}
-      <div className="overflow-hidden rounded-[1.75rem] border-[6px] border-slate-900 bg-black shadow-2xl dark:border-slate-800">
-        <div className="relative bg-slate-950 px-3 pb-1 pt-2">
-          <div className="absolute left-1/2 top-2 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-slate-800 ring-1 ring-slate-700" />
-          <div className="flex items-center justify-between pt-1 text-[10px] text-white/80">
-            <span className="font-medium">9:41</span>
-            <div className="flex items-center gap-1">
-              <span className="text-[9px]">5G</span>
-              <span className="h-2 w-3 rounded-sm border border-white/60">
-                <span className="block h-full w-2/3 bg-white/70" />
-              </span>
+      <div className="overflow-hidden rounded-[1.5rem] border-[5px] border-neutral-900 bg-black shadow-lg dark:border-neutral-800">
+        {!hideStatusBar && (
+          <div className="relative bg-neutral-950 px-3 pb-1 pt-2">
+            <div className="absolute left-1/2 top-2 h-2 w-2 -translate-x-1/2 rounded-full bg-neutral-800" />
+            <div className="flex items-center justify-between pt-1 text-[10px] text-white/80">
+              <span className="font-medium">9:41</span>
+              <div className="flex items-center gap-1">
+                <span className="text-[9px]">5G</span>
+                <span className="h-2 w-3 rounded-sm border border-white/60">
+                  <span className="block h-full w-2/3 bg-white/70" />
+                </span>
+              </div>
             </div>
           </div>
+        )}
+        <div className="relative aspect-[9/19] w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900">
+          {children}
         </div>
-        <div className="relative aspect-[9/19] w-full overflow-hidden bg-slate-100 dark:bg-slate-900">{children}</div>
         <div className="flex justify-center bg-black py-2">
-          <div className="h-1 w-24 rounded-full bg-white/40" />
+          <div className="h-1 w-20 rounded-full bg-white/35" />
         </div>
       </div>
     </div>
@@ -43,10 +53,21 @@ export function TapMarker({ x, y }: { x: number; y: number }) {
   const left = Math.min(99, Math.max(1, x));
   const top = Math.min(99, Math.max(1, y));
   return (
-    <div className="pointer-events-none absolute z-20" style={{ left: `${left}%`, top: `${top}%` }} aria-hidden>
-      <span className="absolute left-0 top-0 h-5 w-5 -translate-x-1/2 -translate-y-1/2 animate-ping rounded-full bg-sky-400/35" />
-      <span className="absolute left-0 top-0 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-sky-500 shadow-md" />
-      <svg viewBox="0 0 48 64" width="40" height="53" className="absolute drop-shadow-md" style={{ left: 0, top: 0, transform: "translate(-50%, -6%)" }} xmlns="http://www.w3.org/2000/svg">
+    <div
+      className="pointer-events-none absolute z-20"
+      style={{ left: `${left}%`, top: `${top}%` }}
+      aria-hidden
+    >
+      <span className="absolute left-0 top-0 h-5 w-5 -translate-x-1/2 -translate-y-1/2 animate-ping rounded-full bg-[var(--accent)]/25" />
+      <span className="absolute left-0 top-0 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-[var(--accent)] shadow-md" />
+      <svg
+        viewBox="0 0 48 64"
+        width="40"
+        height="53"
+        className="absolute drop-shadow-md"
+        style={{ left: 0, top: 0, transform: "translate(-50%, -6%)" }}
+        xmlns="http://www.w3.org/2000/svg"
+      >
         <path d="M14 36h18c3 0 5.5 2.5 5.5 5.5V52c0 4.5-3.5 8-8 8H20c-4 0-7.5-3-7.5-7.5V40c0-2.2 1.8-4 4-4z" fill="#F5C89A" stroke="#1e293b" strokeWidth="1.4" strokeLinejoin="round" />
         <path d="M28 34v-6.5c0-1.3 1-2.3 2.2-2.3s2.2 1 2.2 2.3V36" fill="none" stroke="#1e293b" strokeWidth="1.3" strokeLinecap="round" />
         <path d="M34 36v-4.5c0-1.1.9-2 2-2s2 .9 2 2V38" fill="none" stroke="#1e293b" strokeWidth="1.2" strokeLinecap="round" />
@@ -104,12 +125,8 @@ export function ScreenshotLayer({
     setBox(null);
     const id = requestAnimationFrame(() => {
       recalc();
-      const t2 = window.setTimeout(recalc, 50);
-      const t3 = window.setTimeout(recalc, 250);
-      return () => {
-        clearTimeout(t2);
-        clearTimeout(t3);
-      };
+      window.setTimeout(recalc, 50);
+      window.setTimeout(recalc, 250);
     });
     const container = containerRef.current;
     const ro = container ? new ResizeObserver(() => recalc()) : null;
@@ -140,7 +157,11 @@ export function ScreenshotLayer({
   return (
     <div
       ref={containerRef}
-      className={cn("relative h-full w-full overflow-hidden bg-slate-900", onPlace && "cursor-crosshair", className)}
+      className={cn(
+        "relative h-full w-full overflow-hidden bg-neutral-900",
+        onPlace && "cursor-crosshair",
+        className
+      )}
       onClick={onClick}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -150,13 +171,22 @@ export function ScreenshotLayer({
         alt={alt}
         draggable={false}
         onLoad={recalc}
+        width={390}
+        height={844}
         className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain object-top"
       />
-      {box && markerX != null && markerY != null && Number.isFinite(markerX) && Number.isFinite(markerY) && (
-        <div className="pointer-events-none absolute" style={{ left: box.left, top: box.top, width: box.width, height: box.height }}>
-          <TapMarker x={markerX} y={markerY} />
-        </div>
-      )}
+      {box &&
+        markerX != null &&
+        markerY != null &&
+        Number.isFinite(markerX) &&
+        Number.isFinite(markerY) && (
+          <div
+            className="pointer-events-none absolute"
+            style={{ left: box.left, top: box.top, width: box.width, height: box.height }}
+          >
+            <TapMarker x={markerX} y={markerY} />
+          </div>
+        )}
     </div>
   );
 }
