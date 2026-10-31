@@ -1,14 +1,15 @@
+export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import TopicHub from "@/components/topics/TopicHub";
-import { getTopic } from "@/data/topics";
-
-const topic = getTopic("display")!;
-
-export const metadata: Metadata = {
-  title: `${topic.name}: Guides, tips & solutions`,
-  description: topic.description,
-};
-
-export default function DisplayTopicPage() {
+import { resolveTopic } from "@/lib/topics/resolve";
+export async function generateMetadata(): Promise<Metadata> {
+  const topic = await resolveTopic("display");
+  if (!topic) return { title: "Topic not found" };
+  return { title: `${topic.name}: Guides, tips & solutions`, description: topic.description };
+}
+export default async function Page() {
+  const topic = await resolveTopic("display");
+  if (!topic) notFound();
   return <TopicHub topic={topic} />;
 }

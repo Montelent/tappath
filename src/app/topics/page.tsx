@@ -1,13 +1,13 @@
+export const dynamic = "force-dynamic";
+
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
   Wifi, Monitor, Battery, Shield, Bell, MessageSquare, Package, Camera,
   Settings, HardDrive, Accessibility, Cloud, Languages, MoreHorizontal, ChevronRight,
 } from "lucide-react";
-import { listTopics, isDatabaseConfigured } from "@/lib/db/content";
-import { topics as staticTopics } from "@/data/topics";
-
-export const dynamic = "force-dynamic";
+import { listTopicsForIndex } from "@/lib/topics/resolve";
+import { isDatabaseConfigured } from "@/lib/db/content";
 
 export const metadata: Metadata = {
   title: "Topic hubs — Guides & tips",
@@ -21,24 +21,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 export default async function TopicsIndexPage() {
-  const dbTopics = await listTopics();
+  const topics = await listTopicsForIndex();
   const live = isDatabaseConfigured();
-
-  const topics = live
-    ? dbTopics.map((t) => ({
-        slug: t.slug,
-        name: t.name,
-        description: t.description,
-        icon: t.icon || "Settings",
-        guideCount: Number(t.guide_count) || 0,
-      }))
-    : staticTopics.map((t) => ({
-        slug: t.slug,
-        name: t.name,
-        description: t.description,
-        icon: t.icon,
-        guideCount: t.guideCount,
-      }));
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -52,7 +36,7 @@ export default async function TopicsIndexPage() {
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Topic hubs</h1>
         <p className="mt-3 text-lg text-[var(--muted-foreground)]">
           Cross-brand guides for the most important smartphone topics.
-          {live ? " Counts are live from the database." : ""}
+          {live ? " Only published topics from the database are listed." : ""}
         </p>
       </header>
 
@@ -81,7 +65,7 @@ export default async function TopicsIndexPage() {
         })}
         {topics.length === 0 && (
           <p className="col-span-full text-sm text-[var(--muted-foreground)]">
-            No topics published yet. Add topics in Admin.
+            No topics published yet. Add and publish topics in Admin.
           </p>
         )}
       </div>
