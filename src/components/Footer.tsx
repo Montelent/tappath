@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { getSiteSettings } from "@/lib/site-settings";
+import { getSiteSettings, activeSocialLinks } from "@/lib/site-settings";
 
 export default async function Footer() {
   const year = new Date().getFullYear();
   const s = await getSiteSettings();
   const name = s.site_name || "TapPath";
+  const social = activeSocialLinks(s);
 
   return (
     <footer className="border-t border-[var(--border)] mt-auto">
@@ -24,37 +25,55 @@ export default async function Footer() {
             <p className="mt-2 max-w-xs text-sm text-[var(--muted-foreground)] leading-relaxed">
               {s.footer_tagline}
             </p>
+            {social.length > 0 && (
+              <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+                {social.map((item) => (
+                  <li key={item.key}>
+                    <a
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="link-quiet text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                    >
+                      {item.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <div className="flex flex-wrap gap-x-8 gap-y-4 text-sm">
             <div className="flex flex-col gap-2">
-              <span className="label-caps">Browse</span>
+              <span className="label-caps">{s.footer_browse_heading}</span>
               <Link href="/topics" className="link-quiet text-[var(--muted-foreground)]">
-                Topics
+                {s.nav_topics}
               </Link>
               <Link href="/devices" className="link-quiet text-[var(--muted-foreground)]">
-                Devices
+                {s.nav_devices}
               </Link>
               <Link href="/glossary" className="link-quiet text-[var(--muted-foreground)]">
-                Glossary
+                {s.nav_glossary}
               </Link>
               <Link href="/forum" className="link-quiet text-[var(--muted-foreground)]">
-                Forum
+                {s.nav_forum}
               </Link>
             </div>
             <div className="flex flex-col gap-2">
-              <span className="label-caps">Account</span>
+              <span className="label-caps">{s.footer_account_heading}</span>
               <Link href="/sign-in" className="link-quiet text-[var(--muted-foreground)]">
-                Sign in
+                {s.nav_sign_in}
               </Link>
-              <Link href="/sign-up" className="link-quiet text-[var(--muted-foreground)]">
-                Sign up
-              </Link>
+              {s.allow_signups && (
+                <Link href="/sign-up" className="link-quiet text-[var(--muted-foreground)]">
+                  {s.nav_sign_up}
+                </Link>
+              )}
               {s.support_email && (
                 <a
                   href={`mailto:${s.support_email}`}
                   className="link-quiet text-[var(--muted-foreground)]"
                 >
-                  Support
+                  {s.footer_support_label}
                 </a>
               )}
             </div>

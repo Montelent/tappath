@@ -1,19 +1,41 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AuthForm from "@/components/auth/AuthForm";
+import { getSiteSettings } from "@/lib/site-settings";
 
 export const metadata: Metadata = {
   title: "Create account",
   description: "Create a TapPath account to confirm guides and join discussions.",
 };
 
-export default function SignUpPage() {
+export default async function SignUpPage() {
+  const s = await getSiteSettings();
+
+  if (!s.allow_signups) {
+    return (
+      <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-12 sm:px-6">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 text-center shadow-sm sm:p-8">
+          <h1 className="text-2xl font-bold tracking-tight">Sign-ups closed</h1>
+          <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+            New accounts are not being accepted right now.
+          </p>
+          <Link
+            href="/sign-in"
+            className="mt-6 inline-block text-sm font-medium text-brand-600 hover:underline"
+          >
+            {s.nav_sign_in}
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-12 sm:px-6">
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm sm:p-8">
         <div className="mb-6 text-center">
           <Link href="/" className="text-xl font-bold tracking-tight text-brand-600 dark:text-brand-400">
-            TapPath
+            {s.site_name}
           </Link>
           <h1 className="mt-4 text-2xl font-bold tracking-tight">Create account</h1>
           <p className="mt-1.5 text-sm text-[var(--muted-foreground)]">
@@ -29,7 +51,7 @@ export default function SignUpPage() {
             href="/sign-in"
             className="font-medium text-brand-600 hover:underline dark:text-brand-400"
           >
-            Sign in
+            {s.nav_sign_in}
           </Link>
         </p>
       </div>

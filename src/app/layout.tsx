@@ -3,6 +3,7 @@ import { DM_Sans, Source_Serif_4, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import MaintenanceBanner from "@/components/MaintenanceBanner";
 import CopilotWidget from "@/components/copilot/CopilotWidget";
 import OrganizationJsonLd from "@/components/seo/OrganizationJsonLd";
 import { LanguageProvider } from "@/i18n/LanguageProvider";
@@ -98,6 +99,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <LanguageProvider>
             <OrganizationJsonLd />
+            <MaintenanceBanner />
             <Header />
             <main className="flex-1 pb-24 md:pb-16">{children}</main>
             <Footer />

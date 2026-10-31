@@ -3,18 +3,25 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Moon, Sun, Menu, X } from "lucide-react";
-import { cn } from "@/lib/utils";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
-import { useT } from "@/i18n/LanguageProvider";
 import { useAuthOptional } from "@/context/AuthContext";
 import type { SiteSettings } from "@/lib/site-settings";
+import { SITE_SETTINGS_DEFAULTS } from "@/lib/site-settings";
 
 export default function Header() {
   const [dark, setDark] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [siteName, setSiteName] = useState("TapPath");
-  const [logoUrl, setLogoUrl] = useState("");
-  const t = useT();
+  const [s, setS] = useState({
+    site_name: SITE_SETTINGS_DEFAULTS.site_name,
+    logo_url: "",
+    nav_home: SITE_SETTINGS_DEFAULTS.nav_home,
+    nav_topics: SITE_SETTINGS_DEFAULTS.nav_topics,
+    nav_devices: SITE_SETTINGS_DEFAULTS.nav_devices,
+    nav_glossary: SITE_SETTINGS_DEFAULTS.nav_glossary,
+    nav_forum: SITE_SETTINGS_DEFAULTS.nav_forum,
+    nav_admin: SITE_SETTINGS_DEFAULTS.nav_admin,
+    nav_sign_in: SITE_SETTINGS_DEFAULTS.nav_sign_in,
+  });
   const auth = useAuthOptional();
 
   useEffect(() => {
@@ -32,9 +39,18 @@ export default function Header() {
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
-        const s = (data.settings || {}) as Partial<SiteSettings>;
-        if (s.site_name) setSiteName(s.site_name);
-        if (typeof s.logo_url === "string") setLogoUrl(s.logo_url);
+        const raw = (data.settings || {}) as Partial<SiteSettings>;
+        setS((prev) => ({
+          site_name: raw.site_name || prev.site_name,
+          logo_url: typeof raw.logo_url === "string" ? raw.logo_url : prev.logo_url,
+          nav_home: raw.nav_home || prev.nav_home,
+          nav_topics: raw.nav_topics || prev.nav_topics,
+          nav_devices: raw.nav_devices || prev.nav_devices,
+          nav_glossary: raw.nav_glossary || prev.nav_glossary,
+          nav_forum: raw.nav_forum || prev.nav_forum,
+          nav_admin: raw.nav_admin || prev.nav_admin,
+          nav_sign_in: raw.nav_sign_in || prev.nav_sign_in,
+        }));
       })
       .catch(() => {});
     return () => {
@@ -50,22 +66,29 @@ export default function Header() {
   };
 
   const nav = [
-    { href: "/", label: t.common.home },
-    { href: "/topics", label: t.nav.topics },
-    { href: "/devices", label: t.nav.devices },
-    { href: "/glossary", label: t.nav.glossary },
-    { href: "/forum", label: "Forum" },
+    { href: "/", label: s.nav_home },
+    { href: "/topics", label: s.nav_topics },
+    { href: "/devices", label: s.nav_devices },
+    { href: "/glossary", label: s.nav_glossary },
+    { href: "/forum", label: s.nav_forum },
   ];
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-sm">
       <div className="max-wide page-pad flex h-14 items-center justify-between gap-4">
-        <Link href="/" className="font-display text-lg tracking-tight link-quiet shrink-0 flex items-center gap-2">
-          {logoUrl ? (
+        <Link
+          href="/"
+          className="font-display text-lg tracking-tight link-quiet shrink-0 flex items-center gap-2"
+        >
+          {s.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={logoUrl} alt={siteName} className="h-7 w-auto max-w-[140px] object-contain" />
+            <img
+              src={s.logo_url}
+              alt={s.site_name}
+              className="h-7 w-auto max-w-[140px] object-contain"
+            />
           ) : (
-            siteName
+            s.site_name
           )}
         </Link>
 
@@ -96,14 +119,14 @@ export default function Header() {
               href="/admin"
               className="hidden sm:inline text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] link-quiet"
             >
-              Admin
+              {s.nav_admin}
             </Link>
           ) : (
             <Link
               href="/sign-in"
               className="hidden sm:inline text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] link-quiet"
             >
-              Sign in
+              {s.nav_sign_in}
             </Link>
           )}
           <button
@@ -138,7 +161,7 @@ export default function Header() {
             onClick={() => setMobileOpen(false)}
             className="py-2.5 text-sm link-quiet text-[var(--muted-foreground)]"
           >
-            {auth?.user ? "Admin" : "Sign in"}
+            {auth?.user ? s.nav_admin : s.nav_sign_in}
           </Link>
         </nav>
       )}
