@@ -1,5 +1,6 @@
 /**
  * Content data access — Neon when DATABASE_URL is set, else static files (dev only).
+ * Counts are always computed live from guides/devices when Neon is connected.
  */
 import { getSql, isNeonConfigured } from "./neon";
 import type {
@@ -22,7 +23,21 @@ export async function listBrands(): Promise<DbBrand[]> {
   if (isNeonConfigured()) {
     try {
       const sql = getSql()!;
-      const rows = await sql`SELECT * FROM brands WHERE published = true ORDER BY sort_order`;
+      const rows = await sql`
+        SELECT
+          b.*,
+          (
+            SELECT count(*)::int FROM guides g
+            WHERE g.brand_slug = b.slug AND g.published = true
+          ) AS guides_count,
+          (
+            SELECT count(*)::int FROM devices d
+            WHERE d.brand_slug = b.slug AND COALESCE(d.published, true) = true
+          ) AS devices_count
+        FROM brands b
+        WHERE b.published = true
+        ORDER BY b.sort_order ASC NULLS LAST, b.name ASC
+      `;
       return rows as DbBrand[];
     } catch (e) {
       console.error("[listBrands]", e);
@@ -51,7 +66,22 @@ export async function listTopics(): Promise<DbTopic[]> {
   if (isNeonConfigured()) {
     try {
       const sql = getSql()!;
-      const rows = await sql`SELECT * FROM topics WHERE published = true ORDER BY sort_order`;
+      const rows = await sql`
+        SELECT
+          t.*,
+          (
+            SELECT count(*)::int FROM guides g
+            WHERE g.published = true
+              AND (
+                lower(g.category) = lower(t.name)
+                OR lower(g.category) LIKE '%' || lower(t.name) || '%'
+                OR lower(t.name) LIKE '%' || lower(g.category) || '%'
+              )
+          ) AS guide_count
+        FROM topics t
+        WHERE t.published = true
+        ORDER BY t.sort_order ASC NULLS LAST, t.name ASC
+      `;
       return rows as DbTopic[];
     } catch (e) {
       console.error("[listTopics]", e);
@@ -230,4 +260,32 @@ export async function getAdminStats(): Promise<AdminStats> {
     feedback: 0,
     usingSupabase: false,
   };
+}
+
+/** Single brand for public pages — live guide/device counts. */
+export async function getBrandBySlug(slug: string): Promise<DbBrand | null> {
+  const all = await listBrands();
+  const hit = all.find((b) => b.slug === slug.toLowerCase());
+  if (hit) return hit;
+  if (!isNeonConfigured()) {
+    const s = staticBrands[slug as keyof typeof staticBrands];
+    if (!s) return null;
+    return {
+      id: s.slug,
+      slug: s.slug,
+      name: s.name,
+      color: s.color,
+      description: s.description,
+      guides_count: s.guides,
+      devices_count: s.devices,
+      product_lines: s.productLines,
+      top_guides: s.topGuides,
+      devices_list: s.devicesList,
+      seo_updates: s.seoText?.updates ?? "",
+      seo_help: s.seoText?.help ?? "",
+      published: true,
+      sort_order: 0,
+    };
+  }
+  return null;
 }
