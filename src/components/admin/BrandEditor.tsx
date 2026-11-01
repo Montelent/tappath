@@ -14,6 +14,8 @@ import {
   EyeOff,
 } from "lucide-react";
 import RichTextEditor from "@/components/admin/RichTextEditor";
+import BrandColorPicker from "@/components/admin/BrandColorPicker";
+import SortOrderField, { nextSortOrder } from "@/components/admin/SortOrderField";
 
 type ProductLine = { name: string; count: number; href: string };
 type TopGuide = { title: string; href: string; category: string };
@@ -39,7 +41,7 @@ type BrandRow = {
 const emptyBrand = (): BrandRow => ({
   slug: "",
   name: "",
-  color: "bg-blue-500",
+  color: "#3b82f6",
   description: "",
   guides_count: 0,
   devices_count: 0,
@@ -105,7 +107,6 @@ export default function BrandEditor() {
     return `/${brand}/${line}/${g.slug}`;
   };
 
-  /** Auto: all published guides with this brand_slug — no manual entry needed. */
   const loadAutoGuides = async (slug: string) => {
     if (!slug) {
       setAutoGuides([]);
@@ -127,7 +128,6 @@ export default function BrandEditor() {
         category: String(g.category || "General"),
       }));
       setAutoGuides(mapped);
-
       setEditing((prev) => {
         if (!prev || prev.slug.toLowerCase() !== slug.toLowerCase()) return prev;
         const lineMap = new Map<string, number>();
@@ -143,12 +143,7 @@ export default function BrandEditor() {
                 href: `/${slug}/${name.toLowerCase().replace(/\s+/g, "-")}`,
               }))
             : prev.product_lines;
-        return {
-          ...prev,
-          guides_count: brandGuides.length,
-          top_guides: mapped,
-          product_lines,
-        };
+        return { ...prev, guides_count: brandGuides.length, top_guides: mapped, product_lines };
       });
     } catch {
       setAutoGuides([]);
@@ -244,7 +239,11 @@ export default function BrandEditor() {
             {seeding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Database className="h-3.5 w-3.5" />}
             Seed DB
           </button>
-          <button type="button" onClick={() => setEditing(emptyBrand())} className="inline-flex items-center gap-1.5 rounded-full bg-brand-600 px-3 py-1.5 text-sm font-medium text-white">
+          <button
+            type="button"
+            onClick={() => setEditing({ ...emptyBrand(), sort_order: nextSortOrder(rows), color: "#3b82f6" })}
+            className="inline-flex items-center gap-1.5 rounded-full bg-brand-600 px-3 py-1.5 text-sm font-medium text-white"
+          >
             <Plus className="h-3.5 w-3.5" /> New brand
           </button>
         </div>
@@ -279,45 +278,28 @@ export default function BrandEditor() {
               <input
                 value={editing.slug}
                 onChange={(e) => setEditing({ ...editing, slug: e.target.value })}
-                onBlur={() => { if (editing.slug) void loadAutoGuides(editing.slug); }}
+                onBlur={() => {
+                  if (editing.slug) void loadAutoGuides(editing.slug);
+                }}
                 className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
               />
             </label>
-            <label>
-              <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">Color class</span>
-              <input value={editing.color} onChange={(e) => setEditing({ ...editing, color: e.target.value })} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
-            </label>
-            <label>
-              <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">Sort order</span>
-              <input type="number" value={editing.sort_order} onChange={(e) => setEditing({ ...editing, sort_order: Number(e.target.value) })} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
-            </label>
-            <div className="sm:col-span-2">
-              <RichTextEditor
-                label="Description"
-                value={editing.description || ""}
-                onChange={(html) => setEditing({ ...editing, description: html })}
-                minHeight={140}
-                compact
-                placeholder="Brand description…"
+            <BrandColorPicker value={editing.color} onChange={(color) => setEditing({ ...editing, color })} />
+            <div>
+              <SortOrderField
+                value={editing.sort_order}
+                onChange={(n) => setEditing({ ...editing, sort_order: n })}
+                autoValue={nextSortOrder(rows, editing.id)}
               />
             </div>
             <div className="sm:col-span-2">
-              <RichTextEditor
-                label="SEO — Updates text"
-                value={editing.seo_updates || ""}
-                onChange={(html) => setEditing({ ...editing, seo_updates: html })}
-                minHeight={120}
-                compact
-              />
+              <RichTextEditor label="Description" value={editing.description || ""} onChange={(html) => setEditing({ ...editing, description: html })} minHeight={140} compact placeholder="Brand description…" />
             </div>
             <div className="sm:col-span-2">
-              <RichTextEditor
-                label="SEO — Help text"
-                value={editing.seo_help || ""}
-                onChange={(html) => setEditing({ ...editing, seo_help: html })}
-                minHeight={120}
-                compact
-              />
+              <RichTextEditor label="SEO — Updates text" value={editing.seo_updates || ""} onChange={(html) => setEditing({ ...editing, seo_updates: html })} minHeight={120} compact />
+            </div>
+            <div className="sm:col-span-2">
+              <RichTextEditor label="SEO — Help text" value={editing.seo_help || ""} onChange={(html) => setEditing({ ...editing, seo_help: html })} minHeight={120} compact />
             </div>
           </div>
 
@@ -326,24 +308,17 @@ export default function BrandEditor() {
               <div>
                 <h3 className="text-sm font-semibold">Guides (automatic)</h3>
                 <p className="text-[11px] text-[var(--muted-foreground)]">
-                  Pulled from published guides with brand_slug “{editing.slug || "…"}”. No need to add them by hand — the public brand page uses the same list.
+                  Pulled from published guides with brand_slug “{editing.slug || "…"}”. No manual add — public brand page uses the same list.
                 </p>
               </div>
-              <button
-                type="button"
-                className="inline-flex items-center gap-1 text-xs text-brand-600"
-                disabled={!editing.slug || loadingGuides}
-                onClick={() => loadAutoGuides(editing.slug)}
-              >
+              <button type="button" className="inline-flex items-center gap-1 text-xs text-brand-600" disabled={!editing.slug || loadingGuides} onClick={() => loadAutoGuides(editing.slug)}>
                 {loadingGuides ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
                 Refresh guides
               </button>
             </div>
             {autoGuides.length === 0 && !loadingGuides ? (
               <p className="rounded-xl border border-dashed border-[var(--border)] px-3 py-4 text-sm text-[var(--muted-foreground)]">
-                No published guides for this brand yet. Create guides under{" "}
-                <Link href="/admin/guides" className="text-brand-600 underline">Admin → Guides</Link>
-                {" "}with this brand slug — they appear here and on the public brand page automatically.
+                No published guides yet. Create under <Link href="/admin/guides" className="text-brand-600 underline">Admin → Guides</Link> with this brand slug.
               </p>
             ) : (
               <ul className="divide-y divide-[var(--border)] rounded-xl border border-[var(--border)]">
@@ -353,16 +328,12 @@ export default function BrandEditor() {
                       <span className="font-medium">{g.title || "Untitled"}</span>
                       {g.category && <span className="ml-2 text-xs text-[var(--muted-foreground)]">{g.category}</span>}
                     </span>
-                    <Link href={g.href || "#"} target="_blank" className="shrink-0 font-mono text-xs text-brand-600 hover:underline">
-                      {g.href}
-                    </Link>
+                    <Link href={g.href || "#"} target="_blank" className="shrink-0 font-mono text-xs text-brand-600 hover:underline">{g.href}</Link>
                   </li>
                 ))}
               </ul>
             )}
-            <p className="mt-2 text-[11px] text-[var(--muted-foreground)]">
-              Count: {editing.guides_count} · Product lines are derived from these guides when you refresh.
-            </p>
+            <p className="mt-2 text-[11px] text-[var(--muted-foreground)]">Count: {editing.guides_count}</p>
           </div>
 
           <div className="flex flex-wrap gap-2">
