@@ -12,24 +12,9 @@ import { LanguageProvider } from "@/i18n/LanguageProvider";
 import { AuthProvider } from "@/context/AuthContext";
 import { getSiteSettings } from "@/lib/site-settings";
 
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-});
-
-const sourceSerif = Source_Serif_4({
-  subsets: ["latin"],
-  variable: "--font-serif",
-  display: "swap",
-});
-
-const plexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-mono",
-  display: "swap",
-});
+const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
+const sourceSerif = Source_Serif_4({ subsets: ["latin"], variable: "--font-serif", display: "swap" });
+const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-mono", display: "swap" });
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://tappath.com";
 
@@ -37,25 +22,15 @@ export async function generateMetadata(): Promise<Metadata> {
   const s = await getSiteSettings();
   const title = s.meta_title || `${s.site_name} — Phone settings, step by step`;
   const description = s.meta_description;
-  const keywords = s.meta_keywords
-    .split(",")
-    .map((k) => k.trim())
-    .filter(Boolean);
+  const keywords = s.meta_keywords.split(",").map((k) => k.trim()).filter(Boolean);
   const ogImage = s.og_image_url || "/og.png";
   const icons = s.favicon_url
-    ? {
-        icon: [{ url: s.favicon_url }],
-        shortcut: [s.favicon_url],
-        apple: [{ url: s.favicon_url }],
-      }
+    ? { icon: [{ url: s.favicon_url }], shortcut: [s.favicon_url], apple: [{ url: s.favicon_url }] }
     : undefined;
 
   return {
     metadataBase: new URL(BASE),
-    title: {
-      default: title,
-      template: `%s · ${s.site_name}`,
-    },
+    title: { default: title, template: `%s · ${s.site_name}` },
     description,
     keywords,
     authors: [{ name: s.author_name || s.site_name }],
@@ -70,12 +45,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       images: [{ url: ogImage, width: 1200, height: 630, alt: s.site_name }],
     },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [ogImage],
-    },
+    twitter: { card: "summary_large_image", title, description, images: [ogImage] },
     robots: { index: true, follow: true },
     alternates: { canonical: BASE },
   };
@@ -83,8 +53,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f2ea" },
-    { media: "(prefers-color-scheme: dark)", color: "#1c1916" },
+    { media: "(prefers-color-scheme: light)", color: "#faf6f4" },
+    { media: "(prefers-color-scheme: dark)", color: "#161211" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -92,11 +62,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en"
-      className={`${dmSans.variable} ${sourceSerif.variable} ${plexMono.variable}`}
-      suppressHydrationWarning
-    >
+    <html lang="en" className={`${dmSans.variable} ${sourceSerif.variable} ${plexMono.variable}`} suppressHydrationWarning>
       <body className="min-h-screen flex flex-col font-sans">
         <CustomCode slot="body_start" />
         <AuthProvider>
@@ -106,7 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <MaintenanceBanner />
             <AdSlot placement="header" />
             <Header />
-            <main className="flex-1 pb-24 md:pb-16">{children}</main>
+            <main id="main-content" className="flex-1 pb-24 md:pb-16 safe-pb">{children}</main>
             <AdSlot placement="before_footer" />
             <Footer />
             <CustomCode slot="footer" />

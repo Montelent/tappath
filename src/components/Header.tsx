@@ -58,6 +58,13 @@ export default function Header() {
     };
   }, []);
 
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
   const toggleDark = () => {
     const next = !dark;
     setDark(next);
@@ -74,96 +81,63 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-sm">
-      <div className="max-wide page-pad flex h-14 items-center justify-between gap-4">
-        <Link
-          href="/"
-          className="font-display text-lg tracking-tight link-quiet shrink-0 flex items-center gap-2"
-        >
+    <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/85 backdrop-blur-md supports-[backdrop-filter]:bg-[var(--background)]/75">
+      <a href="#main-content" className="skip-link">Skip to content</a>
+      <div className="max-wide page-pad flex h-14 items-center justify-between gap-3 sm:gap-4">
+        <Link href="/" className="flex shrink-0 items-center gap-2 font-display text-lg tracking-tight link-quiet">
           {s.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={s.logo_url}
-              alt={s.site_name}
-              className="h-7 w-auto max-w-[140px] object-contain"
-            />
+            <img src={s.logo_url} alt={s.site_name} className="h-7 w-auto max-w-[140px] object-contain" />
           ) : (
-            s.site_name
+            <>
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold text-white" style={{ background: "var(--accent)" }} aria-hidden>
+                {s.site_name.slice(0, 1)}
+              </span>
+              <span className="sm:inline">{s.site_name}</span>
+            </>
           )}
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6" aria-label="Main">
+        <nav className="hidden md:flex items-center gap-0.5 lg:gap-1" aria-label="Main">
           {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] link-quiet transition-colors duration-fast"
-            >
+            <Link key={item.href} href={item.href} className="rounded-full px-3 py-1.5 text-sm text-[var(--muted-foreground)] link-quiet hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
               {item.label}
             </Link>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1 sm:gap-1.5">
           <LanguageSwitcher />
-          <button
-            type="button"
-            onClick={toggleDark}
-            className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors duration-fast"
-            aria-label={dark ? "Light mode" : "Dark mode"}
-          >
+          <button type="button" onClick={toggleDark} className="rounded-full p-2.5 text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors" aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}>
             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
           {auth?.user ? (
-            <Link
-              href="/admin"
-              className="hidden sm:inline text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] link-quiet"
-            >
-              {s.nav_admin}
-            </Link>
+            <Link href="/admin" className="hidden sm:inline-flex rounded-full px-3 py-1.5 text-sm font-medium text-[var(--accent)] hover:bg-[var(--accent-muted)] transition-colors">{s.nav_admin}</Link>
           ) : (
-            <Link
-              href="/sign-in"
-              className="hidden sm:inline text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] link-quiet"
-            >
-              {s.nav_sign_in}
-            </Link>
+            <Link href="/sign-in" className="hidden sm:inline-flex rounded-full border border-[var(--border)] px-3 py-1.5 text-sm link-quiet hover:border-[var(--accent)]">{s.nav_sign_in}</Link>
           )}
-          <button
-            type="button"
-            className="md:hidden p-2 text-[var(--muted-foreground)]"
-            onClick={() => setMobileOpen((o) => !o)}
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
-            aria-expanded={mobileOpen}
-          >
+          <button type="button" className="md:hidden rounded-full p-2.5 text-[var(--muted-foreground)] hover:bg-[var(--muted)]" onClick={() => setMobileOpen((o) => !o)} aria-expanded={mobileOpen} aria-controls="mobile-nav" aria-label={mobileOpen ? "Close menu" : "Open menu"}>
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
 
       {mobileOpen && (
-        <nav
-          className="md:hidden border-t border-[var(--border)] page-pad py-3 flex flex-col gap-1"
-          aria-label="Mobile"
-        >
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              className="py-2.5 text-sm link-quiet"
-            >
-              {item.label}
-            </Link>
-          ))}
-          <Link
-            href={auth?.user ? "/admin" : "/sign-in"}
-            onClick={() => setMobileOpen(false)}
-            className="py-2.5 text-sm link-quiet text-[var(--muted-foreground)]"
-          >
-            {auth?.user ? s.nav_admin : s.nav_sign_in}
-          </Link>
-        </nav>
+        <div id="mobile-nav" className="md:hidden border-t border-[var(--border)] bg-[var(--card)] shadow-lg">
+          <nav className="max-wide page-pad flex flex-col gap-1 py-4" aria-label="Mobile">
+            {nav.map((item) => (
+              <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className="rounded-xl px-3 py-3 text-base font-medium link-quiet hover:bg-[var(--muted)]">
+                {item.label}
+              </Link>
+            ))}
+            <div className="my-2 border-t border-[var(--border)]" />
+            {auth?.user ? (
+              <Link href="/admin" onClick={() => setMobileOpen(false)} className="rounded-xl px-3 py-3 text-base font-medium text-[var(--accent)]">{s.nav_admin}</Link>
+            ) : (
+              <Link href="/sign-in" onClick={() => setMobileOpen(false)} className="rounded-xl px-3 py-3 text-base font-medium">{s.nav_sign_in}</Link>
+            )}
+          </nav>
+        </div>
       )}
     </header>
   );
