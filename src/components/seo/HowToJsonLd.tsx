@@ -1,11 +1,9 @@
 import type { Guide } from "@/data/guides";
 import { getSiteSettings } from "@/lib/site-settings";
 import JsonLd, { siteBase } from "@/components/seo/JsonLd";
+import { authorProfilePath, authorSameAsUrls } from "@/lib/author";
 
-type Props = {
-  guide: Guide;
-  url: string;
-};
+type Props = { guide: Guide; url: string };
 
 function toIsoDate(raw: string): string {
   if (!raw) return new Date().toISOString().slice(0, 10);
@@ -16,7 +14,6 @@ function toIsoDate(raw: string): string {
   return raw;
 }
 
-/** Google HowTo + BreadcrumbList + FAQ + TechArticle with author (E-E-A-T). */
 export default async function HowToJsonLd({ guide, url }: Props) {
   const primary = guide.versions[0];
   if (!primary) return null;
@@ -36,22 +33,19 @@ export default async function HowToJsonLd({ guide, url }: Props) {
       url: `${url}#step-${i + 1}`,
     };
     if (step.imageUrl) {
-      item.image = step.imageUrl.startsWith("http")
-        ? step.imageUrl
-        : `${base}${step.imageUrl}`;
+      item.image = step.imageUrl.startsWith("http") ? step.imageUrl : `${base}${step.imageUrl}`;
     }
     return item;
   });
 
   const authorName = (s.author_name || s.site_name || "TapPath").trim();
-  const sameAs = (s.author_same_as || "")
-    .split(",")
-    .map((x) => x.trim())
-    .filter(Boolean);
+  const sameAs = authorSameAsUrls(s);
+  const profileUrl = `${base}${authorProfilePath(s)}`;
 
   const author: Record<string, unknown> = {
     "@type": "Person",
     name: authorName,
+    url: profileUrl,
     ...(s.author_title ? { jobTitle: s.author_title } : {}),
     ...(s.author_bio ? { description: s.author_bio } : {}),
     ...(s.author_avatar_url
@@ -100,12 +94,7 @@ export default async function HowToJsonLd({ guide, url }: Props) {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: base },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: guide.brand,
-        item: `${base}/${guide.brandSlug}`,
-      },
+      { "@type": "ListItem", position: 2, name: guide.brand, item: `${base}/${guide.brandSlug}` },
       { "@type": "ListItem", position: 3, name: guide.title, item: url },
     ],
   };
