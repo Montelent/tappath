@@ -1,6 +1,5 @@
 import { getSql, isNeonConfigured } from "@/lib/db/neon";
 
-/** All public site settings editable from Admin → Settings */
 export type SiteSettings = {
   site_name: string;
   site_tagline: string;
@@ -46,9 +45,20 @@ export type SiteSettings = {
   allow_signups: boolean;
   default_locale: string;
   author_name: string;
+  author_slug: string;
   author_title: string;
   author_bio: string;
+  author_full_bio: string;
+  author_credentials: string;
   author_avatar_url: string;
+  author_email: string;
+  author_website: string;
+  author_twitter: string;
+  author_linkedin: string;
+  author_github: string;
+  author_youtube: string;
+  author_facebook: string;
+  author_instagram: string;
   author_same_as: string;
   head_code: string;
   body_start_code: string;
@@ -111,10 +121,22 @@ export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
   allow_signups: true,
   default_locale: "en",
   author_name: "TapPath Editorial",
+  author_slug: "editorial",
   author_title: "Smartphone settings researcher",
   author_bio:
     "TapPath editors verify menu paths on real devices and keep guides updated when Android and OEM skins change.",
+  author_full_bio:
+    "Our editorial team tests menu paths on real Samsung, Xiaomi, and other Android phones. Guides are updated when One UI, HyperOS, and stock Android change — so the steps you see match what is on your device.",
+  author_credentials: "Verified on real devices · Updated with each major OS release",
   author_avatar_url: "",
+  author_email: "",
+  author_website: "",
+  author_twitter: "",
+  author_linkedin: "",
+  author_github: "",
+  author_youtube: "",
+  author_facebook: "",
+  author_instagram: "",
   author_same_as: "",
   head_code: "",
   body_start_code: "",
