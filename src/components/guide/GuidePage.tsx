@@ -6,14 +6,20 @@ import GuideFAQ from "./GuideFAQ";
 import AuthorBox from "./AuthorBox";
 import AdSlot from "@/components/ads/AdSlot";
 
-type Props = { guide: Guide };
+type Props = {
+  guide: Guide;
+};
 
 function formatVerified(raw: string): string {
   if (!raw) return "";
   if (/^\d{1,2}\s+\w+\s+\d{4}/.test(raw)) return raw;
   const d = new Date(raw);
   if (!Number.isNaN(d.getTime())) {
-    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    return d.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
   }
   return raw;
 }
@@ -30,9 +36,13 @@ export default function GuidePage({ guide }: Props) {
           className="mb-6 flex flex-wrap items-center gap-2 text-sm text-[var(--muted-foreground)]"
           aria-label="Breadcrumb"
         >
-          <Link href="/" className="link-quiet">Home</Link>
+          <Link href="/" className="link-quiet">
+            Home
+          </Link>
           <span aria-hidden>/</span>
-          <Link href={`/${guide.brandSlug}`} className="link-quiet">{guide.brand}</Link>
+          <Link href={`/${guide.brandSlug}`} className="link-quiet">
+            {guide.brand}
+          </Link>
           <span aria-hidden>/</span>
           <span className="text-[var(--foreground)] break-words">{guide.title}</span>
         </nav>
@@ -44,10 +54,12 @@ export default function GuidePage({ guide }: Props) {
                 {guide.brand}
                 {guide.category ? ` · ${guide.category}` : ""}
               </p>
-              <h1 className="font-display text-3xl sm:text-4xl text-balance">{guide.title}</h1>
+              <h1 className="font-display text-3xl sm:text-4xl text-balance">
+                {guide.title}
+              </h1>
               {guide.shortDescription && (
                 <div
-                  className="mt-4 text-[var(--muted-foreground)] leading-relaxed"
+                  className="mt-4 text-[var(--muted-foreground)] leading-relaxed prose-a:text-[var(--accent)]"
                   dangerouslySetInnerHTML={{ __html: guide.shortDescription }}
                 />
               )}
@@ -87,42 +99,37 @@ export default function GuidePage({ guide }: Props) {
 
               {guide.article?.length > 0 && (
                 <section>
-                  <h2 className="font-display text-xl mb-4">
-                    {guide.brand}: {guide.title}
-                  </h2>
-                  <div className="space-y-4 text-[var(--muted-foreground)] leading-relaxed">
+                  <h2 className="font-display text-xl mb-4">Notes</h2>
+                  <div className="space-y-3 text-[var(--muted-foreground)] leading-relaxed">
                     {guide.article.map((p, i) => (
-                      <p key={i}>{p}</p>
+                      <p key={i} dangerouslySetInnerHTML={{ __html: p }} />
                     ))}
                   </div>
                 </section>
               )}
 
-              <AdSlot placement="mid_content" />
-
               {guide.faqs?.length > 0 && (
                 <section>
-                  <h2 className="font-display text-xl mb-4">Frequently asked questions</h2>
+                  <h2 className="font-display text-xl mb-4">FAQ</h2>
                   <GuideFAQ faqs={guide.faqs} />
                 </section>
               )}
 
-              {guide.compatibleDevices && guide.compatibleDevices.length > 0 && (
+              {guide.compatibleDevices?.length > 0 && (
                 <section>
                   <h2 className="font-display text-xl mb-4">Compatible devices</h2>
-                  <p className="mb-3 text-sm text-[var(--muted-foreground)]">
-                    Tap a device for more guides on that model.
-                  </p>
-                  <ul className="flex flex-wrap gap-2">
+                  <ul className="grid gap-2 sm:grid-cols-2">
                     {guide.compatibleDevices.map((d) => (
-                      <li key={d.href || d.name}>
+                      <li key={d.name + d.os}>
                         <Link
                           href={d.href || `/${guide.brandSlug}`}
-                          className="inline-block rounded-full border border-[var(--border)] px-3 py-1.5 text-sm link-quiet hover:border-[var(--accent)]"
+                          className="surface-card block px-4 py-3 text-sm link-quiet"
                         >
-                          {d.name}
+                          <span className="font-medium">{d.name}</span>
                           {d.os ? (
-                            <span className="ml-1 text-xs text-[var(--muted-foreground)]">{d.os}</span>
+                            <span className="mt-0.5 block text-xs text-[var(--muted-foreground)]">
+                              {d.os}
+                            </span>
                           ) : null}
                         </Link>
                       </li>
@@ -132,14 +139,31 @@ export default function GuidePage({ guide }: Props) {
               )}
 
               {guide.related?.length > 0 && (
-                <section>
-                  <h2 className="font-display text-xl mb-4">More guides for {guide.brand}</h2>
-                  <ul className="border-t border-[var(--border)]">
+                <section aria-labelledby="related-guides-heading">
+                  <h2
+                    id="related-guides-heading"
+                    className="font-display text-xl mb-4"
+                  >
+                    Related guides
+                  </h2>
+                  <p className="mb-4 text-sm text-[var(--muted-foreground)]">
+                    Similar how-tos for {guide.brand}
+                    {guide.category ? ` · ${guide.category}` : ""}
+                    {guide.productLine ? ` · ${guide.productLine}` : ""}.
+                  </p>
+                  <ul className="grid-guides">
                     {guide.related.map((r) => (
-                      <li key={r.href} className="border-b border-[var(--border)]">
-                        <Link href={r.href} className="block py-3 link-quiet break-words">
-                          {r.title}
-                          {r.category && <span className="label-caps ml-2">{r.category}</span>}
+                      <li key={r.href}>
+                        <Link
+                          href={r.href}
+                          className="surface-card block px-4 py-3.5 link-quiet h-full"
+                        >
+                          {r.category && (
+                            <span className="label-caps">{r.category}</span>
+                          )}
+                          <span className="mt-1 block font-medium tracking-tight break-words">
+                            {r.title}
+                          </span>
                         </Link>
                       </li>
                     ))}
@@ -161,6 +185,7 @@ export default function GuidePage({ guide }: Props) {
                   {guide.article?.length > 0 && <li>Notes</li>}
                   {guide.faqs?.length > 0 && <li>FAQ</li>}
                   {guide.compatibleDevices?.length > 0 && <li>Compatible devices</li>}
+                  {guide.related?.length > 0 && <li>Related guides</li>}
                 </ul>
               </div>
             </div>

@@ -94,9 +94,9 @@ export default function GuideMetaFields({
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--muted)]/20 p-4 space-y-3">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <h3 className="text-sm font-semibold">Related guides</h3>
+            <h3 className="text-sm font-semibold">Related guides (optional)</h3>
             <p className="text-[11px] text-[var(--muted-foreground)]">
-              Grid at the bottom of the guide page. Use full paths like /samsung/galaxy/slug.
+              Optional. Frontend also auto-suggests related guides by brand, product line, topic, devices, and OS version. Manual links appear first.
             </p>
           </div>
           <button
