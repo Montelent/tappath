@@ -12,11 +12,8 @@ import {
   MessageSquare,
   Settings,
   Users,
+  User,
   MessageCircleHeart,
-  Sparkles,
-  Download,
-  Image,
-  Languages,
   ExternalLink,
   LogOut,
   Shield,
@@ -35,12 +32,10 @@ const NAV = [
   { href: "/admin/forum", label: "Forum", icon: MessageSquare },
   { href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart },
   { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/author", label: "Author", icon: User },
   { href: "/admin/settings", label: "Site settings", icon: Settings },
-  { href: "/admin/copilot", label: "Copilot", icon: Sparkles },
-  { href: "/admin/export", label: "Export", icon: Download },
-  { href: "/admin/media", label: "Media", icon: Image },
-  { href: "/admin/i18n", label: "i18n", icon: Languages },
-];
+  { href: "/admin/copilot", label: "Copilot", icon: MessageCircleHeart },
+] as const;
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -51,7 +46,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     return pathname === href || pathname.startsWith(href + "/");
   };
 
-  const current = NAV.find((n) => isActive(n.href, n.exact))?.label ?? "Admin";
+  const current = NAV.find((n) => isActive(n.href, "exact" in n && n.exact))?.label ?? "Admin";
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
@@ -64,7 +59,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
             {NAV.map((item) => {
               const Icon = item.icon;
-              const active = isActive(item.href, item.exact);
+              const active = isActive(item.href, "exact" in item && item.exact);
               return (
                 <Link
                   key={item.href}
@@ -87,11 +82,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             <Link href="/" className="mb-1 flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)]">
               <ExternalLink className="h-4 w-4" /> View site
             </Link>
-            <button
-              type="button"
-              onClick={() => signOut()}
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
-            >
+            <button type="button" onClick={() => signOut()} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)]">
               <LogOut className="h-4 w-4" /> Sign out
             </button>
           </div>
@@ -115,7 +106,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
           <div className="flex gap-1 overflow-x-auto border-b border-[var(--border)] px-2 py-2 lg:hidden">
             {NAV.map((item) => {
-              const active = isActive(item.href, item.exact);
+              const active = isActive(item.href, "exact" in item && item.exact);
               return (
                 <Link
                   key={item.href}
