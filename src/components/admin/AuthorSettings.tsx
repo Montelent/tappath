@@ -14,6 +14,7 @@ import {
   SITE_SETTINGS_DEFAULTS,
   type SiteSettings as Settings,
 } from "@/lib/site-settings";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 
 const AUTHOR_KEYS: (keyof Settings)[] = [
   "author_name",
@@ -56,7 +57,9 @@ function Field({
   return (
     <label className="block">
       <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">{label}</span>
-      {help && <p className="mb-1.5 text-[11px] leading-snug text-[var(--muted-foreground)]">{help}</p>}
+      {help && (
+        <p className="mb-1.5 text-[11px] leading-snug text-[var(--muted-foreground)]">{help}</p>
+      )}
       {multiline ? (
         <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={rows} className={cls} />
       ) : (
@@ -195,7 +198,9 @@ export default function AuthorSettings() {
           <div>
             <p className="font-medium">{settings.author_name || "Author name"}</p>
             <p className="text-sm text-[var(--muted-foreground)]">{settings.author_title || "Job title"}</p>
-            <p className="mt-1 line-clamp-2 text-xs text-[var(--muted-foreground)]">{settings.author_bio || "Short bio appears here…"}</p>
+            <p className="mt-1 line-clamp-2 text-xs text-[var(--muted-foreground)]">
+              {(settings.author_bio || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() || "Short bio appears here…"}
+            </p>
           </div>
         </div>
       </div>
@@ -207,10 +212,23 @@ export default function AuthorSettings() {
           label="Profile URL slug"
           help={`Public page will be ${previewPath}`}
           value={settings.author_slug}
-          onChange={(v) => set("author_slug", v.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-|-$/g, ""))}
+          onChange={(v) =>
+            set(
+              "author_slug",
+              v.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-|-$/g, "")
+            )
+          }
         />
         <Field label="Job title / role" help='Example: "Senior Android settings editor"' value={settings.author_title} onChange={(v) => set("author_title", v)} />
-        <Field label="Short bio (guide box)" help="1–3 sentences under the name on guide pages." multiline rows={3} value={settings.author_bio} onChange={(v) => set("author_bio", v)} />
+        <RichTextEditor
+          label="Short bio (guide box)"
+          help="1–3 sentences under the name on guide pages. Copy, paste, and select work on mobile and desktop."
+          value={settings.author_bio}
+          onChange={(v) => set("author_bio", v)}
+          minHeight={160}
+          compact
+          placeholder="Short author bio shown on guides…"
+        />
         <Field label="Credentials line" help='Example: "Verified on real devices · Updated each OS release"' value={settings.author_credentials} onChange={(v) => set("author_credentials", v)} />
       </section>
 
@@ -227,11 +245,26 @@ export default function AuthorSettings() {
             )}
           </div>
           <div className="min-w-0 flex-1 space-y-2">
-            <input type="url" value={settings.author_avatar_url} onChange={(e) => set("author_avatar_url", e.target.value)} placeholder="https://… or /api/media/…" className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
+            <input
+              type="url"
+              value={settings.author_avatar_url}
+              onChange={(e) => set("author_avatar_url", e.target.value)}
+              placeholder="https://… or /api/media/…"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
+            />
             <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1.5 text-sm">
               {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
               Upload photo
-              <input type="file" accept="image/*" className="sr-only" disabled={uploading} onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadAvatar(f); }} />
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                disabled={uploading}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void uploadAvatar(f);
+                }}
+              />
             </label>
           </div>
         </div>
@@ -239,7 +272,14 @@ export default function AuthorSettings() {
 
       <section className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
         <h2 className="text-sm font-semibold">3. Full bio (author page)</h2>
-        <Field label="Long bio" help="Shown on the full author page. Plain text or simple HTML." multiline rows={8} value={settings.author_full_bio} onChange={(v) => set("author_full_bio", v)} />
+        <RichTextEditor
+          label="Long bio"
+          help="Full bio on the author page. Rich text with copy/paste/select on mobile and desktop."
+          value={settings.author_full_bio}
+          onChange={(v) => set("author_full_bio", v)}
+          minHeight={280}
+          placeholder="Write the full author bio…"
+        />
       </section>
 
       <section className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
@@ -259,7 +299,12 @@ export default function AuthorSettings() {
       </section>
 
       <div className="sticky bottom-4 z-10 flex justify-end">
-        <button type="button" onClick={save} disabled={saving} className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-medium text-white shadow-md disabled:opacity-50">
+        <button
+          type="button"
+          onClick={save}
+          disabled={saving}
+          className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-medium text-white shadow-md disabled:opacity-50"
+        >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Save author profile
         </button>
