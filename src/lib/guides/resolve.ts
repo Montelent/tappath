@@ -23,7 +23,6 @@ function mapStep(s: Record<string, unknown>, j: number) {
   let imageUrl: string | undefined;
   if (typeof rawUrl === "string") {
     const t = rawUrl.trim();
-    // ignore empty, literal "null", and leftover data: URLs
     if (t && t !== "null" && t !== "undefined" && !t.startsWith("data:")) {
       imageUrl = t;
     }
@@ -121,7 +120,6 @@ export function dbGuideToGuide(db: DbGuide): Guide {
   };
 }
 
-/** Public URL path for a guide (always lowercase hyphenated product line). */
 export function guideHref(g: {
   brand_slug?: string;
   brandSlug?: string;
@@ -151,11 +149,116 @@ function productMatches(stored: string, requested: string): boolean {
   );
 }
 
-/**
- * Resolve a guide for a public URL.
- * When Neon is connected: only database guides (never static mock).
- * Matching is flexible on product line so homepage links don't 404.
- */
+/** Score and rank related guides (same brand / line / topic / devices / OS version). */
+export async function resolveRelatedGuides(
+  guide: Guide,
+  limit = 8
+): Promise<Guide["related"]> {
+  let all: DbGuide[] = [];
+  try {
+    if (isDatabaseConfigured()) {
+      all = await listGuides();
+    } else {
+      all = Object.values(guides).map((g) => ({
+        id: `${g.brandSlug}-${g.slug}`,
+        slug: g.slug,
+        brand: g.brand,
+        brand_slug: g.brandSlug,
+        product_line: g.productLine,
+        title: g.title,
+        short_description: g.shortDescription,
+        updated_label: g.updated,
+        read_time: g.readTime,
+        category: g.category,
+        versions: g.versions,
+        article: g.article,
+        faqs: g.faqs,
+        related: g.related,
+        compatible_devices: g.compatibleDevices,
+        confirmations: g.confirmations,
+        forum_verified: !!g.forumVerified,
+        published: true,
+      })) as unknown as DbGuide[];
+    }
+  } catch {
+    return guide.related || [];
+  }
+
+  const selfSlug = guide.slug;
+  const selfBrand = (guide.brandSlug || "").toLowerCase();
+  const selfLine = (guide.productLine || "").toLowerCase();
+  const selfCat = (guide.category || "").toLowerCase();
+  const selfDevices = new Set(
+    (guide.compatibleDevices || []).map((d) =>
+      `${d.name} ${d.os}`.toLowerCase()
+    )
+  );
+  const selfVersionText = (guide.versions || [])
+    .map((v) => (v.label || "").toLowerCase())
+    .join(" ");
+
+  type Scored = { title: string; href: string; category: string; score: number };
+  const scored: Scored[] = [];
+
+  for (const g of all) {
+    const brand = String(g.brand_slug || "").toLowerCase();
+    const slug = String(g.slug || "");
+    if (brand === selfBrand && slug === selfSlug) continue;
+
+    let score = 0;
+    if (brand === selfBrand) score += 50;
+    if (productMatches(String(g.product_line || ""), selfLine)) score += 25;
+    if (selfCat && String(g.category || "").toLowerCase() === selfCat) score += 20;
+
+    const devicesRaw = parseJsonField(g.compatible_devices);
+    const devices = Array.isArray(devicesRaw) ? devicesRaw : [];
+    for (const d of devices) {
+      const row = d as { name?: string; os?: string };
+      const key = `${row.name || ""} ${row.os || ""}`.toLowerCase();
+      if (!key.trim()) continue;
+      for (const sd of selfDevices) {
+        if (sd && (key.includes(sd) || sd.includes(key))) {
+          score += 8;
+          break;
+        }
+      }
+    }
+
+    const versionsRaw = parseJsonField(g.versions);
+    const versionLabels = Array.isArray(versionsRaw)
+      ? versionsRaw
+          .map((v) => String((v as { label?: string })?.label || "").toLowerCase())
+          .join(" ")
+      : "";
+    if (selfVersionText && versionLabels) {
+      const tokens = selfVersionText.split(/[^a-z0-9.]+/).filter((t) => t.length > 2);
+      for (const tok of tokens) {
+        if (versionLabels.includes(tok)) score += 3;
+      }
+    }
+
+    if (score < 50 && brand === selfBrand) score = Math.max(score, 50);
+    if (score <= 0) continue;
+
+    scored.push({
+      title: String(g.title || slug),
+      href: guideHref(g),
+      category: String(g.category || g.brand || ""),
+      score,
+    });
+  }
+
+  scored.sort((a, b) => b.score - a.score || a.title.localeCompare(b.title));
+
+  const manual = (guide.related || []).filter((r) => r.href && r.title);
+  const seen = new Set(manual.map((r) => r.href.replace(/\/$/, "")));
+  const auto = scored
+    .filter((s) => !seen.has(s.href.replace(/\/$/, "")))
+    .map(({ title, href, category }) => ({ title, href, category }));
+
+  return [...manual, ...auto].slice(0, limit);
+}
+
 export async function resolveGuide(
   brandSlug: string,
   productLine: string,
@@ -167,9 +270,12 @@ export async function resolveGuide(
   if (isDatabaseConfigured()) {
     try {
       const db = await getGuideByPath(brand, productLine, slug);
-      if (db) return dbGuideToGuide(db);
+      if (db) {
+        const g = dbGuideToGuide(db);
+        g.related = await resolveRelatedGuides(g);
+        return g;
+      }
 
-      // Soft match: brand + slug only (product line can differ)
       const all = await listGuides();
       const exact = all.find(
         (g) =>
@@ -177,25 +283,32 @@ export async function resolveGuide(
           g.slug === slug &&
           productMatches(String(g.product_line || ""), product)
       );
-      if (exact) return dbGuideToGuide(exact);
+      if (exact) {
+        const g = dbGuideToGuide(exact);
+        g.related = await resolveRelatedGuides(g);
+        return g;
+      }
 
       const bySlug = all.find((g) => g.brand_slug === brand && g.slug === slug);
-      if (bySlug) return dbGuideToGuide(bySlug);
+      if (bySlug) {
+        const g = dbGuideToGuide(bySlug);
+        g.related = await resolveRelatedGuides(g);
+        return g;
+      }
     } catch (e) {
       console.error("[resolveGuide]", e);
     }
-    // Neon is on — do NOT fall back to mock static guides
     return null;
   }
 
-  // Dev without DATABASE_URL only
   for (const g of Object.values(guides)) {
     if (
       g.brandSlug === brand &&
       g.slug === slug &&
       productMatches(g.productLine, product)
     ) {
-      return g;
+      const related = await resolveRelatedGuides(g);
+      return { ...g, related };
     }
   }
   return null;
