@@ -47,7 +47,7 @@ export default async function HowToJsonLd({ guide, url }: Props) {
     name: authorName,
     url: profileUrl,
     ...(s.author_title ? { jobTitle: s.author_title } : {}),
-    ...(s.author_bio ? { description: s.author_bio } : {}),
+    ...(s.author_bio ? { description: s.author_bio.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() } : {}),
     ...(s.author_avatar_url
       ? {
           image: s.author_avatar_url.startsWith("http")
@@ -99,16 +99,24 @@ export default async function HowToJsonLd({ guide, url }: Props) {
     ],
   };
 
+  const strip = (html: string) =>
+    (html || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+
   const faq =
     guide.faqs && guide.faqs.length > 0
       ? {
           "@context": "https://schema.org",
           "@type": "FAQPage",
-          mainEntity: guide.faqs.map((f) => ({
-            "@type": "Question",
-            name: f.q,
-            acceptedAnswer: { "@type": "Answer", text: f.a },
-          })),
+          mainEntity: guide.faqs
+            .filter((f) => (f.q || "").trim())
+            .map((f) => ({
+              "@type": "Question",
+              name: strip(f.q),
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: strip(f.a),
+              },
+            })),
         }
       : null;
 
