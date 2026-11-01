@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Loader2, Plus, Trash2, Save, RefreshCw, Database } from "lucide-react";
 import RichTextEditor from "@/components/admin/RichTextEditor";
+import SortOrderField, { nextSortOrder } from "@/components/admin/SortOrderField";
 
 type Props = {
   table: string;
@@ -65,9 +66,8 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
         body: JSON.stringify(editing),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setMessage(data.error || "Save failed");
-      } else {
+      if (!res.ok) setMessage(data.error || "Save failed");
+      else {
         setMessage("Saved");
         setEditing(null);
         await load();
@@ -134,9 +134,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                 <Database className="h-3.5 w-3.5" /> Neon connected
               </span>
             ) : (
-              <span className="text-amber-600">
-                DATABASE_URL not set — add Neon on Vercel, then Seed
-              </span>
+              <span className="text-amber-600">DATABASE_URL not set — add Neon on Vercel, then Seed</span>
             )}
           </p>
         </div>
@@ -148,25 +146,22 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
             placeholder="Search…"
             className="rounded-full border border-[var(--border)] bg-[var(--background)] px-3 py-1.5 text-sm"
           />
-          <button
-            type="button"
-            onClick={() => load()}
-            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1.5 text-sm"
-          >
+          <button type="button" onClick={() => load()} className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1.5 text-sm">
             <RefreshCw className="h-3.5 w-3.5" /> Refresh
           </button>
-          <button
-            type="button"
-            onClick={seed}
-            disabled={seeding}
-            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1.5 text-sm"
-          >
+          <button type="button" onClick={seed} disabled={seeding} className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1.5 text-sm">
             {seeding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Database className="h-3.5 w-3.5" />}
             Seed from mock data
           </button>
           <button
             type="button"
-            onClick={() => setEditing({ ...emptyRow })}
+            onClick={() => {
+              const row = { ...emptyRow };
+              if ("sort_order" in emptyRow) {
+                row.sort_order = nextSortOrder(rows as { sort_order?: unknown }[]);
+              }
+              setEditing(row);
+            }}
             className="inline-flex items-center gap-1.5 rounded-full bg-brand-600 px-3 py-1.5 text-sm font-medium text-white"
           >
             <Plus className="h-3.5 w-3.5" /> New
@@ -174,13 +169,9 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
         </div>
       </div>
 
-      {message && (
-        <p className="rounded-lg bg-[var(--muted)] px-3 py-2 text-sm">{message}</p>
-      )}
+      {message && <p className="rounded-lg bg-[var(--muted)] px-3 py-2 text-sm">{message}</p>}
       {error && (
-        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-200">
-          {error}
-        </p>
+        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-200">{error}</p>
       )}
 
       {editing && (
@@ -191,21 +182,16 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
               <label
                 key={f.key}
                 className={
-                  f.type === "textarea" || f.type === "richtext" || f.type === "json"
+                  f.type === "textarea" || f.type === "richtext" || f.type === "json" || f.key === "sort_order"
                     ? "sm:col-span-2"
                     : ""
                 }
               >
-                <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">
-                  {f.label}
-                </span>
+                {f.key !== "sort_order" && (
+                  <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">{f.label}</span>
+                )}
                 {f.type === "boolean" ? (
-                  <input
-                    type="checkbox"
-                    checked={!!editing[f.key]}
-                    onChange={(e) => setEditing({ ...editing, [f.key]: e.target.checked })}
-                    className="h-4 w-4"
-                  />
+                  <input type="checkbox" checked={!!editing[f.key]} onChange={(e) => setEditing({ ...editing, [f.key]: e.target.checked })} className="h-4 w-4" />
                 ) : f.type === "json" ? (
                   <textarea
                     value={
@@ -224,22 +210,14 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                     className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 font-mono text-sm"
                   />
                 ) : f.type === "richtext" ? (
-                  <RichTextEditor
-                    label=""
-                    value={String(editing[f.key] ?? "")}
-                    onChange={(html) => setEditing({ ...editing, [f.key]: html })}
-                    minHeight={280}
-                    compact={false}
-                    placeholder={f.label}
-                  />
+                  <RichTextEditor label="" value={String(editing[f.key] ?? "")} onChange={(html) => setEditing({ ...editing, [f.key]: html })} minHeight={280} compact={false} placeholder={f.label} />
                 ) : f.type === "textarea" ? (
-                  <RichTextEditor
-                    label=""
-                    value={String(editing[f.key] ?? "")}
-                    onChange={(html) => setEditing({ ...editing, [f.key]: html })}
-                    minHeight={160}
-                    compact
-                    placeholder={f.label}
+                  <RichTextEditor label="" value={String(editing[f.key] ?? "")} onChange={(html) => setEditing({ ...editing, [f.key]: html })} minHeight={160} compact placeholder={f.label} />
+                ) : f.key === "sort_order" ? (
+                  <SortOrderField
+                    value={Number(editing.sort_order) || 0}
+                    onChange={(n) => setEditing({ ...editing, sort_order: n })}
+                    autoValue={nextSortOrder(rows as { sort_order?: unknown }[], editing.id ? String(editing.id) : undefined)}
                   />
                 ) : (
                   <input
@@ -248,8 +226,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                     onChange={(e) =>
                       setEditing({
                         ...editing,
-                        [f.key]:
-                          f.type === "number" ? Number(e.target.value) : e.target.value,
+                        [f.key]: f.type === "number" ? Number(e.target.value) : e.target.value,
                       })
                     }
                     className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
@@ -259,20 +236,11 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
             ))}
           </div>
           <div className="mt-4 flex gap-2">
-            <button
-              type="button"
-              onClick={save}
-              disabled={saving}
-              className="inline-flex items-center gap-1.5 rounded-full bg-brand-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-            >
+            <button type="button" onClick={save} disabled={saving} className="inline-flex items-center gap-1.5 rounded-full bg-brand-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Save
             </button>
-            <button
-              type="button"
-              onClick={() => setEditing(null)}
-              className="rounded-full border border-[var(--border)] px-4 py-2 text-sm"
-            >
+            <button type="button" onClick={() => setEditing(null)} className="rounded-full border border-[var(--border)] px-4 py-2 text-sm">
               Cancel
             </button>
           </div>
@@ -289,9 +257,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
             <thead className="border-b border-[var(--border)] bg-[var(--muted)]/40 text-xs uppercase tracking-wider text-[var(--muted-foreground)]">
               <tr>
                 {columns.map((c) => (
-                  <th key={c.key} className="px-3 py-2.5 font-medium">
-                    {c.label}
-                  </th>
+                  <th key={c.key} className="px-3 py-2.5 font-medium">{c.label}</th>
                 ))}
                 <th className="px-3 py-2.5 font-medium" />
               </tr>
@@ -300,24 +266,11 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
               {filteredRows.map((row) => (
                 <tr key={String(row.id)} className="hover:bg-[var(--muted)]/30">
                   {columns.map((c) => (
-                    <td key={c.key} className="px-3 py-2.5">
-                      {cell(row, c.key)}
-                    </td>
+                    <td key={c.key} className="px-3 py-2.5">{cell(row, c.key)}</td>
                   ))}
                   <td className="px-3 py-2.5 text-right whitespace-nowrap">
-                    <button
-                      type="button"
-                      onClick={() => setEditing({ ...row })}
-                      className="mr-2 text-brand-600 dark:text-brand-400"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => remove(String(row.id))}
-                      className="text-red-600"
-                      aria-label="Delete"
-                    >
+                    <button type="button" onClick={() => setEditing({ ...row })} className="mr-2 text-brand-600 dark:text-brand-400">Edit</button>
+                    <button type="button" onClick={() => remove(String(row.id))} className="text-red-600" aria-label="Delete">
                       <Trash2 className="inline h-4 w-4" />
                     </button>
                   </td>
@@ -325,10 +278,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
               ))}
               {filteredRows.length === 0 && (
                 <tr>
-                  <td
-                    colSpan={columns.length + 1}
-                    className="px-3 py-8 text-center text-[var(--muted-foreground)]"
-                  >
+                  <td colSpan={columns.length + 1} className="px-3 py-8 text-center text-[var(--muted-foreground)]">
                     No rows. Set DATABASE_URL and click “Seed from mock data”.
                   </td>
                 </tr>
