@@ -1,7 +1,10 @@
+export const dynamic = "force-dynamic";
+
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import GuidePage from "@/components/guide/GuidePage";
 import HowToJsonLd from "@/components/seo/HowToJsonLd";
+import { requestOrigin } from "@/components/seo/JsonLd";
 import { resolveGuide } from "@/lib/guides/resolve";
 
 type Params = { brand: string; line: string; slug: string };
@@ -14,9 +17,11 @@ export async function generateMetadata({
   const { brand, line, slug } = await params;
   const guide = await resolveGuide(brand, line, slug);
   if (!guide) return { title: "Guide not found" };
+  const path = `/${brand}/${line}/${slug}`;
   return {
     title: `${guide.brand}: ${guide.title}`,
-    description: guide.shortDescription,
+    description: guide.shortDescription?.replace(/<[^>]+>/g, "").slice(0, 160),
+    alternates: { canonical: path },
   };
 }
 
@@ -28,8 +33,8 @@ export default async function UniversalGuidePage({
   const { brand, line, slug } = await params;
   const guide = await resolveGuide(brand, line, slug);
   if (!guide) notFound();
-  const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://tappath.com";
-  const path = `/guide/${brand}/${line}/${slug}`;
+  const BASE = await requestOrigin();
+  const path = `/${brand}/${line}/${slug}`;
   return (
     <>
       <HowToJsonLd guide={guide} url={`${BASE}${path}`} />

@@ -5,12 +5,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import GuidePage from "@/components/guide/GuidePage";
 import HowToJsonLd from "@/components/seo/HowToJsonLd";
-import { resolveGuide, guideHref } from "@/lib/guides/resolve";
+import { requestOrigin } from "@/components/seo/JsonLd";
+import { resolveGuide } from "@/lib/guides/resolve";
 import { listGuides, isDatabaseConfigured } from "@/lib/db/content";
+import { guideHref } from "@/lib/guides/resolve";
 
 type Params = { brand: string; line: string; slug: string };
 
-/** Only real DB guide paths when Neon is connected — never mock paths. */
 export async function generateStaticParams() {
   if (isDatabaseConfigured()) {
     try {
@@ -37,12 +38,12 @@ export async function generateMetadata({
   const path = `/${brand}/${line}/${slug}`;
   return {
     title: `${guide.brand}: ${guide.title}`,
-    description: guide.shortDescription,
+    description: guide.shortDescription?.replace(/<[^>]+>/g, "").slice(0, 160),
     alternates: { canonical: path },
   };
 }
 
-export default async function DynamicGuidePage({
+export default async function BrandLineSlugPage({
   params,
 }: {
   params: Promise<Params>;
@@ -50,11 +51,9 @@ export default async function DynamicGuidePage({
   const { brand, line, slug } = await params;
   const guide = await resolveGuide(brand, line, slug);
   if (!guide) notFound();
-
-  const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://tappath.com";
+  const BASE = await requestOrigin();
   const path = `/${brand}/${line}/${slug}`;
   const url = `${BASE}${path}`;
-
   return (
     <>
       <HowToJsonLd guide={guide} url={url} />
