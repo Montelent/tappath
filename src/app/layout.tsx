@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Source_Serif_4, IBM_Plex_Mono } from "next/font/google";
+import { Source_Sans_3, Newsreader, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -12,9 +12,25 @@ import { LanguageProvider } from "@/i18n/LanguageProvider";
 import { AuthProvider } from "@/context/AuthContext";
 import { getSiteSettings } from "@/lib/site-settings";
 
-const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
-const sourceSerif = Source_Serif_4({ subsets: ["latin"], variable: "--font-serif", display: "swap" });
-const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-mono", display: "swap" });
+/* Human editorial pairing — not the usual Inter / geometric AI stack */
+const sourceSans = Source_Sans_3({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  variable: "--font-serif",
+  display: "swap",
+});
+
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://tappath.com";
 
@@ -53,8 +69,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#faf6f4" },
-    { media: "(prefers-color-scheme: dark)", color: "#161211" },
+    { media: "(prefers-color-scheme: light)", color: "#f7f1ec" },
+    { media: "(prefers-color-scheme: dark)", color: "#1a1614" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -62,7 +78,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${sourceSerif.variable} ${plexMono.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${sourceSans.variable} ${newsreader.variable} ${plexMono.variable}`}
+      suppressHydrationWarning
+    >
       <body className="min-h-screen flex flex-col font-sans">
         <CustomCode slot="body_start" />
         <AuthProvider>
