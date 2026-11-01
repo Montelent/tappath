@@ -1,9 +1,16 @@
 import type { Guide } from "@/data/guides";
 import { getSiteSettings } from "@/lib/site-settings";
-import JsonLd, { siteBase } from "@/components/seo/JsonLd";
+import JsonLd, {
+  absOnOrigin,
+  originFromPageUrl,
+  siteBase,
+} from "@/components/seo/JsonLd";
 import { authorProfilePath, authorSameAsUrls } from "@/lib/author";
 
-type Props = { guide: Guide; url: string };
+type Props = {
+  guide: Guide;
+  url: string;
+};
 
 function toIsoDate(raw: string): string {
   if (!raw) return new Date().toISOString().slice(0, 10);
@@ -14,70 +21,76 @@ function toIsoDate(raw: string): string {
   return raw;
 }
 
+function stripHtml(html: string): string {
+  return (html || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 export default async function HowToJsonLd({ guide, url }: Props) {
   const primary = guide.versions[0];
-  if (!primary) return null;
+  if (!primary || !primary.steps?.length) return null;
 
   const s = await getSiteSettings();
-  const base = siteBase();
+  const origin = originFromPageUrl(url) || siteBase();
   const modified = toIsoDate(guide.updated);
 
-  const steps = primary.steps.map((step, i) => {
-    const name = step.instruction.replace(/\*\*/g, "");
-    const text = (step.detail ?? step.instruction).replace(/\*\*/g, "");
-    const item: Record<string, unknown> = {
-      "@type": "HowToStep",
-      position: i + 1,
-      name,
-      text,
-      url: `${url}#step-${i + 1}`,
-    };
-    if (step.imageUrl) {
-      item.image = step.imageUrl.startsWith("http") ? step.imageUrl : `${base}${step.imageUrl}`;
-    }
-    return item;
-  });
+  const steps = primary.steps
+    .map((step, i) => {
+      const name = stripHtml((step.instruction || "").replace(/\*\*/g, ""));
+      const text = stripHtml(
+        (step.detail ?? step.instruction ?? "").replace(/\*\*/g, "")
+      );
+      if (!name && !text) return null;
+      const item: Record<string, unknown> = {
+        "@type": "HowToStep",
+        position: i + 1,
+        name: name || `Step ${i + 1}`,
+        text: text || name || `Step ${i + 1}`,
+        url: `${url}#step-${i + 1}`,
+      };
+      const img = absOnOrigin(step.imageUrl, origin);
+      if (img) item.image = img;
+      return item;
+    })
+    .filter(Boolean);
+
+  if (!steps.length) return null;
 
   const authorName = (s.author_name || s.site_name || "TapPath").trim();
   const sameAs = authorSameAsUrls(s);
-  const profileUrl = `${base}${authorProfilePath(s)}`;
+  const profileUrl = `${origin}${authorProfilePath(s)}`;
 
   const author: Record<string, unknown> = {
     "@type": "Person",
     name: authorName,
     url: profileUrl,
     ...(s.author_title ? { jobTitle: s.author_title } : {}),
-    ...(s.author_bio ? { description: s.author_bio.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() } : {}),
+    ...(s.author_bio
+      ? { description: stripHtml(s.author_bio).slice(0, 300) }
+      : {}),
     ...(s.author_avatar_url
-      ? {
-          image: s.author_avatar_url.startsWith("http")
-            ? s.author_avatar_url
-            : `${base}${s.author_avatar_url}`,
-        }
+      ? { image: absOnOrigin(s.author_avatar_url, origin) }
       : {}),
     ...(sameAs.length ? { sameAs } : {}),
   };
 
-  const publisher = {
+  const publisher: Record<string, unknown> = {
     "@type": "Organization",
     name: s.site_name || "TapPath",
-    url: base,
-    ...(s.logo_url
-      ? {
-          logo: {
-            "@type": "ImageObject",
-            url: s.logo_url.startsWith("http") ? s.logo_url : `${base}${s.logo_url}`,
-          },
-        }
-      : {}),
+    url: origin,
   };
+  const logo = absOnOrigin(s.logo_url, origin);
+  if (logo) {
+    publisher.logo = { "@type": "ImageObject", url: logo };
+  }
 
-  const howTo = {
-    "@context": "https://schema.org",
+  const description = stripHtml(guide.shortDescription || "").slice(0, 300);
+  const minutes = Math.max(1, parseInt(String(guide.readTime || "2"), 10) || 2);
+
+  const howTo: Record<string, unknown> = {
     "@type": "HowTo",
     name: `${guide.brand}: ${guide.title}`,
-    description: (guide.shortDescription || "").replace(/<[^>]+>/g, "").slice(0, 300),
-    totalTime: `PT${Math.max(1, parseInt(guide.readTime, 10) || 2)}M`,
+    description,
+    totalTime: `PT${minutes}M`,
     step: steps,
     tool: { "@type": "HowToTool", name: `${guide.brand} smartphone` },
     url,
@@ -89,56 +102,58 @@ export default async function HowToJsonLd({ guide, url }: Props) {
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
   };
 
-  const breadcrumb = {
-    "@context": "https://schema.org",
+  const breadcrumb: Record<string, unknown> = {
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: base },
-      { "@type": "ListItem", position: 2, name: guide.brand, item: `${base}/${guide.brandSlug}` },
+      { "@type": "ListItem", position: 1, name: "Home", item: origin },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: guide.brand,
+        item: `${origin}/${guide.brandSlug}`,
+      },
       { "@type": "ListItem", position: 3, name: guide.title, item: url },
     ],
   };
 
-  const strip = (html: string) =>
-    (html || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-
-  const faq =
-    guide.faqs && guide.faqs.length > 0
-      ? {
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          mainEntity: guide.faqs
-            .filter((f) => (f.q || "").trim())
-            .map((f) => ({
-              "@type": "Question",
-              name: strip(f.q),
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: strip(f.a),
-              },
-            })),
-        }
-      : null;
-
-  const article = {
-    "@context": "https://schema.org",
+  const article: Record<string, unknown> = {
     "@type": "TechArticle",
     headline: `${guide.brand}: ${guide.title}`,
-    description: howTo.description,
+    description,
     dateModified: modified,
     datePublished: modified,
     author,
     publisher,
-    mainEntityOfPage: url,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
     about: { "@type": "Thing", name: guide.brand },
   };
 
+  const faqEntities =
+    guide.faqs
+      ?.filter((f) => (f.q || "").trim())
+      .map((f) => ({
+        "@type": "Question",
+        name: stripHtml(f.q),
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: stripHtml(f.a) || stripHtml(f.q),
+        },
+      })) ?? [];
+
+  const graph: Record<string, unknown>[] = [howTo, breadcrumb, article];
+  if (faqEntities.length > 0) {
+    graph.push({
+      "@type": "FAQPage",
+      mainEntity: faqEntities,
+    });
+  }
+
   return (
-    <>
-      <JsonLd data={howTo} />
-      <JsonLd data={breadcrumb} />
-      <JsonLd data={article} />
-      {faq && <JsonLd data={faq} />}
-    </>
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@graph": graph,
+      }}
+    />
   );
 }
