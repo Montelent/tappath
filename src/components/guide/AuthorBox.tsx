@@ -2,6 +2,10 @@ import Link from "next/link";
 import { getSiteSettings } from "@/lib/site-settings";
 import { authorProfilePath, authorSocialLinks } from "@/lib/author";
 
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 /** E-E-A-T author box — links to full /author/[slug] profile. */
 export default async function AuthorBox() {
   const s = await getSiteSettings();
@@ -9,7 +13,8 @@ export default async function AuthorBox() {
   if (!name) return null;
 
   const title = (s.author_title || "").trim();
-  const bio = (s.author_bio || "").trim();
+  const bioRaw = (s.author_bio || "").trim();
+  const bio = stripHtml(bioRaw);
   const credentials = (s.author_credentials || "").trim();
   const avatar = (s.author_avatar_url || "").trim();
   const profileHref = authorProfilePath(s);
