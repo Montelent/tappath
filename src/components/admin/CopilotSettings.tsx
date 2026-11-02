@@ -1,7 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, Save, RefreshCw, Check, X } from "lucide-react";
+import { Check, RefreshCw, Save, X } from "lucide-react";
+import {
+  AdminField,
+  AdminLoading,
+  AdminNotice,
+  AdminPageHeader,
+  AdminPanel,
+  AdminPrimaryButton,
+  AdminSecondaryButton,
+  AdminSelect,
+  AdminTextarea,
+  wp,
+} from "./AdminUI";
 
 export default function CopilotSettings() {
   const [loading, setLoading] = useState(true);
@@ -52,7 +64,7 @@ export default function CopilotSettings() {
       });
       const data = await res.json();
       if (!res.ok) setMessage(data.error || "Save failed");
-      else setMessage("Copilot preferences saved to Neon");
+      else setMessage("Copilot settings saved. Changes apply on the public chat widget right away.");
     } catch {
       setMessage("Network error");
     } finally {
@@ -60,86 +72,98 @@ export default function CopilotSettings() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-16">
-        <Loader2 className="h-8 w-8 animate-spin text-brand-600" />
-      </div>
-    );
-  }
+  if (loading) return <AdminLoading />;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Copilot settings</h1>
-        <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-          API keys stay in Vercel env. Preferences below save to Neon.
-        </p>
-      </div>
+    <div className={wp.page + " mx-auto max-w-2xl"}>
+      <AdminPageHeader
+        title="Copilot (AI Chat)"
+        description="Control the help chat on the public site. API keys stay in Vercel environment variables — you only toggle preferences here."
+        actions={
+          <AdminSecondaryButton onClick={() => load()}>
+            <RefreshCw className="h-3.5 w-3.5" /> Refresh status
+          </AdminSecondaryButton>
+        }
+      />
 
-      {message && <p className="rounded-lg bg-[var(--muted)] px-3 py-2 text-sm">{message}</p>}
+      {message && (
+        <AdminNotice tone={message.includes("failed") || message.includes("error") ? "err" : "ok"}>
+          {message}
+        </AdminNotice>
+      )}
 
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
-        <h2 className="text-sm font-semibold">Provider keys (Vercel env)</h2>
-        <ul className="mt-3 space-y-2 text-sm">
+      <AdminPanel
+        title="API keys status"
+        description="Keys are set on Vercel (not in this form). Green = ready to use."
+      >
+        <ul className="space-y-2 text-[13px]">
           {(["openai", "openrouter", "agentrouter"] as const).map((p) => (
-            <li key={p} className="flex items-center justify-between">
-              <span className="capitalize">{p}</span>
+            <li
+              key={p}
+              className="flex items-center justify-between border-b border-[#f0f0f1] py-2 last:border-0"
+            >
+              <span className="font-medium capitalize text-[#1d2327]">{p}</span>
               {env?.providers?.[p] ? (
-                <span className="inline-flex items-center gap-1 text-emerald-600">
+                <span className="inline-flex items-center gap-1 text-[#00a32a]">
                   <Check className="h-4 w-4" /> Configured
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 text-[var(--muted-foreground)]">
-                  <X className="h-4 w-4" /> Missing
+                <span className="inline-flex items-center gap-1 text-[#646970]">
+                  <X className="h-4 w-4" /> Not set
                 </span>
               )}
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-xs text-[var(--muted-foreground)]">
-          Set OPENAI_API_KEY, OPENROUTER_API_KEY, or AGENTROUTER_API_KEY on Vercel.
+        <p className={wp.help + " !mb-0"}>
+          On Vercel set one of: OPENAI_API_KEY, OPENROUTER_API_KEY, or AGENTROUTER_API_KEY. Optional:
+          COPILOT_PROVIDER=openai|openrouter|agentrouter
         </p>
-      </div>
+      </AdminPanel>
 
-      <div className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} className="h-4 w-4" />
-          Copilot enabled on public site
+      <AdminPanel
+        title="Preferences"
+        description="These options are stored in the database and control the public chat widget."
+        footer={
+          <AdminPrimaryButton onClick={save} loading={saving}>
+            <Save className="h-4 w-4" /> Save Changes
+          </AdminPrimaryButton>
+        }
+      >
+        <label className="flex items-center gap-2 text-[13px] text-[#1d2327]">
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={(e) => setEnabled(e.target.checked)}
+            className="h-4 w-4 rounded border-[#8c8f94] text-[#2271b1] focus:ring-[#2271b1]"
+          />
+          Show Copilot chat on the public website
         </label>
-        <label className="block">
-          <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">Preferred provider</span>
-          <select
-            value={preferred}
-            onChange={(e) => setPreferred(e.target.value)}
-            className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
-          >
+
+        <AdminField
+          label="Preferred AI provider"
+          help="Leave on Auto unless you want to force one provider."
+        >
+          <AdminSelect value={preferred} onChange={(e) => setPreferred(e.target.value)}>
             <option value="">Auto (first available key)</option>
             <option value="openai">OpenAI</option>
             <option value="openrouter">OpenRouter</option>
             <option value="agentrouter">AgentRouter</option>
-          </select>
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">Extra system instructions</span>
-          <textarea
+          </AdminSelect>
+        </AdminField>
+
+        <AdminField
+          label="Extra instructions for the AI"
+          help="Optional. Example: “Always mention the exact Settings menu path for Samsung phones.”"
+        >
+          <AdminTextarea
             value={extra}
             onChange={(e) => setExtra(e.target.value)}
             rows={4}
-            className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
+            placeholder="Optional extra system instructions…"
           />
-        </label>
-      </div>
-
-      <div className="flex gap-2">
-        <button type="button" onClick={save} disabled={saving} className="inline-flex items-center gap-1.5 rounded-full bg-brand-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-          Save
-        </button>
-        <button type="button" onClick={load} className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-4 py-2 text-sm">
-          <RefreshCw className="h-4 w-4" /> Refresh
-        </button>
-      </div>
+        </AdminField>
+      </AdminPanel>
     </div>
   );
 }
