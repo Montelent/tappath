@@ -40,6 +40,19 @@ export type SiteSettings = {
   seo_force_canonical_host: boolean;
   seo_redirects: SeoRedirect[];
 
+  seo_tpl_guide_title: string;
+  seo_tpl_guide_description: string;
+  seo_tpl_glossary_title: string;
+  seo_tpl_glossary_description: string;
+  seo_tpl_device_title: string;
+  seo_tpl_device_description: string;
+  seo_tpl_brand_title: string;
+  seo_tpl_brand_description: string;
+  seo_tpl_topic_title: string;
+  seo_tpl_topic_description: string;
+  seo_tpl_homepage_title: string;
+  seo_tpl_homepage_description: string;
+
   homepage_eyebrow: string;
   homepage_hero_title: string;
   homepage_hero_subtitle: string;
@@ -133,6 +146,18 @@ export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
   seo_redirect_trailing_slash: true,
   seo_force_canonical_host: false,
   seo_redirects: [],
+  seo_tpl_guide_title: "%title% %sep% %brand% %sep% %sitename%",
+  seo_tpl_guide_description: "%excerpt%",
+  seo_tpl_glossary_title: "What is %term%? %sep% %sitename%",
+  seo_tpl_glossary_description: "%excerpt%",
+  seo_tpl_device_title: "%device% guides & specs %sep% %sitename%",
+  seo_tpl_device_description: "Step-by-step settings guides and specs for %device%.",
+  seo_tpl_brand_title: "%brand% guides, help & settings %sep% %sitename%",
+  seo_tpl_brand_description: "Verified menu paths and how-tos for %brand% phones.",
+  seo_tpl_topic_title: "%title%: guides & tips %sep% %sitename%",
+  seo_tpl_topic_description: "%excerpt%",
+  seo_tpl_homepage_title: "%sitename% %sep% Phone settings, step by step",
+  seo_tpl_homepage_description: "%excerpt%",
   meta_description:
     "Exact menu paths for Samsung, Xiaomi, Huawei, OnePlus, Oppo, Realme, Android and Google phones. Verified screenshots and steps.",
   meta_keywords: "smartphone settings, Android how to, Samsung One UI, Xiaomi HyperOS, menu path",
