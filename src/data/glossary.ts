@@ -1,10 +1,17 @@
+export type GlossaryFaq = { q: string; a: string };
+
 export type GlossaryTerm = {
   slug: string;
   term: string;
   category: string;
+  /** In a nutshell one-liner */
   short: string;
+  /** Full rich HTML definition */
   definition: string;
-  relatedGuides?: { title: string; href: string }[];
+  faqs?: GlossaryFaq[];
+  relatedGuides?: { title: string; href: string; brand?: string }[];
+  seoTitle?: string;
+  seoDescription?: string;
 };
 
 export const glossaryCategories = [
@@ -51,7 +58,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     category: "Network",
     short: "Encrypts your connection and routes it through an external server.",
     definition:
-      "A VPN (Virtual Private Network) encrypts your internet connection and routes it through an external server. It helps protect privacy on public Wi‑Fi and can bypass some geographic restrictions.",
+      "A VPN (Virtual Private Network) encrypts your internet connection and routes it through an external server. It helps protect privacy on public Wi-Fi and can bypass some geographic restrictions.",
   },
   {
     slug: "5g",
@@ -65,7 +72,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     slug: "apn",
     term: "APN (Access Point Name)",
     category: "Network",
-    short: "Settings that let your phone access the carrier’s mobile data network.",
+    short: "Settings that let your phone access the carrier's mobile data network.",
     definition:
       "An APN is a configuration setting that gives a smartphone access to a carrier's mobile data network. Without the correct APN, mobile internet and MMS may not work properly.",
   },
@@ -105,7 +112,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     slug: "knox",
     term: "Knox",
     category: "Security",
-    short: "Samsung’s multi-layered security platform for Galaxy devices.",
+    short: "Samsung's multi-layered security platform for Galaxy devices.",
     definition:
       "Knox is Samsung's multi-layered security platform for Galaxy devices. It protects hardware, firmware, and software from tampering and isolates sensitive data using encryption and container technology.",
   },
@@ -217,7 +224,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     slug: "hyperos",
     term: "HyperOS / MIUI",
     category: "System",
-    short: "Xiaomi’s Android skin — HyperOS succeeds MIUI.",
+    short: "Xiaomi's Android skin — HyperOS succeeds MIUI.",
     definition:
       "HyperOS is Xiaomi's current Android skin, the successor to MIUI. It connects smartphones, tablets, wearables, and smart-home devices through a unified ecosystem operating system.",
   },
@@ -241,7 +248,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     slug: "bloatware",
     term: "Bloatware",
     category: "System",
-    short: "Preinstalled apps you may not need and often can’t easily remove.",
+    short: "Preinstalled apps you may not need and often can't easily remove.",
     definition:
       "Bloatware refers to preinstalled apps on smartphones that most users don't need and often can't remove. They occupy storage, run in the background, and typically come from the manufacturer or carrier.",
   },
@@ -281,7 +288,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     slug: "ios",
     term: "iOS",
     category: "System",
-    short: "Apple’s mobile operating system for iPhone.",
+    short: "Apple's mobile operating system for iPhone.",
     definition:
       "iOS is Apple's mobile operating system for iPhones. It manages hardware, apps, and the user interface, known for strong security, long-term software updates, and a closed ecosystem.",
   },
@@ -417,39 +424,29 @@ export const glossaryTerms: GlossaryTerm[] = [
     category: "Display",
     short: "Dust and water resistance rating (e.g. IP68).",
     definition:
-      "IP rating indicates how well a smartphone is protected against dust and water ingress. It consists of two digits, such as IP68, showing dust and water resistance levels.",
-  },
-  {
-    slug: "accessibility-features",
-    term: "Accessibility features",
-    category: "System",
-    short: "Tools that make phones usable for people with impairments.",
-    definition:
-      "Accessibility features are system tools that make smartphones usable for people with visual, hearing, motor, or cognitive impairments. They include screen readers, magnification, captions, and alternative input methods.",
+      "An IP rating (Ingress Protection) indicates how well a device is sealed against dust and water. For example, IP68 means dust-tight and protected against prolonged immersion under specified conditions.",
   },
 ];
+
+export const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 export function getTerm(slug: string): GlossaryTerm | undefined {
   return glossaryTerms.find((t) => t.slug === slug);
 }
 
 export function getTermsByCategory(category: string): GlossaryTerm[] {
-  if (category === "All") return glossaryTerms;
+  if (category === "All") return [...glossaryTerms];
   return glossaryTerms.filter((t) => t.category === category);
 }
 
 export function getTermsGroupedByLetter(): Record<string, GlossaryTerm[]> {
-  const sorted = [...glossaryTerms].sort((a, b) =>
-    a.term.localeCompare(b.term, undefined, { sensitivity: "base" })
-  );
   const groups: Record<string, GlossaryTerm[]> = {};
-  for (const t of sorted) {
+  for (const t of [...glossaryTerms].sort((a, b) =>
+    a.term.localeCompare(b.term, undefined, { sensitivity: "base" })
+  )) {
     const letter = t.term.charAt(0).toUpperCase();
-    const key = /[A-Z]/.test(letter) ? letter : "#";
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(t);
+    if (!groups[letter]) groups[letter] = [];
+    groups[letter].push(t);
   }
   return groups;
 }
-
-export const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
