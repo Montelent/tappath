@@ -25,6 +25,7 @@ import {
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
+import "@/app/admin-wp.css";
 
 const NAV_GROUPS: { label?: string; items: { href: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] }[] = [
   {
