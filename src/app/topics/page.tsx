@@ -14,11 +14,11 @@ export const metadata: Metadata = {
 export default async function TopicsIndexPage() {
   const topics = await listTopicsForIndex();
   const withGuides = topics.filter((t) => t.guideCount > 0);
-  const empty = topics.filter((t) => t.guideCount === 0);
 
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://tappath.com";
   const items = topics.map((tp) => ({
     name: tp.name,
-    url: `/topics/${tp.slug}`,
+    url: `${base}/topics/${tp.slug}`,
     description: tp.description || undefined,
   }));
 
@@ -79,12 +79,6 @@ export default async function TopicsIndexPage() {
         ) : (
           <p className="text-sm text-[var(--muted-foreground)]">
             No topics with published guides yet.
-          </p>
-        )}
-
-        {empty.length > 0 && (
-          <p className="mt-8 text-sm text-[var(--muted-foreground)]">
-            Coming soon: {empty.map((t) => t.name).join(", ")}.
           </p>
         )}
       </section>

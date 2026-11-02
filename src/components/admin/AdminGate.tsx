@@ -29,10 +29,6 @@ export default function AdminGate({ children }: { children: React.ReactNode }) {
             <p className="text-[13px] text-[#646970]">
               Sign in with an admin account to manage content, SEO, menus, and site settings.
             </p>
-            <p className="rounded border border-[#c3c4c7] bg-[#f6f7f7] px-3 py-2 text-[12px] text-[#50575e]">
-              Demo account: <code className="font-semibold">admin@tappath.com</code> /{" "}
-              <code className="font-semibold">admin1234</code>
-            </p>
             <Link
               href="/sign-in"
               className="inline-flex items-center justify-center rounded border border-[#2271b1] bg-[#2271b1] px-5 py-2 text-[13px] font-medium text-white hover:bg-[#135e96]"
