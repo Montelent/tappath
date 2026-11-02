@@ -1,23 +1,54 @@
-/* Admin is always WordPress light chrome, even when the public site is in .dark */
+/* Admin WordPress-style chrome with optional dark mode */
 .admin-wp {
   color-scheme: light;
+  --admin-bg: #f0f0f1;
+  --admin-fg: #1d2327;
+  --admin-muted: #646970;
+  --admin-border: #c3c4c7;
+  --admin-card: #ffffff;
+  --admin-sidebar: #1d2327;
+  --admin-sidebar-fg: #f0f0f1;
+  --admin-sidebar-muted: #8c8f94;
+  --admin-accent: #2271b1;
+  --admin-accent-hover: #135e96;
   --background: #f0f0f1;
   --foreground: #1d2327;
   --muted: #f6f7f7;
   --muted-foreground: #646970;
   --border: #c3c4c7;
   --card: #ffffff;
-  --card-elevated: #ffffff;
   --accent: #2271b1;
   --accent-hover: #135e96;
-  --accent-soft: #72aee6;
-  --accent-muted: rgba(34, 113, 177, 0.12);
-  --accent-subtle: rgba(34, 113, 177, 0.06);
   --accent-foreground: #ffffff;
   --primary: #2271b1;
   --primary-foreground: #ffffff;
-  background-color: #f0f0f1 !important;
-  color: #1d2327 !important;
+  background-color: var(--admin-bg);
+  color: var(--admin-fg);
+}
+
+.admin-wp.admin-dark {
+  color-scheme: dark;
+  --admin-bg: #1d2327;
+  --admin-fg: #f0f0f1;
+  --admin-muted: #a7aaad;
+  --admin-border: #3c434a;
+  --admin-card: #2c3338;
+  --admin-sidebar: #14181c;
+  --admin-sidebar-fg: #f0f0f1;
+  --admin-sidebar-muted: #8c8f94;
+  --admin-accent: #72aee6;
+  --admin-accent-hover: #9ec5e8;
+  --background: #1d2327;
+  --foreground: #f0f0f1;
+  --muted: #2c3338;
+  --muted-foreground: #a7aaad;
+  --border: #3c434a;
+  --card: #2c3338;
+  --accent: #72aee6;
+  --accent-hover: #9ec5e8;
+  --accent-foreground: #1d2327;
+  --primary: #72aee6;
+  --primary-foreground: #1d2327;
 }
 
 .admin-wp h1,
@@ -40,16 +71,16 @@
 .admin-wp input,
 .admin-wp textarea,
 .admin-wp select {
-  background-color: #ffffff !important;
-  color: #1d2327 !important;
-  border-color: #8c8f94 !important;
+  background-color: var(--admin-card) !important;
+  color: var(--admin-fg) !important;
+  border-color: var(--admin-border) !important;
 }
 
 .admin-wp a {
-  color: #2271b1;
+  color: var(--admin-accent);
 }
 
 .admin-wp main,
 .admin-wp header {
-  color: #1d2327;
+  color: var(--admin-fg);
 }
