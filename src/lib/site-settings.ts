@@ -1,25 +1,43 @@
 import { getSql, isNeonConfigured } from "@/lib/db/neon";
 
+/** All public site settings editable from Admin → Settings */
+export type NavMenuItem = {
+  id: string;
+  label: string;
+  href: string;
+  openInNewTab?: boolean;
+  children?: NavMenuItem[];
+};
+
 export type SiteSettings = {
+  // Branding
   site_name: string;
   site_tagline: string;
   logo_url: string;
   favicon_url: string;
   og_image_url: string;
+
+  // Contact / SEO
   support_email: string;
   meta_title: string;
   meta_description: string;
   meta_keywords: string;
+
+  // Homepage hero
   homepage_eyebrow: string;
   homepage_hero_title: string;
   homepage_hero_subtitle: string;
   homepage_search_placeholder: string;
+
+  // Homepage section headings
   homepage_guides_heading: string;
   homepage_brands_heading: string;
   homepage_topics_heading: string;
   homepage_coming_soon_label: string;
   homepage_all_topics_label: string;
   homepage_no_brands_text: string;
+
+  // Navigation labels
   nav_home: string;
   nav_topics: string;
   nav_devices: string;
@@ -28,11 +46,19 @@ export type SiteSettings = {
   nav_admin: string;
   nav_sign_in: string;
   nav_sign_up: string;
+  /** Editable main menu (WordPress-style). Empty = use default labels above. */
+  nav_items: NavMenuItem[];
+  /** Editable footer link columns */
+  footer_items: NavMenuItem[];
+
+  // Footer
   footer_tagline: string;
   footer_copyright: string;
   footer_browse_heading: string;
   footer_account_heading: string;
   footer_support_label: string;
+
+  // Social links (empty = hide)
   social_twitter: string;
   social_github: string;
   social_youtube: string;
@@ -40,10 +66,16 @@ export type SiteSettings = {
   social_linkedin: string;
   social_facebook: string;
   social_instagram: string;
+
+  // Maintenance
   maintenance_mode: boolean;
   maintenance_message: string;
+
+  // Features
   allow_signups: boolean;
   default_locale: string;
+
+  // E-E-A-T author (shown on guides)
   author_name: string;
   author_slug: string;
   author_title: string;
@@ -59,10 +91,14 @@ export type SiteSettings = {
   author_youtube: string;
   author_facebook: string;
   author_instagram: string;
-  author_same_as: string;
+  author_same_as: string; // comma-separated profile URLs
+
+  // Custom codes (verification, analytics, ads scripts)
   head_code: string;
   body_start_code: string;
   footer_code: string;
+
+  // Ad placements (HTML snippets: AdSense, etc.)
   ads_enabled: boolean;
   ad_header: string;
   ad_after_title: string;
@@ -102,6 +138,19 @@ export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
   nav_admin: "Admin",
   nav_sign_in: "Sign in",
   nav_sign_up: "Sign up",
+  nav_items: [
+    { id: "home", label: "Home", href: "/" },
+    { id: "topics", label: "Topics", href: "/topics" },
+    { id: "devices", label: "Devices", href: "/devices" },
+    { id: "glossary", label: "Glossary", href: "/glossary" },
+    { id: "forum", label: "Forum", href: "/forum" },
+  ],
+  footer_items: [
+    { id: "topics", label: "Topics", href: "/topics" },
+    { id: "devices", label: "Devices", href: "/devices" },
+    { id: "glossary", label: "Glossary", href: "/glossary" },
+    { id: "forum", label: "Forum", href: "/forum" },
+  ],
   footer_tagline:
     "Phone settings paths written as clear steps — for people who just want the menu to work.",
   footer_copyright: "Paths verified on real devices when screenshots are attached.",
@@ -157,9 +206,12 @@ function unwrapValue(v: unknown): unknown {
   return v;
 }
 
+/** Server-side: load site settings from Neon (or defaults). */
 export async function getSiteSettings(): Promise<SiteSettings> {
   const settings: SiteSettings = { ...SITE_SETTINGS_DEFAULTS };
+
   if (!isNeonConfigured()) return settings;
+
   try {
     const sql = getSql()!;
     const rows = await sql`SELECT key, value FROM site_settings`;
@@ -170,16 +222,29 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       const def = SITE_SETTINGS_DEFAULTS[key];
       if (typeof def === "boolean") {
         settings[key] = (raw === true || raw === "true") as never;
+      } else if (Array.isArray(def)) {
+        if (Array.isArray(raw)) {
+          settings[key] = raw as never;
+        } else if (typeof raw === "string") {
+          try {
+            const parsed = JSON.parse(raw);
+            settings[key] = (Array.isArray(parsed) ? parsed : def) as never;
+          } catch {
+            settings[key] = def as never;
+          }
+        }
       } else if (typeof def === "string") {
         settings[key] = (raw == null ? def : String(raw)) as never;
       }
     }
   } catch {
-    /* keep defaults */
+    // table missing or query error — keep defaults
   }
+
   return settings;
 }
 
+/** Social links that have a non-empty URL, for rendering icons/links. */
 export function activeSocialLinks(s: SiteSettings): { key: string; label: string; href: string }[] {
   const map: { key: keyof SiteSettings; label: string }[] = [
     { key: "social_twitter", label: "X / Twitter" },
