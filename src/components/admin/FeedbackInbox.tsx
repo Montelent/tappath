@@ -42,7 +42,7 @@ export default function FeedbackInbox() {
         if (data.error) setError(data.error);
       }
     } catch {
-      setError("Network error — try Refresh.");
+      setError("Network error - try Refresh.");
     } finally {
       setLoading(false);
     }
@@ -84,7 +84,7 @@ export default function FeedbackInbox() {
         title="Feedback Inbox"
         description={
           <>
-            Votes from the “Was this guide helpful?” box on public guides. Use this to find guides
+            Votes from the Was this guide helpful box on public guides. Use this to find guides
             that need fixing.{" "}
             {usingDb ? (
               <span className="text-[#00a32a]">Database connected</span>
@@ -106,14 +106,14 @@ export default function FeedbackInbox() {
       {problemGuides.length > 0 && (
         <AdminPanel
           title="Guides that need attention"
-          description="These guides have more “No” votes than “Yes”. Open them and improve the steps."
+          description="These guides have more No votes than Yes. Open them and improve the steps."
         >
           <ul className="space-y-2 text-[13px]">
             {problemGuides.map((g) => (
               <li key={g.slug} className="flex flex-wrap items-center justify-between gap-2 border-b border-[#f0f0f1] pb-2 last:border-0">
                 <code className="rounded bg-[#f6f7f7] px-1.5 py-0.5 text-[12px]">{g.slug}</code>
                 <span className="text-[#646970]">
-                  {g.yes} helpful · {g.no} not helpful ({Math.round(g.rate * 100)}% positive)
+                  {g.yes} helpful | {g.no} not helpful ({Math.round(g.rate * 100)}% positive)
                 </span>
               </li>
             ))}
@@ -145,7 +145,7 @@ export default function FeedbackInbox() {
                 )}
               </td>
               <td className={wp.td + " text-[12px] text-[#646970]">
-                {r.created_at ? new Date(r.created_at).toLocaleString() : "—"}
+                {r.created_at ? new Date(r.created_at).toLocaleString() : "-"}
               </td>
               <td className={wp.td + " text-right"}>
                 <button
