@@ -27,7 +27,6 @@ const SUGGESTIONS = [
   "Turn on Always On Display",
 ];
 
-/** Simple keyword-based replies until a real LLM is wired */
 function replyTo(input: string): Message {
   const q = input.toLowerCase();
 
@@ -114,6 +113,19 @@ function replyTo(input: string): Message {
     };
   }
 
+  if (/^(hi|hello|hey|hola|hallo)\b/i.test(input.trim())) {
+    return {
+      id: crypto.randomUUID(),
+      role: "assistant",
+      text: "Hi! Ask me how to change a setting (e.g. “remove Google search bar on Samsung”) or what a term means (e.g. “what is VoLTE”). I’ll point you to the right guide.",
+      links: [
+        { label: "Browse brands", href: "/samsung" },
+        { label: "Topics", href: "/topics" },
+        { label: "Glossary", href: "/glossary" },
+      ],
+    };
+  }
+
   return {
     id: crypto.randomUUID(),
     role: "assistant",
@@ -148,7 +160,7 @@ export default function CopilotWidget() {
     }
   }, [open, messages, typing]);
 
-  const send = (text: string) => {
+  const send = async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || typing) return;
 
@@ -161,11 +173,30 @@ export default function CopilotWidget() {
     setInput("");
     setTyping(true);
 
-    setTimeout(() => {
-      const answer = replyTo(trimmed);
-      setMessages((m) => [...m, answer]);
-      setTyping(false);
-    }, 600 + Math.random() * 400);
+    try {
+      const res = await fetch("/api/copilot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: trimmed }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMessages((m) => [
+          ...m,
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            text: data.text || "No response.",
+            links: data.links,
+          },
+        ]);
+      } else {
+        setMessages((m) => [...m, replyTo(trimmed)]);
+      }
+    } catch {
+      setMessages((m) => [...m, replyTo(trimmed)]);
+    }
+    setTyping(false);
   };
 
   const onSubmit = (e: React.FormEvent) => {
@@ -177,6 +208,7 @@ export default function CopilotWidget() {
     <>
       {!open && (
         <button
+          type="button"
           onClick={() => setOpen(true)}
           className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full bg-brand-600 px-4 py-3 text-sm font-medium text-white shadow-lg shadow-brand-600/30 transition hover:bg-brand-700 hover:shadow-xl"
           aria-label="Open AI copilot"
@@ -207,6 +239,7 @@ export default function CopilotWidget() {
             </div>
             <div className="flex items-center gap-1">
               <button
+                type="button"
                 onClick={() => setOpen(false)}
                 className="rounded-lg p-1.5 transition hover:bg-white/15"
                 aria-label="Minimize"
@@ -214,6 +247,7 @@ export default function CopilotWidget() {
                 <Minimize2 className="h-4 w-4" />
               </button>
               <button
+                type="button"
                 onClick={() => setOpen(false)}
                 className="rounded-lg p-1.5 transition hover:bg-white/15"
                 aria-label="Close"
@@ -227,10 +261,7 @@ export default function CopilotWidget() {
             {messages.map((m) => (
               <div
                 key={m.id}
-                className={cn(
-                  "flex",
-                  m.role === "user" ? "justify-end" : "justify-start"
-                )}
+                className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}
               >
                 <div
                   className={cn(
@@ -278,6 +309,7 @@ export default function CopilotWidget() {
                 {SUGGESTIONS.map((s) => (
                   <button
                     key={s}
+                    type="button"
                     onClick={() => send(s)}
                     className="rounded-full border border-[var(--border)] bg-[var(--background)] px-2.5 py-1 text-xs transition hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950"
                   >
@@ -290,10 +322,7 @@ export default function CopilotWidget() {
             <div ref={bottomRef} />
           </div>
 
-          <form
-            onSubmit={onSubmit}
-            className="flex items-center gap-2 border-t border-[var(--border)] p-3"
-          >
+          <form onSubmit={onSubmit} className="flex items-center gap-2 border-t border-[var(--border)] p-3">
             <input
               ref={inputRef}
               value={input}
