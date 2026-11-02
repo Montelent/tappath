@@ -54,7 +54,6 @@ export async function PUT(req: NextRequest) {
   const incoming = body.settings || {};
   const sql = getSql()!;
 
-  // Only persist known keys
   const allowed = new Set(Object.keys(SITE_SETTINGS_DEFAULTS));
 
   try {
@@ -64,6 +63,8 @@ export async function PUT(req: NextRequest) {
       let toStore: unknown = value;
       if (typeof def === "boolean") {
         toStore = value === true || value === "true";
+      } else if (Array.isArray(def)) {
+        toStore = Array.isArray(value) ? value : def;
       } else if (typeof def === "string") {
         toStore = value == null ? "" : String(value);
       }
