@@ -21,8 +21,10 @@ import {
   Search,
   Menu,
   X,
+  Sun,
+  Moon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import "@/app/admin-wp.css";
@@ -66,6 +68,26 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
   const { user, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [adminDark, setAdminDark] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("admin-theme");
+      setAdminDark(stored === "dark");
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const toggleAdminTheme = () => {
+    const next = !adminDark;
+    setAdminDark(next);
+    try {
+      localStorage.setItem("admin-theme", next ? "dark" : "light");
+    } catch {
+      /* ignore */
+    }
+  };
 
   const isActive = (href: string, exact?: boolean) => {
     if (exact) return pathname === href;
@@ -113,7 +135,12 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   );
 
   return (
-    <div className="admin-wp min-h-screen bg-[#f0f0f1] text-[#1d2327]">
+    <div
+      className={cn(
+        "admin-wp min-h-screen",
+        adminDark ? "admin-dark bg-[#1d2327] text-[#f0f0f1]" : "bg-[#f0f0f1] text-[#1d2327]"
+      )}
+    >
       <div className="flex min-h-screen">
         <aside className="hidden w-[160px] shrink-0 flex-col bg-[#1d2327] text-[#f0f0f1] lg:flex xl:w-[180px]">
           <div className="flex h-12 items-center gap-2 border-b border-[#2c3338] px-3">
@@ -161,6 +188,15 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
               <span className="font-semibold text-[#1d2327]">{current}</span>
             </div>
             <div className="ml-auto flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleAdminTheme}
+                className="rounded border border-[#c3c4c7] p-1.5 text-[#50575e] hover:bg-[#f0f0f1]"
+                aria-label={adminDark ? "Switch to light mode" : "Switch to dark mode"}
+                title={adminDark ? "Light mode" : "Dark mode"}
+              >
+                {adminDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
               <Link
                 href="/"
                 className="hidden rounded border border-[#c3c4c7] bg-white px-2.5 py-1 text-[12px] font-medium text-[#2271b1] hover:border-[#2271b1] sm:inline-flex"
