@@ -1,6 +1,5 @@
 import { getSql, isNeonConfigured } from "@/lib/db/neon";
 
-/** All public site settings editable from Admin → Settings */
 export type NavMenuItem = {
   id: string;
   label: string;
@@ -9,27 +8,43 @@ export type NavMenuItem = {
   children?: NavMenuItem[];
 };
 
+export type SeoRedirect = {
+  id: string;
+  from: string;
+  to: string;
+  code: 301 | 302;
+  enabled?: boolean;
+};
+
 export type SiteSettings = {
-  // Branding
   site_name: string;
   site_tagline: string;
   logo_url: string;
   favicon_url: string;
   og_image_url: string;
 
-  // Contact / SEO
   support_email: string;
   meta_title: string;
   meta_description: string;
   meta_keywords: string;
+  seo_title_separator: string;
+  seo_robots_index: boolean;
+  seo_robots_follow: boolean;
+  seo_canonical_host: string;
+  seo_google_verification: string;
+  seo_bing_verification: string;
+  seo_yandex_verification: string;
+  seo_pinterest_verification: string;
+  seo_robots_extra: string;
+  seo_redirect_trailing_slash: boolean;
+  seo_force_canonical_host: boolean;
+  seo_redirects: SeoRedirect[];
 
-  // Homepage hero
   homepage_eyebrow: string;
   homepage_hero_title: string;
   homepage_hero_subtitle: string;
   homepage_search_placeholder: string;
 
-  // Homepage section headings
   homepage_guides_heading: string;
   homepage_brands_heading: string;
   homepage_topics_heading: string;
@@ -37,7 +52,6 @@ export type SiteSettings = {
   homepage_all_topics_label: string;
   homepage_no_brands_text: string;
 
-  // Navigation labels
   nav_home: string;
   nav_topics: string;
   nav_devices: string;
@@ -46,19 +60,15 @@ export type SiteSettings = {
   nav_admin: string;
   nav_sign_in: string;
   nav_sign_up: string;
-  /** Editable main menu (WordPress-style). Empty = use default labels above. */
   nav_items: NavMenuItem[];
-  /** Editable footer link columns */
   footer_items: NavMenuItem[];
 
-  // Footer
   footer_tagline: string;
   footer_copyright: string;
   footer_browse_heading: string;
   footer_account_heading: string;
   footer_support_label: string;
 
-  // Social links (empty = hide)
   social_twitter: string;
   social_github: string;
   social_youtube: string;
@@ -67,15 +77,12 @@ export type SiteSettings = {
   social_facebook: string;
   social_instagram: string;
 
-  // Maintenance
   maintenance_mode: boolean;
   maintenance_message: string;
 
-  // Features
   allow_signups: boolean;
   default_locale: string;
 
-  // E-E-A-T author (shown on guides)
   author_name: string;
   author_slug: string;
   author_title: string;
@@ -91,14 +98,12 @@ export type SiteSettings = {
   author_youtube: string;
   author_facebook: string;
   author_instagram: string;
-  author_same_as: string; // comma-separated profile URLs
+  author_same_as: string;
 
-  // Custom codes (verification, analytics, ads scripts)
   head_code: string;
   body_start_code: string;
   footer_code: string;
 
-  // Ad placements (HTML snippets: AdSense, etc.)
   ads_enabled: boolean;
   ad_header: string;
   ad_after_title: string;
@@ -116,6 +121,18 @@ export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
   og_image_url: "/og.png",
   support_email: "support@tappath.com",
   meta_title: "TapPath — Phone settings, step by step",
+  seo_title_separator: "·",
+  seo_robots_index: true,
+  seo_robots_follow: true,
+  seo_canonical_host: "",
+  seo_google_verification: "",
+  seo_bing_verification: "",
+  seo_yandex_verification: "",
+  seo_pinterest_verification: "",
+  seo_robots_extra: "",
+  seo_redirect_trailing_slash: true,
+  seo_force_canonical_host: false,
+  seo_redirects: [],
   meta_description:
     "Exact menu paths for Samsung, Xiaomi, Huawei, OnePlus, Oppo, Realme, Android and Google phones. Verified screenshots and steps.",
   meta_keywords: "smartphone settings, Android how to, Samsung One UI, Xiaomi HyperOS, menu path",
@@ -206,7 +223,6 @@ function unwrapValue(v: unknown): unknown {
   return v;
 }
 
-/** Server-side: load site settings from Neon (or defaults). */
 export async function getSiteSettings(): Promise<SiteSettings> {
   const settings: SiteSettings = { ...SITE_SETTINGS_DEFAULTS };
 
@@ -238,13 +254,12 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       }
     }
   } catch {
-    // table missing or query error — keep defaults
+    /* keep defaults */
   }
 
   return settings;
 }
 
-/** Social links that have a non-empty URL, for rendering icons/links. */
 export function activeSocialLinks(s: SiteSettings): { key: string; label: string; href: string }[] {
   const map: { key: keyof SiteSettings; label: string }[] = [
     { key: "social_twitter", label: "X / Twitter" },
