@@ -49,33 +49,35 @@ export default function PhoneFrame({
   );
 }
 
+/** Beginner-friendly tap marker: pulse + hand + TAP HERE label */
 export function TapMarker({ x, y }: { x: number; y: number }) {
-  const left = Math.min(99, Math.max(1, x));
-  const top = Math.min(99, Math.max(1, y));
+  const left = Math.min(98, Math.max(2, x));
+  const top = Math.min(98, Math.max(2, y));
   return (
     <div
       className="pointer-events-none absolute z-20"
       style={{ left: `${left}%`, top: `${top}%` }}
       aria-hidden
     >
-      <span className="absolute left-0 top-0 h-5 w-5 -translate-x-1/2 -translate-y-1/2 animate-ping rounded-full bg-[var(--accent)]/25" />
-      <span className="absolute left-0 top-0 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-[var(--accent)] shadow-md" />
-      <svg
-        viewBox="0 0 48 64"
-        width="40"
-        height="53"
-        className="absolute drop-shadow-md"
-        style={{ left: 0, top: 0, transform: "translate(-50%, -6%)" }}
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path d="M14 36h18c3 0 5.5 2.5 5.5 5.5V52c0 4.5-3.5 8-8 8H20c-4 0-7.5-3-7.5-7.5V40c0-2.2 1.8-4 4-4z" fill="#F5C89A" stroke="#1e293b" strokeWidth="1.4" strokeLinejoin="round" />
-        <path d="M28 34v-6.5c0-1.3 1-2.3 2.2-2.3s2.2 1 2.2 2.3V36" fill="none" stroke="#1e293b" strokeWidth="1.3" strokeLinecap="round" />
-        <path d="M34 36v-4.5c0-1.1.9-2 2-2s2 .9 2 2V38" fill="none" stroke="#1e293b" strokeWidth="1.2" strokeLinecap="round" />
-        <path d="M14 38c-3 1.5-5 4.2-5 7.5 0 3 2 5.5 5 6" fill="none" stroke="#1e293b" strokeWidth="1.4" strokeLinecap="round" />
-        <path d="M10.5 44c0-2.5 1.5-4.5 3.5-5.5V52c-2-.5-3.5-2.5-3.5-5z" fill="#F5C89A" stroke="#1e293b" strokeWidth="1.3" strokeLinejoin="round" />
-        <path d="M20.5 34V10.5c0-2.2 1.7-4 3.8-4s3.8 1.8 3.8 4V34" fill="#F5C89A" stroke="#1e293b" strokeWidth="1.5" strokeLinejoin="round" />
-        <ellipse cx="24.3" cy="6.5" rx="4.2" ry="4.6" fill="#F5C89A" stroke="#1e293b" strokeWidth="1.5" />
-      </svg>
+      <span className="absolute left-0 top-0 h-12 w-12 -translate-x-1/2 -translate-y-1/2 animate-ping rounded-full bg-[var(--accent)]/30" />
+      <span className="absolute left-0 top-0 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--accent)]/20 ring-2 ring-[var(--accent)]/50" />
+      <span className="absolute left-0 top-0 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-[var(--accent)] shadow-lg shadow-[var(--accent)]/40" />
+
+      <div className="absolute" style={{ left: 0, top: 0, transform: "translate(4px, 2px)" }}>
+        <svg viewBox="0 0 56 72" width="48" height="62" className="drop-shadow-lg" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 40h20c3.5 0 6.5 3 6.5 6.5V58c0 5-4 9-9 9H22c-4.5 0-8.5-3.5-8.5-8.5V44c0-2.2 1.8-4 4-4z" fill="#F8C9A0" stroke="#1e293b" strokeWidth="1.6" strokeLinejoin="round" />
+          <path d="M24 40V8.5c0-2.8 2.2-5 5-5s5 2.2 5 5V40" fill="#F8C9A0" stroke="#1e293b" strokeWidth="1.7" strokeLinejoin="round" />
+          <ellipse cx="29" cy="5" rx="5" ry="5.2" fill="#F8C9A0" stroke="#1e293b" strokeWidth="1.7" />
+          <path d="M34 38v-9c0-1.6 1.2-2.8 2.7-2.8s2.7 1.2 2.7 2.8V40" fill="#F8C9A0" stroke="#1e293b" strokeWidth="1.4" strokeLinejoin="round" />
+          <path d="M40 40v-6c0-1.3 1-2.4 2.3-2.4s2.3 1.1 2.3 2.4V42" fill="#F8C9A0" stroke="#1e293b" strokeWidth="1.3" strokeLinejoin="round" />
+          <path d="M16 42c-3.5 1.5-6 5-6 8.5 0 3.5 2.2 6.5 5.5 7.5" fill="none" stroke="#1e293b" strokeWidth="1.6" strokeLinecap="round" />
+          <path d="M12 48c0-2.8 1.6-5.2 4-6.2V58c-2.2-.6-4-3-4-5.8z" fill="#F8C9A0" stroke="#1e293b" strokeWidth="1.4" strokeLinejoin="round" />
+          <ellipse cx="29" cy="4.2" rx="2.2" ry="1.6" fill="#FFE8D2" opacity="0.9" />
+        </svg>
+        <span className="absolute -right-1 top-1 select-none animate-bounce rounded-full bg-[var(--accent)] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-md ring-2 ring-white/80">
+          Tap here
+        </span>
+      </div>
     </div>
   );
 }
