@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getSiteSettings } from "@/lib/site-settings";
 import { authorProfilePath, authorSocialLinks } from "@/lib/author";
+import { siteBase } from "@/components/seo/JsonLd";
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
@@ -18,6 +19,7 @@ export default async function AuthorBox() {
   const credentials = (s.author_credentials || "").trim();
   const avatar = (s.author_avatar_url || "").trim();
   const profileHref = authorProfilePath(s);
+  const profileAbs = `${siteBase()}${profileHref}`;
   const social = authorSocialLinks(s).slice(0, 5);
 
   return (
@@ -27,12 +29,17 @@ export default async function AuthorBox() {
       itemScope
       itemType="https://schema.org/Person"
     >
+      <link itemProp="url" href={profileAbs} />
       <div className="border-b border-[var(--border)] bg-[var(--accent-subtle)] px-5 py-2.5 sm:px-6">
         <p className="label-caps">Written & verified by</p>
       </div>
       <div className="p-5 sm:p-6">
         <div className="flex gap-4 sm:gap-5">
-          <Link href={profileHref} className="shrink-0 link-quiet" aria-label={`${name} profile`}>
+          <Link
+            href={profileHref}
+            className="shrink-0 link-quiet"
+            aria-label={`${name} profile`}
+          >
             {avatar ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -54,20 +61,25 @@ export default async function AuthorBox() {
             )}
           </Link>
           <div className="min-w-0 flex-1">
+            {/* itemProp=name must not be on <a> — microdata would use href as name */}
             <Link
               href={profileHref}
               className="font-display text-lg font-medium tracking-tight link-quiet hover:text-[var(--accent)]"
-              itemProp="name"
             >
-              {name}
+              <span itemProp="name">{name}</span>
             </Link>
             {title && (
-              <p className="mt-0.5 text-sm text-[var(--muted-foreground)]" itemProp="jobTitle">
+              <p
+                className="mt-0.5 text-sm text-[var(--muted-foreground)]"
+                itemProp="jobTitle"
+              >
                 {title}
               </p>
             )}
             {credentials && (
-              <p className="mt-1.5 text-xs text-[var(--muted-foreground)]">{credentials}</p>
+              <p className="mt-1.5 text-xs text-[var(--muted-foreground)]">
+                {credentials}
+              </p>
             )}
             {bio && (
               <p
@@ -78,7 +90,10 @@ export default async function AuthorBox() {
               </p>
             )}
             <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-              <Link href={profileHref} className="text-sm font-medium text-[var(--accent)] hover:underline">
+              <Link
+                href={profileHref}
+                className="text-sm font-medium text-[var(--accent)] hover:underline"
+              >
                 View full profile
               </Link>
               {social.length > 0 && (
@@ -102,7 +117,6 @@ export default async function AuthorBox() {
           </div>
         </div>
       </div>
-      <link itemProp="url" href={profileHref} />
     </section>
   );
 }
