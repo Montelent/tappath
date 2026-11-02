@@ -13,7 +13,8 @@ type Props = {
   fields: {
     key: string;
     label: string;
-    type?: "text" | "textarea" | "richtext" | "number" | "boolean" | "json";
+    type?: "text" | "textarea" | "richtext" | "number" | "boolean" | "json" | "faq-list" | "related-list";
+    help?: string;
   }[];
 };
 
@@ -179,10 +180,15 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
           <h2 className="mb-4 font-semibold">{editing.id ? "Edit" : "Create"}</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {fields.map((f) => (
-              <label
+              <div
                 key={f.key}
                 className={
-                  f.type === "textarea" || f.type === "richtext" || f.type === "json" || f.key === "sort_order"
+                  f.type === "textarea" ||
+                  f.type === "richtext" ||
+                  f.type === "json" ||
+                  f.type === "faq-list" ||
+                  f.type === "related-list" ||
+                  f.key === "sort_order"
                     ? "sm:col-span-2"
                     : ""
                 }
@@ -190,8 +196,23 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                 {f.key !== "sort_order" && (
                   <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">{f.label}</span>
                 )}
+                {f.help && <p className="mb-2 text-[11px] text-[var(--muted-foreground)]">{f.help}</p>}
                 {f.type === "boolean" ? (
                   <input type="checkbox" checked={!!editing[f.key]} onChange={(e) => setEditing({ ...editing, [f.key]: e.target.checked })} className="h-4 w-4" />
+                ) : f.type === "faq-list" ? (
+                  <FaqListEditor
+                    value={Array.isArray(editing[f.key]) ? (editing[f.key] as { q: string; a: string }[]) : []}
+                    onChange={(faqs) => setEditing({ ...editing, [f.key]: faqs })}
+                  />
+                ) : f.type === "related-list" ? (
+                  <RelatedListEditor
+                    value={
+                      Array.isArray(editing[f.key])
+                        ? (editing[f.key] as { title: string; href: string; brand?: string }[])
+                        : []
+                    }
+                    onChange={(items) => setEditing({ ...editing, [f.key]: items })}
+                  />
                 ) : f.type === "json" ? (
                   <textarea
                     value={
@@ -232,7 +253,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                     className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
                   />
                 )}
-              </label>
+              </div>
             ))}
           </div>
           <div className="mt-4 flex gap-2">
@@ -287,6 +308,123 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
           </table>
         </div>
       )}
+    </div>
+  );
+}
+
+function FaqListEditor({
+  value,
+  onChange,
+}: {
+  value: { q: string; a: string }[];
+  onChange: (v: { q: string; a: string }[]) => void;
+}) {
+  const faqs = value || [];
+  return (
+    <div className="space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--muted)]/20 p-3">
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] text-[var(--muted-foreground)]">
+          Shown as an accordion on the term page and as FAQ schema for Google.
+        </p>
+        <button type="button" className="text-xs font-medium text-brand-600" onClick={() => onChange([...faqs, { q: "", a: "" }])}>
+          + Add question
+        </button>
+      </div>
+      {faqs.length === 0 && (
+        <p className="text-xs text-[var(--muted-foreground)]">No FAQs yet — optional but good for SEO.</p>
+      )}
+      {faqs.map((f, i) => (
+        <div key={i} className="space-y-2 rounded-xl border border-[var(--border)] bg-[var(--card)] p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase text-[var(--muted-foreground)]">Q{i + 1}</span>
+            <button type="button" className="text-red-500" onClick={() => onChange(faqs.filter((_, j) => j !== i))} aria-label="Remove">
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+          <input
+            value={f.q}
+            onChange={(e) => {
+              const next = [...faqs];
+              next[i] = { ...next[i], q: e.target.value };
+              onChange(next);
+            }}
+            placeholder="Question"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm font-medium"
+          />
+          <textarea
+            value={f.a}
+            onChange={(e) => {
+              const next = [...faqs];
+              next[i] = { ...next[i], a: e.target.value };
+              onChange(next);
+            }}
+            placeholder="Answer"
+            rows={3}
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RelatedListEditor({
+  value,
+  onChange,
+}: {
+  value: { title: string; href: string; brand?: string }[];
+  onChange: (v: { title: string; href: string; brand?: string }[]) => void;
+}) {
+  const items = value || [];
+  return (
+    <div className="space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--muted)]/20 p-3">
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] text-[var(--muted-foreground)]">
+          Optional pins. The site also auto-finds guides that mention this term.
+        </p>
+        <button type="button" className="text-xs font-medium text-brand-600" onClick={() => onChange([...items, { title: "", href: "", brand: "" }])}>
+          + Pin guide
+        </button>
+      </div>
+      {items.map((it, i) => (
+        <div key={i} className="grid gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 sm:grid-cols-3">
+          <input
+            value={it.title}
+            onChange={(e) => {
+              const next = [...items];
+              next[i] = { ...next[i], title: e.target.value };
+              onChange(next);
+            }}
+            placeholder="Title"
+            className="rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
+          />
+          <input
+            value={it.href}
+            onChange={(e) => {
+              const next = [...items];
+              next[i] = { ...next[i], href: e.target.value };
+              onChange(next);
+            }}
+            placeholder="/samsung/galaxy/…"
+            className="rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
+          />
+          <div className="flex gap-2">
+            <input
+              value={it.brand || ""}
+              onChange={(e) => {
+                const next = [...items];
+                next[i] = { ...next[i], brand: e.target.value };
+                onChange(next);
+              }}
+              placeholder="Brand (optional)"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
+            />
+            <button type="button" className="shrink-0 text-red-500" onClick={() => onChange(items.filter((_, j) => j !== i))} aria-label="Remove">
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
