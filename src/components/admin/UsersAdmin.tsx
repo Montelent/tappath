@@ -42,7 +42,7 @@ export default function UsersAdmin() {
         if (data.error) setError(data.error);
       }
     } catch {
-      setError("Network error — check your connection and try again.");
+      setError("Network error - check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -112,7 +112,7 @@ export default function UsersAdmin() {
         <AdminTable headers={["Name", "Email", "Role", "Joined", "Actions"]}>
           {rows.map((u) => (
             <tr key={u.id} className={wp.tr}>
-              <td className={wp.td + " font-medium"}>{u.name || "—"}</td>
+              <td className={wp.td + " font-medium"}>{u.name || "-"}</td>
               <td className={wp.td + " text-[12px]"}>{u.email}</td>
               <td className={wp.td}>
                 {u.role === "admin" ? (
@@ -125,8 +125,8 @@ export default function UsersAdmin() {
                   </span>
                 )}
               </td>
-              <td className={wp.td + " text-[12px] text-[#646970]"}>
-                {u.created_at ? new Date(u.created_at).toLocaleDateString() : "—"}
+              <td className={wp.td + " text-[12px] text-[#646970]">
+                {u.created_at ? new Date(u.created_at).toLocaleDateString() : "-"}
               </td>
               <td className={wp.td + " text-right whitespace-nowrap"}>
                 {u.role === "admin" ? (
