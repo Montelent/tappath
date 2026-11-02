@@ -1,5 +1,7 @@
+import { siteBase } from "@/components/seo/JsonLd";
+
 export default function OrganizationJsonLd() {
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://tappath.com";
+  const base = siteBase();
 
   const data = {
     "@context": "https://schema.org",
@@ -26,7 +28,9 @@ export default function OrganizationJsonLd() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(data).replace(/</g, "\\u003c"),
+      }}
     />
   );
 }

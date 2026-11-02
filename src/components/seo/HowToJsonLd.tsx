@@ -55,12 +55,17 @@ export default async function HowToJsonLd({ guide, url }: Props) {
 
   if (!steps.length) return null;
 
-  const authorName = (s.author_name || s.site_name || "TapPath").trim();
+  // Person.name must be plain text — never a URL (schema.org Text).
+  let authorName = (s.author_name || s.site_name || "TapPath").trim();
+  if (!authorName || /^https?:\/\//i.test(authorName)) {
+    authorName = "TapPath Editorial";
+  }
   const sameAs = authorSameAsUrls(s);
   const profileUrl = `${origin}${authorProfilePath(s)}`;
 
   const author: Record<string, unknown> = {
     "@type": "Person",
+    "@id": profileUrl,
     name: authorName,
     url: profileUrl,
     ...(s.author_title ? { jobTitle: s.author_title } : {}),
