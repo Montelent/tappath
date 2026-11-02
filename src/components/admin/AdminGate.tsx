@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { Loader2, Shield } from "lucide-react";
 import AdminShell from "./AdminShell";
+import "@/app/admin-wp.css";
 
 export default function AdminGate({ children }: { children: React.ReactNode }) {
   const { user, loading, isAdmin } = useAuth();

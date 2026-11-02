@@ -1,0 +1,55 @@
+/* Admin is always WordPress light chrome, even when the public site is in .dark */
+.admin-wp {
+  color-scheme: light;
+  --background: #f0f0f1;
+  --foreground: #1d2327;
+  --muted: #f6f7f7;
+  --muted-foreground: #646970;
+  --border: #c3c4c7;
+  --card: #ffffff;
+  --card-elevated: #ffffff;
+  --accent: #2271b1;
+  --accent-hover: #135e96;
+  --accent-soft: #72aee6;
+  --accent-muted: rgba(34, 113, 177, 0.12);
+  --accent-subtle: rgba(34, 113, 177, 0.06);
+  --accent-foreground: #ffffff;
+  --primary: #2271b1;
+  --primary-foreground: #ffffff;
+  background-color: #f0f0f1 !important;
+  color: #1d2327 !important;
+}
+
+.admin-wp h1,
+.admin-wp h2,
+.admin-wp h3,
+.admin-wp h4,
+.admin-wp h5,
+.admin-wp h6,
+.admin-wp p,
+.admin-wp label,
+.admin-wp span,
+.admin-wp td,
+.admin-wp th,
+.admin-wp li,
+.admin-wp div,
+.admin-wp button {
+  color: inherit;
+}
+
+.admin-wp input,
+.admin-wp textarea,
+.admin-wp select {
+  background-color: #ffffff !important;
+  color: #1d2327 !important;
+  border-color: #8c8f94 !important;
+}
+
+.admin-wp a {
+  color: #2271b1;
+}
+
+.admin-wp main,
+.admin-wp header {
+  color: #1d2327;
+}
