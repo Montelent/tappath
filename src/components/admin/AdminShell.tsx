@@ -94,10 +94,10 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                     href={item.href}
                     onClick={onNavigate}
                     className={cn(
-                      "flex items-center gap-2.5 rounded-sm px-3 py-2 text-[13px] font-medium transition",
+                      "flex items-center gap-2.5 rounded-sm border-l-4 px-3 py-2 text-[13px] font-medium transition",
                       active
-                        ? "bg-[#2271b1] text-white"
-                        : "text-[#c3c4c7] hover:bg-[#2c3338] hover:text-white"
+                        ? "border-[#72aee6] bg-[#2c3338] text-white"
+                        : "border-transparent text-[#c3c4c7] hover:bg-[#2c3338] hover:text-white"
                     )}
                   >
                     <Icon className="h-4 w-4 shrink-0 opacity-90" />
