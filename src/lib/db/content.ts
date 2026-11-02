@@ -145,9 +145,21 @@ export async function listGlossary(): Promise<DbGlossaryTerm[]> {
     category: t.category,
     short: t.short,
     definition: t.definition,
-    related_guides: [],
+    faqs: t.faqs || [],
+    related_guides: (t.relatedGuides || []).map((g) => ({
+      title: g.title,
+      href: g.href,
+      brand: g.brand,
+    })),
+    seo_title: t.seoTitle || null,
+    seo_description: t.seoDescription || null,
     published: true,
   }));
+}
+
+export async function getGlossaryBySlug(slug: string): Promise<DbGlossaryTerm | null> {
+  const all = await listGlossary();
+  return all.find((t) => t.slug === slug) || null;
 }
 
 export async function listGuides(): Promise<DbGuide[]> {
