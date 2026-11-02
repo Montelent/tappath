@@ -21,14 +21,46 @@ Answer briefly. Prefer exact menu paths. Suggest relevant site links when useful
 - Devices: /devices, Forum: /forum
 Respond in JSON only: { "text": string, "links": [{ "label": string, "href": string }] }`;
 
+function normalizeOpenAiBase(raw: string, fallback: string): string {
+  let base = (raw || fallback).trim().replace(/\/$/, "");
+  if (!base) base = fallback;
+  if (!/\/v1$/i.test(base) && !/\/v1\//i.test(base)) {
+    base = `${base}/v1`;
+  }
+  return base.replace(/\/$/, "");
+}
+
 function listProviders(): ProviderConfig[] {
   const preferred = (process.env.COPILOT_PROVIDER || "").toLowerCase() as ProviderId | "";
   const candidates: ProviderConfig[] = [];
 
+  if (process.env.AGENTROUTER_API_KEY || process.env.AGENTIC_API_KEY) {
+    const rawBase =
+      process.env.AGENTROUTER_BASE_URL ||
+      process.env.AGENTIC_API_BASE_URL ||
+      "https://agentrouter.org/v1";
+    const isLocal = /localhost|127\.0\.0\.1/.test(rawBase);
+    if (!isLocal || process.env.NODE_ENV === "development") {
+      candidates.push({
+        id: "agentrouter",
+        baseUrl: normalizeOpenAiBase(rawBase, "https://agentrouter.org/v1"),
+        apiKey: process.env.AGENTROUTER_API_KEY || process.env.AGENTIC_API_KEY || "",
+        model: process.env.AGENTROUTER_MODEL || process.env.OPENAI_MODEL || "gpt-4o-mini",
+        extraHeaders: {
+          "User-Agent": "TapPath-Copilot/1.0",
+        },
+        jsonMode: process.env.AGENTROUTER_JSON_MODE === "true",
+      });
+    }
+  }
+
   if (process.env.OPENROUTER_API_KEY) {
     candidates.push({
       id: "openrouter",
-      baseUrl: (process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1").replace(/\/$/, ""),
+      baseUrl: normalizeOpenAiBase(
+        process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1",
+        "https://openrouter.ai/api/v1"
+      ),
       apiKey: process.env.OPENROUTER_API_KEY,
       model: process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini",
       extraHeaders: {
@@ -42,28 +74,14 @@ function listProviders(): ProviderConfig[] {
   if (process.env.OPENAI_API_KEY) {
     candidates.push({
       id: "openai",
-      baseUrl: (process.env.OPENAI_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, ""),
+      baseUrl: normalizeOpenAiBase(
+        process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
+        "https://api.openai.com/v1"
+      ),
       apiKey: process.env.OPENAI_API_KEY,
       model: process.env.OPENAI_MODEL || "gpt-4o-mini",
       jsonMode: true,
     });
-  }
-
-  if (process.env.AGENTROUTER_API_KEY || process.env.AGENTIC_API_KEY) {
-    const base =
-      process.env.AGENTROUTER_BASE_URL ||
-      process.env.AGENTIC_API_BASE_URL ||
-      "http://localhost:1975/v1";
-    const isLocal = /localhost|127\.0\.0\.1/.test(base);
-    if (!isLocal || process.env.NODE_ENV === "development") {
-      candidates.push({
-        id: "agentrouter",
-        baseUrl: base.replace(/\/$/, ""),
-        apiKey: process.env.AGENTROUTER_API_KEY || process.env.AGENTIC_API_KEY || "",
-        model: process.env.AGENTROUTER_MODEL || process.env.OPENAI_MODEL || "gpt-4o-mini",
-        jsonMode: process.env.AGENTROUTER_JSON_MODE === "true",
-      });
-    }
   }
 
   if (candidates.length === 0) return [];
@@ -79,7 +97,7 @@ function parseModelText(raw: string): { text: string; links: { label: string; hr
   try {
     const parsed = JSON.parse(cleaned);
     return {
-      text: String(parsed.text || cleaned),
+      text: String(parsed.text || parsed.message || parsed.content || cleaned),
       links: Array.isArray(parsed.links) ? parsed.links : [],
     };
   } catch {
@@ -88,7 +106,7 @@ function parseModelText(raw: string): { text: string; links: { label: string; hr
       try {
         const parsed = JSON.parse(m[0]);
         return {
-          text: String(parsed.text || cleaned),
+          text: String(parsed.text || parsed.message || parsed.content || cleaned),
           links: Array.isArray(parsed.links) ? parsed.links : [],
         };
       } catch {
@@ -97,6 +115,48 @@ function parseModelText(raw: string): { text: string; links: { label: string; hr
     }
     return { text: cleaned || "No response.", links: [] };
   }
+}
+
+function extractChoiceContent(data: unknown): string {
+  if (!data || typeof data !== "object") return "";
+  const d = data as Record<string, unknown>;
+
+  const choices = d.choices;
+  if (Array.isArray(choices) && choices[0]) {
+    const c0 = choices[0] as Record<string, unknown>;
+    const msg = c0.message as Record<string, unknown> | string | undefined;
+    if (typeof msg === "string") return msg;
+    if (msg && typeof msg === "object") {
+      const content = msg.content;
+      if (typeof content === "string") return content;
+      if (Array.isArray(content)) {
+        return content
+          .map((part) => {
+            if (typeof part === "string") return part;
+            if (part && typeof part === "object" && "text" in part) {
+              return String((part as { text: unknown }).text || "");
+            }
+            return "";
+          })
+          .join("");
+      }
+    }
+    if (typeof c0.text === "string") return c0.text;
+    if (typeof c0.content === "string") return c0.content;
+  }
+
+  if (typeof d.content === "string") return d.content;
+  if (typeof d.text === "string") return d.text;
+  if (typeof d.message === "string") return d.message;
+  if (d.message && typeof d.message === "object") {
+    const m = d.message as Record<string, unknown>;
+    if (typeof m.content === "string") return m.content;
+  }
+  if (d.data && typeof d.data === "object") {
+    return extractChoiceContent(d.data);
+  }
+
+  return "";
 }
 
 async function callOnce(
@@ -120,29 +180,67 @@ async function callOnce(
     payload.response_format = { type: "json_object" };
   }
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${provider.apiKey}`,
-      "Content-Type": "application/json",
-      ...provider.extraHeaders,
-    },
-    body: JSON.stringify(payload),
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${provider.apiKey}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        ...provider.extraHeaders,
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch (e) {
+    return {
+      ok: false,
+      status: 0,
+      error: e instanceof Error ? e.message : "Network error reaching provider",
+    };
+  }
 
   const bodyText = await res.text();
   if (!res.ok) {
     console.error(`[copilot:${provider.id}] ${res.status}`, bodyText.slice(0, 400));
-    return { ok: false, status: res.status, error: bodyText.slice(0, 300) };
+    let detail = bodyText.slice(0, 300);
+    try {
+      const errJson = JSON.parse(bodyText) as {
+        error?: { message?: string } | string;
+        message?: string;
+      };
+      if (typeof errJson.error === "string") detail = errJson.error;
+      else if (errJson.error && typeof errJson.error === "object" && errJson.error.message) {
+        detail = errJson.error.message;
+      } else if (errJson.message) detail = errJson.message;
+    } catch {
+      /* keep slice */
+    }
+    return { ok: false, status: res.status, error: detail };
   }
 
-  let data: { choices?: { message?: { content?: string } }[] };
+  let data: unknown;
   try {
     data = JSON.parse(bodyText);
   } catch {
-    return { ok: false, status: 502, error: "Invalid JSON from provider" };
+    if (bodyText.trim().length > 0 && !bodyText.trim().startsWith("<")) {
+      return { ok: true, result: parseModelText(bodyText) };
+    }
+    return {
+      ok: false,
+      status: 502,
+      error: `Invalid JSON from provider (${bodyText.slice(0, 120)})`,
+    };
   }
-  const raw = data.choices?.[0]?.message?.content || "";
+
+  const raw = extractChoiceContent(data);
+  if (!raw) {
+    return {
+      ok: false,
+      status: 502,
+      error: `Empty model content: ${bodyText.slice(0, 200)}`,
+    };
+  }
   return { ok: true, result: parseModelText(raw) };
 }
 
@@ -153,7 +251,13 @@ async function chatComplete(
   | { text: string; links: { label: string; href: string }[]; provider: string }
   | { error: string; provider: string; status?: number }
 > {
-  const attempts = provider.jsonMode ? [true, false] : [false, true];
+  const attempts =
+    provider.id === "agentrouter"
+      ? [false, true]
+      : provider.jsonMode
+        ? [true, false]
+        : [false, true];
+
   let lastErr = "";
   let lastStatus = 0;
 
@@ -198,22 +302,27 @@ export async function POST(req: NextRequest) {
     if ("text" in result) {
       return NextResponse.json(result);
     }
-    errors.push(`${result.provider}: ${result.error.slice(0, 120)}`);
+    errors.push(`${result.provider}(${result.status ?? "?"}): ${result.error.slice(0, 140)}`);
   }
 
   const fb = fallback(message);
-  if (providers.length > 0 && errors.length > 0 && message.length >= 8) {
-    const isGeneric =
-      fb.text.includes("AI keys are not configured") ||
-      /^(hi|hello)/i.test(fb.text);
-    if (isGeneric) {
-      return NextResponse.json({
-        text: `AI providers failed (${errors.join(" | ")}). Showing quick tips instead — set OPENROUTER_API_KEY or OPENAI_API_KEY on Vercel.`,
-        links: fb.links,
-        provider: "fallback",
-        errors,
-      });
-    }
+
+  if (providers.length === 0) {
+    return NextResponse.json({
+      ...fb,
+      provider: "fallback",
+      hint: "No AI keys found. Set AGENTROUTER_API_KEY + AGENTROUTER_BASE_URL (e.g. https://agentrouter.org/v1) + AGENTROUTER_MODEL on Vercel, then redeploy.",
+    });
+  }
+
+  if (errors.length > 0) {
+    return NextResponse.json({
+      text: fb.text,
+      links: fb.links,
+      provider: "fallback",
+      errors,
+      hint: "AgentRouter failed. Check AGENTROUTER_BASE_URL ends with /v1, model id is exact, and key is valid. Set COPILOT_PROVIDER=agentrouter to prefer it.",
+    });
   }
 
   return NextResponse.json({
@@ -267,7 +376,7 @@ function fallback(input: string) {
   }
 
   return {
-    text: "I can help with settings paths and glossary terms. Try a specific question like “enable Private DNS on Samsung” or “what is eSIM”. For full AI answers, set OPENROUTER_API_KEY or OPENAI_API_KEY in Vercel.",
+    text: "I can help with settings paths and glossary terms. Try a specific question like “enable Private DNS on Samsung” or “what is eSIM”.",
     links: [
       { label: "Topics", href: "/topics" },
       { label: "Glossary", href: "/glossary" },
