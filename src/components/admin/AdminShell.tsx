@@ -112,9 +112,8 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   );
 
   return (
-    <div className="min-h-screen bg-[#f0f0f1] text-[#1d2327]">
+    <div className="admin-wp min-h-screen bg-[#f0f0f1] text-[#1d2327]">
       <div className="flex min-h-screen">
-        {/* Desktop sidebar — classic WP dark */}
         <aside className="hidden w-[160px] shrink-0 flex-col bg-[#1d2327] text-[#f0f0f1] lg:flex xl:w-[180px]">
           <div className="flex h-12 items-center gap-2 border-b border-[#2c3338] px-3">
             <Shield className="h-4 w-4 text-[#72aee6]" />
@@ -143,9 +142,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           </div>
         </aside>
 
-        {/* Main column */}
         <div className="flex min-w-0 flex-1 flex-col">
-          {/* Top bar */}
           <header className="sticky top-0 z-30 flex h-12 items-center gap-3 border-b border-[#c3c4c7] bg-white px-3 shadow-sm sm:px-4">
             <button
               type="button"
@@ -172,7 +169,6 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             </div>
           </header>
 
-          {/* Mobile drawer */}
           {mobileOpen && (
             <div className="fixed inset-0 z-50 lg:hidden">
               <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
