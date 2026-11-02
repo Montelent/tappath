@@ -4,19 +4,22 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronRight, Search } from "lucide-react";
 import {
-  glossaryTerms,
+  glossaryTerms as staticTerms,
   glossaryCategories,
   alphabet,
   type GlossaryTerm,
 } from "@/data/glossary";
 import { cn } from "@/lib/utils";
 
-export default function GlossaryIndex() {
+type Props = { terms?: GlossaryTerm[] };
+
+export default function GlossaryIndex({ terms }: Props) {
+  const source = terms && terms.length > 0 ? terms : staticTerms;
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
 
   const filtered = useMemo(() => {
-    let list: GlossaryTerm[] = glossaryTerms;
+    let list: GlossaryTerm[] = source;
     if (category !== "All") {
       list = list.filter((t) => t.category === category);
     }
@@ -26,13 +29,13 @@ export default function GlossaryIndex() {
         (t) =>
           t.term.toLowerCase().includes(q) ||
           t.short.toLowerCase().includes(q) ||
-          t.definition.toLowerCase().includes(q)
+          (t.definition || "").toLowerCase().includes(q)
       );
     }
     return [...list].sort((a, b) =>
       a.term.localeCompare(b.term, undefined, { sensitivity: "base" })
     );
-  }, [query, category]);
+  }, [query, category, source]);
 
   const grouped = useMemo(() => {
     const groups: Record<string, GlossaryTerm[]> = {};
@@ -63,10 +66,10 @@ export default function GlossaryIndex() {
 
       <header className="mb-8 max-w-2xl">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          TechBone Glossary
+          Tech glossary
         </h1>
         <p className="mt-3 text-lg text-[var(--muted-foreground)]">
-          Smartphone & technology terms explained simply. {glossaryTerms.length} terms.
+          Smartphone & technology terms explained simply. {source.length} terms.
         </p>
       </header>
 
@@ -85,6 +88,7 @@ export default function GlossaryIndex() {
         {glossaryCategories.map((c) => (
           <button
             key={c}
+            type="button"
             onClick={() => setCategory(c)}
             className={cn(
               "rounded-full px-3.5 py-1.5 text-sm font-medium transition",
