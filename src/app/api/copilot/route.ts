@@ -1,17 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { listProviders, type ProviderConfig } from "@/lib/copilot/providers";
 
 type Body = { message: string };
-
-type ProviderId = "openai" | "openrouter" | "agentrouter";
-
-type ProviderConfig = {
-  id: ProviderId;
-  baseUrl: string;
-  apiKey: string;
-  model: string;
-  extraHeaders?: Record<string, string>;
-  jsonMode: boolean;
-};
 
 const SYSTEM_PROMPT = `You are TapPath Copilot, a helpful assistant for smartphone settings paths (Samsung One UI, Xiaomi HyperOS, etc.).
 Answer briefly. Prefer exact menu paths. Suggest relevant site links when useful:
@@ -20,77 +10,6 @@ Answer briefly. Prefer exact menu paths. Suggest relevant site links when useful
 - Glossary: /glossary/volte, /glossary/esim
 - Devices: /devices, Forum: /forum
 Respond in JSON only: { "text": string, "links": [{ "label": string, "href": string }] }`;
-
-function normalizeOpenAiBase(raw: string, fallback: string): string {
-  let base = (raw || fallback).trim().replace(/\/$/, "");
-  if (!base) base = fallback;
-  if (!/\/v1$/i.test(base) && !/\/v1\//i.test(base)) {
-    base = `${base}/v1`;
-  }
-  return base.replace(/\/$/, "");
-}
-
-function listProviders(): ProviderConfig[] {
-  const preferred = (process.env.COPILOT_PROVIDER || "").toLowerCase() as ProviderId | "";
-  const candidates: ProviderConfig[] = [];
-
-  if (process.env.AGENTROUTER_API_KEY || process.env.AGENTIC_API_KEY) {
-    const rawBase =
-      process.env.AGENTROUTER_BASE_URL ||
-      process.env.AGENTIC_API_BASE_URL ||
-      "https://agentrouter.org/v1";
-    const isLocal = /localhost|127\.0\.0\.1/.test(rawBase);
-    if (!isLocal || process.env.NODE_ENV === "development") {
-      candidates.push({
-        id: "agentrouter",
-        baseUrl: normalizeOpenAiBase(rawBase, "https://agentrouter.org/v1"),
-        apiKey: process.env.AGENTROUTER_API_KEY || process.env.AGENTIC_API_KEY || "",
-        model: process.env.AGENTROUTER_MODEL || process.env.OPENAI_MODEL || "gpt-4o-mini",
-        extraHeaders: {
-          "User-Agent": "TapPath-Copilot/1.0",
-        },
-        jsonMode: process.env.AGENTROUTER_JSON_MODE === "true",
-      });
-    }
-  }
-
-  if (process.env.OPENROUTER_API_KEY) {
-    candidates.push({
-      id: "openrouter",
-      baseUrl: normalizeOpenAiBase(
-        process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1",
-        "https://openrouter.ai/api/v1"
-      ),
-      apiKey: process.env.OPENROUTER_API_KEY,
-      model: process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini",
-      extraHeaders: {
-        "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "https://tappath-eight.vercel.app",
-        "X-Title": "TapPath Copilot",
-      },
-      jsonMode: process.env.OPENROUTER_JSON_MODE === "true",
-    });
-  }
-
-  if (process.env.OPENAI_API_KEY) {
-    candidates.push({
-      id: "openai",
-      baseUrl: normalizeOpenAiBase(
-        process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
-        "https://api.openai.com/v1"
-      ),
-      apiKey: process.env.OPENAI_API_KEY,
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-      jsonMode: true,
-    });
-  }
-
-  if (candidates.length === 0) return [];
-  if (preferred) {
-    const match = candidates.find((c) => c.id === preferred);
-    if (match) return [match, ...candidates.filter((c) => c.id !== preferred)];
-  }
-  return candidates;
-}
 
 function parseModelText(raw: string): { text: string; links: { label: string; href: string }[] } {
   const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
@@ -120,7 +39,6 @@ function parseModelText(raw: string): { text: string; links: { label: string; hr
 function extractChoiceContent(data: unknown): string {
   if (!data || typeof data !== "object") return "";
   const d = data as Record<string, unknown>;
-
   const choices = d.choices;
   if (Array.isArray(choices) && choices[0]) {
     const c0 = choices[0] as Record<string, unknown>;
@@ -144,7 +62,6 @@ function extractChoiceContent(data: unknown): string {
     if (typeof c0.text === "string") return c0.text;
     if (typeof c0.content === "string") return c0.content;
   }
-
   if (typeof d.content === "string") return d.content;
   if (typeof d.text === "string") return d.text;
   if (typeof d.message === "string") return d.message;
@@ -152,10 +69,7 @@ function extractChoiceContent(data: unknown): string {
     const m = d.message as Record<string, unknown>;
     if (typeof m.content === "string") return m.content;
   }
-  if (d.data && typeof d.data === "object") {
-    return extractChoiceContent(d.data);
-  }
-
+  if (d.data && typeof d.data === "object") return extractChoiceContent(d.data);
   return "";
 }
 
@@ -294,7 +208,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Empty message" }, { status: 400 });
   }
 
-  const providers = listProviders();
+  const providers = await listProviders();
   const errors: string[] = [];
 
   for (const provider of providers) {
@@ -311,7 +225,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       ...fb,
       provider: "fallback",
-      hint: "No AI keys found. Set AGENTROUTER_API_KEY + AGENTROUTER_BASE_URL (e.g. https://agentrouter.org/v1) + AGENTROUTER_MODEL on Vercel, then redeploy.",
+      hint: "No AI keys found. Add keys under Admin → Copilot.",
     });
   }
 
@@ -321,7 +235,7 @@ export async function POST(req: NextRequest) {
       links: fb.links,
       provider: "fallback",
       errors,
-      hint: "AgentRouter failed. Check AGENTROUTER_BASE_URL ends with /v1, model id is exact, and key is valid. Set COPILOT_PROVIDER=agentrouter to prefer it.",
+      hint: "AI provider failed. Check keys and base URL under Admin → Copilot.",
     });
   }
 
