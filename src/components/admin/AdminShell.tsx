@@ -19,112 +19,178 @@ import {
   Shield,
   ChevronRight,
   Search,
+  Menu,
+  X,
 } from "lucide-react";
+import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 
-const NAV = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/admin/guides", label: "Guides", icon: BookOpen },
-  { href: "/admin/brands", label: "Brands", icon: Tag },
-  { href: "/admin/topics", label: "Topics", icon: LayoutGrid },
-  { href: "/admin/devices", label: "Devices", icon: Smartphone },
-  { href: "/admin/glossary", label: "Glossary", icon: BookMarked },
-  { href: "/admin/forum", label: "Forum", icon: MessageSquare },
-  { href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart },
-  { href: "/admin/users", label: "Users", icon: Users },
-  { href: "/admin/author", label: "Author", icon: User },
-  { href: "/admin/seo", label: "SEO", icon: Search },
-  { href: "/admin/settings", label: "Site settings", icon: Settings },
-  { href: "/admin/copilot", label: "Copilot", icon: MessageCircleHeart },
-] as const;
+const NAV_GROUPS: { label?: string; items: { href: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] }[] = [
+  {
+    items: [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true }],
+  },
+  {
+    label: "Content",
+    items: [
+      { href: "/admin/guides", label: "Guides", icon: BookOpen },
+      { href: "/admin/brands", label: "Brands", icon: Tag },
+      { href: "/admin/topics", label: "Topics", icon: LayoutGrid },
+      { href: "/admin/devices", label: "Devices", icon: Smartphone },
+      { href: "/admin/glossary", label: "Glossary", icon: BookMarked },
+    ],
+  },
+  {
+    label: "Community",
+    items: [
+      { href: "/admin/forum", label: "Forum", icon: MessageSquare },
+      { href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart },
+      { href: "/admin/users", label: "Users", icon: Users },
+    ],
+  },
+  {
+    label: "SEO & Settings",
+    items: [
+      { href: "/admin/media", label: "Media", icon: LayoutGrid },
+      { href: "/admin/export", label: "Export", icon: ExternalLink },
+      { href: "/admin/seo", label: "Titles & Meta", icon: Search },
+      { href: "/admin/author", label: "Author", icon: User },
+      { href: "/admin/settings", label: "Site Settings", icon: Settings },
+      { href: "/admin/copilot", label: "Copilot", icon: MessageCircleHeart },
+    ],
+  },
+];
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, signOut } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const isActive = (href: string, exact?: boolean) => {
     if (exact) return pathname === href;
     return pathname === href || pathname.startsWith(href + "/");
   };
 
-  const current = NAV.find((n) => isActive(n.href, "exact" in n && n.exact))?.label ?? "Admin";
+  const flat = NAV_GROUPS.flatMap((g) => g.items);
+  const current = flat.find((n) => isActive(n.href, n.exact))?.label ?? "Admin";
 
-  return (
-    <div className="min-h-screen bg-[var(--background)]">
-      <div className="flex min-h-screen">
-        <aside className="hidden w-60 shrink-0 border-r border-[var(--border)] bg-[var(--card)] lg:flex lg:flex-col">
-          <div className="flex h-14 items-center gap-2 border-b border-[var(--border)] px-4">
-            <Shield className="h-5 w-5 text-brand-600" />
-            <span className="font-bold tracking-tight">TapPath Admin</span>
-          </div>
-          <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
-            {NAV.map((item) => {
+  const NavLinks = ({ onNavigate }: { onNavigate?: () => void }) => (
+    <>
+      {NAV_GROUPS.map((group, gi) => (
+        <div key={gi} className={gi > 0 ? "mt-4" : ""}>
+          {group.label && (
+            <div className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-wider text-[#8c8f94]">
+              {group.label}
+            </div>
+          )}
+          <ul className="space-y-0.5">
+            {group.items.map((item) => {
               const Icon = item.icon;
-              const active = isActive(item.href, "exact" in item && item.exact);
+              const active = isActive(item.href, item.exact);
               return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition",
-                    active
-                      ? "bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300"
-                      : "text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={onNavigate}
+                    className={cn(
+                      "flex items-center gap-2.5 rounded-sm px-3 py-2 text-[13px] font-medium transition",
+                      active
+                        ? "bg-[#2271b1] text-white"
+                        : "text-[#c3c4c7] hover:bg-[#2c3338] hover:text-white"
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0 opacity-90" />
+                    {item.label}
+                  </Link>
+                </li>
               );
             })}
+          </ul>
+        </div>
+      ))}
+    </>
+  );
+
+  return (
+    <div className="min-h-screen bg-[#f0f0f1] text-[#1d2327]">
+      <div className="flex min-h-screen">
+        {/* Desktop sidebar — classic WP dark */}
+        <aside className="hidden w-[160px] shrink-0 flex-col bg-[#1d2327] text-[#f0f0f1] lg:flex xl:w-[180px]">
+          <div className="flex h-12 items-center gap-2 border-b border-[#2c3338] px-3">
+            <Shield className="h-4 w-4 text-[#72aee6]" />
+            <span className="text-sm font-semibold tracking-tight">TapPath</span>
+          </div>
+          <nav className="flex-1 overflow-y-auto px-2 py-3">
+            <NavLinks />
           </nav>
-          <div className="border-t border-[var(--border)] p-3">
-            <div className="mb-2 truncate px-2 text-xs text-[var(--muted-foreground)]">{user?.email}</div>
-            <Link href="/" className="mb-1 flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)]">
-              <ExternalLink className="h-4 w-4" /> View site
+          <div className="border-t border-[#2c3338] p-3 text-[12px]">
+            <div className="mb-2 truncate text-[#8c8f94]">{user?.email}</div>
+            <Link
+              href="/"
+              className="mb-1 flex items-center gap-2 rounded-sm px-2 py-1.5 text-[#c3c4c7] hover:bg-[#2c3338] hover:text-white"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              View site
             </Link>
-            <button type="button" onClick={() => signOut()} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)]">
-              <LogOut className="h-4 w-4" /> Sign out
+            <button
+              type="button"
+              onClick={() => signOut()}
+              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-[#c3c4c7] hover:bg-[#2c3338] hover:text-white"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Sign out
             </button>
           </div>
         </aside>
 
+        {/* Main column */}
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-[var(--border)] bg-[var(--card)]/90 px-4 backdrop-blur sm:px-6">
-            <div className="flex items-center gap-1 text-sm text-[var(--muted-foreground)] lg:hidden">
-              <Shield className="h-4 w-4 text-brand-600" />
-              <span className="font-semibold text-[var(--foreground)]">Admin</span>
-            </div>
-            <div className="hidden items-center gap-1 text-sm text-[var(--muted-foreground)] lg:flex">
-              <Link href="/admin" className="hover:text-[var(--foreground)]">Admin</Link>
+          {/* Top bar */}
+          <header className="sticky top-0 z-30 flex h-12 items-center gap-3 border-b border-[#c3c4c7] bg-white px-3 shadow-sm sm:px-4">
+            <button
+              type="button"
+              className="rounded border border-[#c3c4c7] p-1.5 text-[#50575e] lg:hidden"
+              onClick={() => setMobileOpen(true)}
+              aria-label="Open menu"
+            >
+              <Menu className="h-4 w-4" />
+            </button>
+            <div className="flex items-center gap-1 text-[13px] text-[#646970]">
+              <Link href="/admin" className="hover:text-[#2271b1]">
+                Admin
+              </Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <span className="font-medium text-[var(--foreground)]">{current}</span>
+              <span className="font-semibold text-[#1d2327]">{current}</span>
             </div>
-            <div className="ml-auto flex items-center gap-2 lg:hidden">
-              <Link href="/" className="rounded-full border border-[var(--border)] px-3 py-1 text-xs font-medium">Site</Link>
+            <div className="ml-auto flex items-center gap-2">
+              <Link
+                href="/"
+                className="hidden rounded border border-[#c3c4c7] bg-white px-2.5 py-1 text-[12px] font-medium text-[#2271b1] hover:border-[#2271b1] sm:inline-flex"
+              >
+                View site
+              </Link>
             </div>
           </header>
 
-          <div className="flex gap-1 overflow-x-auto border-b border-[var(--border)] px-2 py-2 lg:hidden">
-            {NAV.map((item) => {
-              const active = isActive(item.href, "exact" in item && item.exact);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium",
-                    active ? "bg-brand-600 text-white" : "bg-[var(--muted)] text-[var(--muted-foreground)]"
-                  )}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
+          {/* Mobile drawer */}
+          {mobileOpen && (
+            <div className="fixed inset-0 z-50 lg:hidden">
+              <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
+              <aside className="absolute left-0 top-0 flex h-full w-[220px] flex-col bg-[#1d2327] text-[#f0f0f1] shadow-xl">
+                <div className="flex h-12 items-center justify-between border-b border-[#2c3338] px-3">
+                  <span className="text-sm font-semibold">TapPath</span>
+                  <button type="button" onClick={() => setMobileOpen(false)} className="p-1 text-[#c3c4c7]">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <nav className="flex-1 overflow-y-auto px-2 py-3">
+                  <NavLinks onNavigate={() => setMobileOpen(false)} />
+                </nav>
+              </aside>
+            </div>
+          )}
 
-          <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+          <main className="flex-1 p-4 sm:p-5 lg:p-6">{children}</main>
         </div>
       </div>
     </div>
