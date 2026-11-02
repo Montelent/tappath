@@ -47,7 +47,10 @@ export type DbGlossaryTerm = {
   category: string;
   short: string;
   definition: string;
-  related_guides: { title: string; href: string }[];
+  faqs?: { q: string; a: string }[] | null;
+  related_guides: { title: string; href: string; brand?: string }[];
+  seo_title?: string | null;
+  seo_description?: string | null;
   published: boolean;
 };
 
@@ -70,6 +73,21 @@ export type DbGuide = {
   confirmations: number;
   forum_verified: boolean;
   published: boolean;
+};
+
+export type DbForumTopic = {
+  id: string;
+  title: string;
+  brand: string;
+  brand_slug: string;
+  category: string;
+  author_name: string;
+  excerpt: string;
+  body: string;
+  solved: boolean;
+  views: number;
+  created_at: string;
+  updated_at: string;
 };
 
 export type AdminStats = {
