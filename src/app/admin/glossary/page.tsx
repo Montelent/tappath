@@ -65,14 +65,15 @@ export default function AdminGlossaryPage() {
           },
           {
             key: "faqs",
-            label: 'FAQs as JSON: [{"q":"…","a":"…"}]',
-            type: "json",
+            label: "FAQs (optional — good for Google FAQ rich results)",
+            type: "faq-list",
+            help: "Add common questions about this term. Shown as an accordion on the page.",
           },
           {
             key: "related_guides",
-            label:
-              'Pinned related guides JSON (optional): [{"title":"…","href":"/…","brand":"Samsung"}]',
-            type: "json",
+            label: "Pinned related guides (optional)",
+            type: "related-list",
+            help: "Only if you want to force specific links. Otherwise the site auto-finds guides that mention this term.",
           },
           {
             key: "seo_title",
