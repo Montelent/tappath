@@ -18,6 +18,7 @@ import {
   LogOut,
   Shield,
   ChevronRight,
+  Search,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ const NAV = [
   { href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/author", label: "Author", icon: User },
+  { href: "/admin/seo", label: "SEO", icon: Search },
   { href: "/admin/settings", label: "Site settings", icon: Settings },
   { href: "/admin/copilot", label: "Copilot", icon: MessageCircleHeart },
 ] as const;
