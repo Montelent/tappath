@@ -12,7 +12,6 @@ import { LanguageProvider } from "@/i18n/LanguageProvider";
 import { AuthProvider } from "@/context/AuthContext";
 import { getSiteSettings } from "@/lib/site-settings";
 
-/* Human editorial pairing — not the usual Inter / geometric AI stack */
 const sourceSans = Source_Sans_3({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -44,9 +43,18 @@ export async function generateMetadata(): Promise<Metadata> {
     ? { icon: [{ url: s.favicon_url }], shortcut: [s.favicon_url], apple: [{ url: s.favicon_url }] }
     : undefined;
 
+  const sep = (s.seo_title_separator || "·").trim() || "·";
+  const verification: Metadata["verification"] = {};
+  if (s.seo_google_verification) verification.google = s.seo_google_verification;
+  if (s.seo_yandex_verification) verification.yandex = s.seo_yandex_verification;
+
+  const other: Record<string, string | number | (string | number)[]> = {};
+  if (s.seo_bing_verification) other["msvalidate.01"] = s.seo_bing_verification;
+  if (s.seo_pinterest_verification) other["p:domain_verify"] = s.seo_pinterest_verification;
+
   return {
     metadataBase: new URL(BASE),
-    title: { default: title, template: `%s · ${s.site_name}` },
+    title: { default: title, template: `%s ${sep} ${s.site_name}` },
     description,
     keywords,
     authors: [{ name: s.author_name || s.site_name }],
@@ -62,7 +70,12 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [{ url: ogImage, width: 1200, height: 630, alt: s.site_name }],
     },
     twitter: { card: "summary_large_image", title, description, images: [ogImage] },
-    robots: { index: true, follow: true },
+    robots: {
+      index: s.seo_robots_index !== false,
+      follow: s.seo_robots_follow !== false,
+    },
+    verification: Object.keys(verification).length ? verification : undefined,
+    other: Object.keys(other).length ? other : undefined,
     alternates: { canonical: BASE },
   };
 }
