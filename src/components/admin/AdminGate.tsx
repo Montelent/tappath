@@ -10,7 +10,7 @@ export default function AdminGate({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f0f0f1]">
+      <div className="admin-wp flex min-h-screen items-center justify-center bg-[#f0f0f1] text-[#1d2327]">
         <Loader2 className="h-8 w-8 animate-spin text-[#2271b1]" />
       </div>
     );
@@ -18,7 +18,7 @@ export default function AdminGate({ children }: { children: React.ReactNode }) {
 
   if (!user || !isAdmin) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f0f0f1] px-4">
+      <div className="admin-wp flex min-h-screen items-center justify-center bg-[#f0f0f1] px-4 text-[#1d2327]">
         <div className="w-full max-w-md overflow-hidden rounded border border-[#c3c4c7] bg-white shadow-sm">
           <div className="border-b border-[#c3c4c7] bg-[#f6f7f7] px-5 py-3 text-[14px] font-semibold text-[#1d2327]">
             Admin login required
