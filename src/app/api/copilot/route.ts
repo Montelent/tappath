@@ -21,7 +21,7 @@ Answer briefly. Prefer exact menu paths. Suggest relevant site links when useful
 - Devices: /devices, Forum: /forum
 Respond in JSON only: { "text": string, "links": [{ "label": string, "href": string }] }`;
 
-function resolveProvider(): ProviderConfig | null {
+function listProviders(): ProviderConfig[] {
   const preferred = (process.env.COPILOT_PROVIDER || "").toLowerCase() as ProviderId | "";
   const candidates: ProviderConfig[] = [];
 
@@ -39,20 +39,6 @@ function resolveProvider(): ProviderConfig | null {
     });
   }
 
-  if (process.env.AGENTROUTER_API_KEY || process.env.AGENTIC_API_KEY) {
-    const base =
-      process.env.AGENTROUTER_BASE_URL ||
-      process.env.AGENTIC_API_BASE_URL ||
-      "http://localhost:1975/v1";
-    candidates.push({
-      id: "agentrouter",
-      baseUrl: base.replace(/\/$/, ""),
-      apiKey: process.env.AGENTROUTER_API_KEY || process.env.AGENTIC_API_KEY || "",
-      model: process.env.AGENTROUTER_MODEL || process.env.OPENAI_MODEL || "gpt-4o-mini",
-      jsonMode: process.env.AGENTROUTER_JSON_MODE === "true",
-    });
-  }
-
   if (process.env.OPENAI_API_KEY) {
     candidates.push({
       id: "openai",
@@ -63,12 +49,29 @@ function resolveProvider(): ProviderConfig | null {
     });
   }
 
-  if (candidates.length === 0) return null;
+  if (process.env.AGENTROUTER_API_KEY || process.env.AGENTIC_API_KEY) {
+    const base =
+      process.env.AGENTROUTER_BASE_URL ||
+      process.env.AGENTIC_API_BASE_URL ||
+      "http://localhost:1975/v1";
+    const isLocal = /localhost|127\.0\.0\.1/.test(base);
+    if (!isLocal || process.env.NODE_ENV === "development") {
+      candidates.push({
+        id: "agentrouter",
+        baseUrl: base.replace(/\/$/, ""),
+        apiKey: process.env.AGENTROUTER_API_KEY || process.env.AGENTIC_API_KEY || "",
+        model: process.env.AGENTROUTER_MODEL || process.env.OPENAI_MODEL || "gpt-4o-mini",
+        jsonMode: process.env.AGENTROUTER_JSON_MODE === "true",
+      });
+    }
+  }
+
+  if (candidates.length === 0) return [];
   if (preferred) {
     const match = candidates.find((c) => c.id === preferred);
-    if (match) return match;
+    if (match) return [match, ...candidates.filter((c) => c.id !== preferred)];
   }
-  return candidates[0];
+  return candidates;
 }
 
 function parseModelText(raw: string): { text: string; links: { label: string; href: string }[] } {
@@ -187,28 +190,41 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Empty message" }, { status: 400 });
   }
 
-  const provider = resolveProvider();
+  const providers = listProviders();
+  const errors: string[] = [];
 
-  if (provider) {
+  for (const provider of providers) {
     const result = await chatComplete(provider, message);
-    if ("text" in result) return NextResponse.json(result);
-    return NextResponse.json({
-      text: `AI provider (${result.provider}) failed: ${result.error.slice(0, 180)}. Check OPENROUTER_API_KEY / model on Vercel.`,
-      links: [],
-      provider: result.provider,
-      error: result.error,
-      status: result.status,
-    });
+    if ("text" in result) {
+      return NextResponse.json(result);
+    }
+    errors.push(`${result.provider}: ${result.error.slice(0, 120)}`);
+  }
+
+  const fb = fallback(message);
+  if (providers.length > 0 && errors.length > 0 && message.length >= 8) {
+    const isGeneric =
+      fb.text.includes("AI keys are not configured") ||
+      /^(hi|hello)/i.test(fb.text);
+    if (isGeneric) {
+      return NextResponse.json({
+        text: `AI providers failed (${errors.join(" | ")}). Showing quick tips instead — set OPENROUTER_API_KEY or OPENAI_API_KEY on Vercel.`,
+        links: fb.links,
+        provider: "fallback",
+        errors,
+      });
+    }
   }
 
   return NextResponse.json({
-    ...fallback(message),
+    ...fb,
     provider: "fallback",
   });
 }
 
 function fallback(input: string) {
   const q = input.toLowerCase();
+
   if (q.includes("google search") || q.includes("search bar") || q.includes("widget")) {
     return {
       text: "The Google search bar is a home-screen widget. Long-press it and tap Remove.",
@@ -227,8 +243,31 @@ function fallback(input: string) {
       links: [{ label: "Add a Fingerprint", href: "/samsung/galaxy/add-fingerprint" }],
     };
   }
+  if (q.includes("private dns") || q.includes("dns")) {
+    return {
+      text: "Private DNS is usually under Settings → Connections → More connection settings → Private DNS.",
+      links: [{ label: "Network topic", href: "/topics/network" }],
+    };
+  }
+  if (q.includes("volte") || q.includes("4g call")) {
+    return {
+      text: "VoLTE carries calls over 4G. Enable it under mobile network / SIM settings for your brand.",
+      links: [{ label: "VoLTE glossary", href: "/glossary/volte" }],
+    };
+  }
+  if (/^(hi|hello|hey|hola|hallo)\b/i.test(input.trim()) || input.trim().length < 3) {
+    return {
+      text: "Hi! Ask me how to change a setting (e.g. “remove Google search bar on Samsung”) or what a term means (e.g. “what is VoLTE”). I’ll point you to the right guide.",
+      links: [
+        { label: "Browse brands", href: "/samsung" },
+        { label: "Topics", href: "/topics" },
+        { label: "Glossary", href: "/glossary" },
+      ],
+    };
+  }
+
   return {
-    text: "AI keys are not configured on the server. Set OPENROUTER_API_KEY (or OPENAI_API_KEY) in Vercel environment variables, then redeploy.",
+    text: "I can help with settings paths and glossary terms. Try a specific question like “enable Private DNS on Samsung” or “what is eSIM”. For full AI answers, set OPENROUTER_API_KEY or OPENAI_API_KEY in Vercel.",
     links: [
       { label: "Topics", href: "/topics" },
       { label: "Glossary", href: "/glossary" },
