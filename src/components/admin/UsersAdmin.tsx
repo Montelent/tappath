@@ -1,13 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { RefreshCw, Shield, User } from "lucide-react";
+import { RefreshCw, Shield, User, Pencil, X } from "lucide-react";
 import {
   AdminLoading,
   AdminNotice,
   AdminPageHeader,
+  AdminPanel,
+  AdminPrimaryButton,
   AdminSecondaryButton,
   AdminTable,
+  wp,
 } from "./AdminUI";
 
 type Profile = {
@@ -33,7 +36,15 @@ export default function UsersAdmin() {
   const [error, setError] = useState("");
   const [usingDb, setUsingDb] = useState(false);
   const [message, setMessage] = useState("");
-  const [busy, setBusy] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState<Profile | null>(null);
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    role: "user",
+    password: "",
+    password2: "",
+  });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -60,39 +71,70 @@ export default function UsersAdmin() {
     load();
   }, [load]);
 
-  const setRole = async (user: Profile, role: "user" | "admin") => {
-    if (role === "user" && !confirm(`Remove admin access for ${user.email}?`)) return;
-    if (role === "admin" && !confirm(`Make ${user.email} an admin? They can edit the whole site.`))
+  const openEdit = (u: Profile) => {
+    setEditing(u);
+    setForm({
+      name: u.name || "",
+      email: u.email || "",
+      role: u.role === "admin" ? "admin" : "user",
+      password: "",
+      password2: "",
+    });
+    setMessage("");
+  };
+
+  const closeEdit = () => {
+    setEditing(null);
+    setForm({ name: "", email: "", role: "user", password: "", password2: "" });
+  };
+
+  const saveUser = async () => {
+    if (!editing) return;
+    if (form.password && form.password !== form.password2) {
+      setMessage("Passwords do not match.");
       return;
-    setBusy(user.id);
+    }
+    if (form.password && form.password.length < 8) {
+      setMessage("Password must be at least 8 characters.");
+      return;
+    }
+    setBusy(true);
     setMessage("");
     try {
-      const res = await fetch("/api/admin/users/role", {
+      const res = await fetch("/api/admin/users/update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ id: user.id, role }),
+        body: JSON.stringify({
+          id: editing.id,
+          name: form.name,
+          email: form.email,
+          role: form.role,
+          password: form.password || undefined,
+        }),
       });
       const data = await res.json();
-      if (!res.ok) setMessage(data.error || "Update failed");
-      else {
-        setMessage(`${user.email} is now ${role === "admin" ? "an admin" : "a regular user"}.`);
+      if (!res.ok) {
+        setMessage(data.error || "Update failed");
+      } else {
+        setMessage("User updated.");
+        closeEdit();
         await load();
       }
     } catch {
       setMessage("Network error");
     } finally {
-      setBusy(null);
+      setBusy(false);
     }
   };
 
   return (
     <div className="space-y-5">
       <AdminPageHeader
-        title="Users and Roles"
+        title="Users"
         description={
           <>
-            Promote people to admin so they can edit content, or demote them to regular users.{" "}
+            Manage accounts that can sign in. Edit name, email, role, and password.{" "}
             {usingDb ? (
               <span className="text-[#00a32a]">Database connected</span>
             ) : (
@@ -102,13 +144,83 @@ export default function UsersAdmin() {
         }
         actions={
           <AdminSecondaryButton onClick={() => load()}>
-            <RefreshCw className="h-3.5 w-3.5" /> Refresh list
+            <RefreshCw className="h-3.5 w-3.5" /> Refresh
           </AdminSecondaryButton>
         }
       />
 
       {message && <AdminNotice tone="ok">{message}</AdminNotice>}
       {error && <AdminNotice tone="warn">{error}</AdminNotice>}
+
+      {editing && (
+        <AdminPanel
+          title={`Edit user: ${editing.email}`}
+          description="Leave password blank to keep the current password."
+          footer={
+            <div className="flex flex-wrap gap-2">
+              <AdminPrimaryButton disabled={busy} onClick={() => saveUser()}>
+                {busy ? "Saving…" : "Update user"}
+              </AdminPrimaryButton>
+              <AdminSecondaryButton onClick={closeEdit}>
+                <X className="h-3.5 w-3.5" /> Cancel
+              </AdminSecondaryButton>
+            </div>
+          }
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className={wp.label}>Display name</label>
+              <input
+                className={wp.input}
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className={wp.label}>Email</label>
+              <input
+                type="email"
+                className={wp.input}
+                value={form.email}
+                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className={wp.label}>Role</label>
+              <select
+                className={wp.select}
+                value={form.role}
+                onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
+              >
+                <option value="user">Subscriber (User)</option>
+                <option value="admin">Administrator</option>
+              </select>
+            </div>
+            <div className="sm:col-span-2 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className={wp.label}>New password</label>
+                <input
+                  type="password"
+                  className={wp.input}
+                  autoComplete="new-password"
+                  value={form.password}
+                  onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className={wp.label}>Confirm password</label>
+                <input
+                  type="password"
+                  className={wp.input}
+                  autoComplete="new-password"
+                  value={form.password2}
+                  onChange={(e) => setForm((f) => ({ ...f, password2: e.target.value }))}
+                />
+              </div>
+            </div>
+          </div>
+        </AdminPanel>
+      )}
 
       {loading ? (
         <AdminLoading />
@@ -117,7 +229,7 @@ export default function UsersAdmin() {
           No users found yet. When someone signs up on the public site, they will appear here.
         </AdminNotice>
       ) : (
-        <AdminTable headers={["Name", "Email", "Role", "Joined", "Actions"]}>
+        <AdminTable headers={["Name", "Email", "Role", "Joined", ""]}>
           {rows.map((u) => (
             <tr key={u.id} className="border-b border-[#f0f0f1] hover:bg-[#f6f7f7]">
               <td className="px-3 py-2.5 text-[13px] font-medium text-[#1d2327]">{u.name || "-"}</td>
@@ -125,35 +237,23 @@ export default function UsersAdmin() {
               <td className="px-3 py-2.5 text-[13px] text-[#1d2327]">
                 {u.role === "admin" ? (
                   <span className="inline-flex items-center gap-1 rounded bg-[#fcf9e8] px-2 py-0.5 text-[11px] font-semibold text-[#996800]">
-                    <Shield className="h-3 w-3" /> Admin
+                    <Shield className="h-3 w-3" /> Administrator
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 rounded bg-[#f0f0f1] px-2 py-0.5 text-[11px] font-medium text-[#50575e]">
-                    <User className="h-3 w-3" /> User
+                    <User className="h-3 w-3" /> Subscriber
                   </span>
                 )}
               </td>
               <td className="px-3 py-2.5 text-[12px] text-[#646970]">{formatJoined(u.created_at)}</td>
               <td className="whitespace-nowrap px-3 py-2.5 text-right text-[13px]">
-                {u.role === "admin" ? (
-                  <button
-                    type="button"
-                    disabled={busy === u.id}
-                    onClick={() => setRole(u, "user")}
-                    className="font-medium text-[#b32d2e] hover:underline"
-                  >
-                    Demote to user
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={busy === u.id}
-                    onClick={() => setRole(u, "admin")}
-                    className="font-medium text-[#2271b1] hover:underline"
-                  >
-                    Make admin
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => openEdit(u)}
+                  className="inline-flex items-center gap-1 font-medium text-[#2271b1] hover:underline"
+                >
+                  <Pencil className="h-3.5 w-3.5" /> Edit
+                </button>
               </td>
             </tr>
           ))}
