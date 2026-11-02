@@ -9,7 +9,6 @@ import {
   AdminPanel,
   AdminSecondaryButton,
   AdminTable,
-  wp,
 } from "./AdminUI";
 
 type FeedbackRow = {
@@ -19,6 +18,15 @@ type FeedbackRow = {
   correct: boolean;
   created_at?: string;
 };
+
+function formatWhen(value?: string) {
+  if (!value) return "-";
+  try {
+    return new Date(value).toLocaleString();
+  } catch {
+    return "-";
+  }
+}
 
 export default function FeedbackInbox() {
   const [rows, setRows] = useState<FeedbackRow[]>([]);
@@ -79,7 +87,7 @@ export default function FeedbackInbox() {
     .sort((a, b) => a.rate - b.rate);
 
   return (
-    <div className={wp.page}>
+    <div className="space-y-5">
       <AdminPageHeader
         title="Feedback Inbox"
         description={
@@ -110,7 +118,10 @@ export default function FeedbackInbox() {
         >
           <ul className="space-y-2 text-[13px]">
             {problemGuides.map((g) => (
-              <li key={g.slug} className="flex flex-wrap items-center justify-between gap-2 border-b border-[#f0f0f1] pb-2 last:border-0">
+              <li
+                key={g.slug}
+                className="flex flex-wrap items-center justify-between gap-2 border-b border-[#f0f0f1] pb-2 last:border-0"
+              >
                 <code className="rounded bg-[#f6f7f7] px-1.5 py-0.5 text-[12px]">{g.slug}</code>
                 <span className="text-[#646970]">
                   {g.yes} helpful | {g.no} not helpful ({Math.round(g.rate * 100)}% positive)
@@ -131,9 +142,9 @@ export default function FeedbackInbox() {
       ) : (
         <AdminTable headers={["Guide", "Vote", "When", ""]}>
           {rows.map((r) => (
-            <tr key={r.id} className={wp.tr}>
-              <td className={wp.td + " font-mono text-[12px]"}>{r.guide_slug}</td>
-              <td className={wp.td}>
+            <tr key={r.id} className="border-b border-[#f0f0f1] hover:bg-[#f6f7f7]">
+              <td className="px-3 py-2.5 font-mono text-[12px] text-[#1d2327]">{r.guide_slug}</td>
+              <td className="px-3 py-2.5 text-[13px] text-[#1d2327]">
                 {r.correct ? (
                   <span className="inline-flex items-center gap-1 text-[#00a32a]">
                     <ThumbsUp className="h-3.5 w-3.5" /> Helpful
@@ -144,10 +155,8 @@ export default function FeedbackInbox() {
                   </span>
                 )}
               </td>
-              <td className={wp.td + " text-[12px] text-[#646970]">
-                {r.created_at ? new Date(r.created_at).toLocaleString() : "-"}
-              </td>
-              <td className={wp.td + " text-right"}>
+              <td className="px-3 py-2.5 text-[12px] text-[#646970]">{formatWhen(r.created_at)}</td>
+              <td className="px-3 py-2.5 text-right text-[13px]">
                 <button
                   type="button"
                   onClick={() => remove(r.id)}

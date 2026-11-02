@@ -8,7 +8,6 @@ import {
   AdminPageHeader,
   AdminSecondaryButton,
   AdminTable,
-  wp,
 } from "./AdminUI";
 
 type Profile = {
@@ -18,6 +17,15 @@ type Profile = {
   role: string;
   created_at?: string;
 };
+
+function formatJoined(value?: string) {
+  if (!value) return "-";
+  try {
+    return new Date(value).toLocaleDateString();
+  } catch {
+    return "-";
+  }
+}
 
 export default function UsersAdmin() {
   const [rows, setRows] = useState<Profile[]>([]);
@@ -79,9 +87,9 @@ export default function UsersAdmin() {
   };
 
   return (
-    <div className={wp.page}>
+    <div className="space-y-5">
       <AdminPageHeader
-        title="Users & Roles"
+        title="Users and Roles"
         description={
           <>
             Promote people to admin so they can edit content, or demote them to regular users.{" "}
@@ -111,30 +119,28 @@ export default function UsersAdmin() {
       ) : (
         <AdminTable headers={["Name", "Email", "Role", "Joined", "Actions"]}>
           {rows.map((u) => (
-            <tr key={u.id} className={wp.tr}>
-              <td className={wp.td + " font-medium"}>{u.name || "-"}</td>
-              <td className={wp.td + " text-[12px]"}>{u.email}</td>
-              <td className={wp.td}>
+            <tr key={u.id} className="border-b border-[#f0f0f1] hover:bg-[#f6f7f7]">
+              <td className="px-3 py-2.5 text-[13px] font-medium text-[#1d2327]">{u.name || "-"}</td>
+              <td className="px-3 py-2.5 text-[12px] text-[#1d2327]">{u.email}</td>
+              <td className="px-3 py-2.5 text-[13px] text-[#1d2327]">
                 {u.role === "admin" ? (
-                  <span className={wp.badgeAdmin}>
+                  <span className="inline-flex items-center gap-1 rounded bg-[#fcf9e8] px-2 py-0.5 text-[11px] font-semibold text-[#996800]">
                     <Shield className="h-3 w-3" /> Admin
                   </span>
                 ) : (
-                  <span className={wp.badgeUser}>
+                  <span className="inline-flex items-center gap-1 rounded bg-[#f0f0f1] px-2 py-0.5 text-[11px] font-medium text-[#50575e]">
                     <User className="h-3 w-3" /> User
                   </span>
                 )}
               </td>
-              <td className={wp.td + " text-[12px] text-[#646970]">
-                {u.created_at ? new Date(u.created_at).toLocaleDateString() : "-"}
-              </td>
-              <td className={wp.td + " text-right whitespace-nowrap"}>
+              <td className="px-3 py-2.5 text-[12px] text-[#646970]">{formatJoined(u.created_at)}</td>
+              <td className="whitespace-nowrap px-3 py-2.5 text-right text-[13px]">
                 {u.role === "admin" ? (
                   <button
                     type="button"
                     disabled={busy === u.id}
                     onClick={() => setRole(u, "user")}
-                    className={wp.link + " text-[#b32d2e]"}
+                    className="font-medium text-[#b32d2e] hover:underline"
                   >
                     Demote to user
                   </button>
@@ -143,7 +149,7 @@ export default function UsersAdmin() {
                     type="button"
                     disabled={busy === u.id}
                     onClick={() => setRole(u, "admin")}
-                    className={wp.link}
+                    className="font-medium text-[#2271b1] hover:underline"
                   >
                     Make admin
                   </button>
