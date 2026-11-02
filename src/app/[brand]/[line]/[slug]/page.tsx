@@ -9,6 +9,8 @@ import { requestOrigin } from "@/components/seo/JsonLd";
 import { resolveGuide } from "@/lib/guides/resolve";
 import { listGuides, isDatabaseConfigured } from "@/lib/db/content";
 import { guideHref } from "@/lib/guides/resolve";
+import { getSiteSettings } from "@/lib/site-settings";
+import { applySeoTemplate } from "@/lib/seo/templates";
 
 type Params = { brand: string; line: string; slug: string };
 
@@ -36,10 +38,28 @@ export async function generateMetadata({
   const guide = await resolveGuide(brand, line, slug);
   if (!guide) return { title: "Guide not found" };
   const path = `/${brand}/${line}/${slug}`;
+  const s = await getSiteSettings();
+  const excerpt = (guide.shortDescription || "").replace(/<[^>]+>/g, "").slice(0, 160);
+  const vars = {
+    title: guide.title,
+    brand: guide.brand,
+    sitename: s.site_name,
+    sep: s.seo_title_separator || "·",
+    excerpt,
+    description: excerpt,
+    product_line: guide.productLine || line,
+  };
+  const title = applySeoTemplate(
+    s.seo_tpl_guide_title,
+    vars,
+    `${guide.brand}: ${guide.title}`
+  );
+  const description = applySeoTemplate(s.seo_tpl_guide_description, vars, excerpt);
   return {
-    title: `${guide.brand}: ${guide.title}`,
-    description: guide.shortDescription?.replace(/<[^>]+>/g, "").slice(0, 160),
+    title,
+    description,
     alternates: { canonical: path },
+    openGraph: { title, description, type: "article", url: path },
   };
 }
 
