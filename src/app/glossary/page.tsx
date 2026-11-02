@@ -1,16 +1,40 @@
+export const dynamic = "force-dynamic";
+
 import type { Metadata } from "next";
 import GlossaryIndex from "@/components/glossary/GlossaryIndex";
 import CollectionJsonLd from "@/components/seo/CollectionJsonLd";
+import { listGlossary, isDatabaseConfigured } from "@/lib/db/content";
 import { glossaryTerms } from "@/data/glossary";
+import type { GlossaryTerm } from "@/data/glossary";
 
 export const metadata: Metadata = {
   title: "Tech glossary: smartphone & technology terms explained",
   description:
     "Smartphone and technology terms explained simply — Network, System, Battery, Security, Display, Camera, Messaging and more.",
+  alternates: { canonical: "/glossary" },
 };
 
-export default function GlossaryPage() {
-  const items = glossaryTerms.map((term) => ({
+export default async function GlossaryPage() {
+  let terms: GlossaryTerm[] = glossaryTerms;
+
+  if (isDatabaseConfigured()) {
+    try {
+      const rows = await listGlossary();
+      if (rows.length > 0) {
+        terms = rows.map((r) => ({
+          slug: r.slug,
+          term: r.term,
+          category: r.category || "General",
+          short: r.short || "",
+          definition: r.definition || "",
+        }));
+      }
+    } catch {
+      /* static fallback */
+    }
+  }
+
+  const items = terms.map((term) => ({
     name: term.term,
     url: `/glossary/${term.slug}`,
     description: term.short,
@@ -24,7 +48,7 @@ export default function GlossaryPage() {
         path="/glossary"
         items={items}
       />
-      <GlossaryIndex />
+      <GlossaryIndex terms={terms} />
     </>
   );
 }
