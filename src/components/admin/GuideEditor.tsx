@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  Loader2, Plus, Trash2, Save, RefreshCw, Database, ExternalLink, Eye, EyeOff,
+  Loader2, Plus, Trash2, Save, RefreshCw, Database, ExternalLink, Eye, EyeOff, Image as ImageIcon,
 } from "lucide-react";
 import SearchableSelect from "@/components/admin/SearchableSelect";
 import GuideVersionsEditor from "@/components/admin/GuideVersionsEditor";
