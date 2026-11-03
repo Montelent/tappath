@@ -1,4 +1,4 @@
-/* Admin theme — light + dark. All surfaces use these variables. */
+/* Admin theme — light + dark */
 .admin-wp {
   color-scheme: light;
   --a-bg: #f0f0f1;
@@ -31,7 +31,6 @@
   --a-warn-fg: #614200;
   --a-row-hover: #f6f7f7;
   --a-thead: #f6f7f7;
-
   background: var(--a-bg);
   color: var(--a-fg);
   min-height: 100vh;
@@ -101,86 +100,32 @@
 }
 .admin-wp .a-sidebar { background: var(--a-sidebar) !important; color: var(--a-sidebar-fg) !important; }
 
-/* Dark mode overrides for hardcoded WP light utility classes used
-   across Guides, Topics, Glossary, Brands, Forum, Users, Settings, etc. */
-.admin-wp.admin-dark .bg-white,
-.admin-wp.admin-dark .bg-\[\#ffffff\],
-.admin-wp.admin-dark .bg-\[\#fff\] {
+/* Force ALL table cells + white panels in dark mode */
+.admin-wp.admin-dark table,
+.admin-wp.admin-dark thead,
+.admin-wp.admin-dark tbody,
+.admin-wp.admin-dark tr,
+.admin-wp.admin-dark th,
+.admin-wp.admin-dark td {
   background-color: var(--a-card) !important;
-}
-
-.admin-wp.admin-dark .bg-\[\#f0f0f1\],
-.admin-wp.admin-dark .bg-\[\#f6f7f7\],
-.admin-wp.admin-dark .bg-\[\#fafafa\],
-.admin-wp.admin-dark .bg-\[\#fcfcfc\] {
-  background-color: var(--a-panel-head) !important;
-}
-
-.admin-wp.admin-dark .bg-\[\#edfaef\] { background-color: var(--a-ok-bg) !important; }
-.admin-wp.admin-dark .bg-\[\#fcf9e8\] { background-color: var(--a-warn-bg) !important; }
-.admin-wp.admin-dark .bg-\[\#fcf0f1\] { background-color: var(--a-danger-bg) !important; }
-
-.admin-wp.admin-dark .bg-\[\#2271b1\] {
-  background-color: var(--a-accent) !important;
-  color: var(--a-accent-text) !important;
-}
-.admin-wp.admin-dark .bg-\[\#135e96\] { background-color: var(--a-accent-hover) !important; }
-.admin-wp.admin-dark .hover\:bg-\[\#135e96\]:hover { background-color: var(--a-accent-hover) !important; }
-.admin-wp.admin-dark .hover\:bg-\[\#f6f7f7\]:hover,
-.admin-wp.admin-dark .hover\:bg-\[\#f0f0f1\]:hover {
-  background-color: var(--a-row-hover) !important;
-}
-.admin-wp.admin-dark .hover\:bg-white:hover { background-color: var(--a-card) !important; }
-
-.admin-wp.admin-dark .text-\[\#1d2327\],
-.admin-wp.admin-dark .text-\[\#2c3338\],
-.admin-wp.admin-dark .text-\[\#1e1e1e\] {
   color: var(--a-fg) !important;
-}
-.admin-wp.admin-dark .text-\[\#646970\],
-.admin-wp.admin-dark .text-\[\#50575e\],
-.admin-wp.admin-dark .text-\[\#8c8f94\] {
-  color: var(--a-muted) !important;
-}
-.admin-wp.admin-dark .text-\[\#2271b1\],
-.admin-wp.admin-dark .text-\[\#135e96\] {
-  color: var(--a-link) !important;
-}
-.admin-wp.admin-dark .hover\:text-\[\#2271b1\]:hover,
-.admin-wp.admin-dark .hover\:text-\[\#135e96\]:hover {
-  color: var(--a-accent-hover) !important;
-}
-.admin-wp.admin-dark .text-\[\#00a32a\],
-.admin-wp.admin-dark .text-\[\#1e4620\] {
-  color: var(--a-ok-fg) !important;
-}
-.admin-wp.admin-dark .text-\[\#b32d2e\],
-.admin-wp.admin-dark .text-\[\#d63638\] {
-  color: var(--a-danger) !important;
-}
-.admin-wp.admin-dark .text-\[\#dba617\],
-.admin-wp.admin-dark .text-\[\#614200\] {
-  color: var(--a-warn-fg) !important;
-}
-
-.admin-wp.admin-dark .border-\[\#c3c4c7\],
-.admin-wp.admin-dark .border-\[\#dcdcde\],
-.admin-wp.admin-dark .border-\[\#e0e0e0\] {
   border-color: var(--a-border) !important;
 }
-.admin-wp.admin-dark .border-\[\#8c8f94\],
-.admin-wp.admin-dark .border-\[\#949494\] {
-  border-color: var(--a-input-border) !important;
+.admin-wp.admin-dark thead,
+.admin-wp.admin-dark thead tr,
+.admin-wp.admin-dark th {
+  background-color: var(--a-thead) !important;
 }
-.admin-wp.admin-dark .border-\[\#f0f0f1\],
-.admin-wp.admin-dark .border-\[\#f6f7f7\] {
-  border-color: var(--a-border-soft) !important;
+.admin-wp.admin-dark tbody tr:hover,
+.admin-wp.admin-dark tbody tr:hover td {
+  background-color: var(--a-row-hover) !important;
 }
-.admin-wp.admin-dark .border-\[\#2271b1\] { border-color: var(--a-accent) !important; }
-.admin-wp.admin-dark .hover\:border-\[\#2271b1\]:hover { border-color: var(--a-accent) !important; }
-.admin-wp.admin-dark .border-\[\#00a32a\] { border-color: var(--a-ok-border) !important; }
-.admin-wp.admin-dark .border-\[\#dba617\] { border-color: var(--a-warn-border) !important; }
-.admin-wp.admin-dark .border-\[\#b32d2e\] { border-color: var(--a-danger) !important; }
+
+.admin-wp.admin-dark .bg-white,
+.admin-wp.admin-dark [class*="bg-white"] {
+  background-color: var(--a-card) !important;
+  color: var(--a-fg) !important;
+}
 
 .admin-wp.admin-dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 .admin-wp.admin-dark textarea,
@@ -194,28 +139,6 @@
   color: var(--a-muted) !important;
 }
 
-.admin-wp.admin-dark table { color: var(--a-fg); }
-.admin-wp.admin-dark thead,
-.admin-wp.admin-dark th {
-  background-color: var(--a-thead) !important;
-  color: var(--a-fg) !important;
-  border-color: var(--a-border) !important;
-}
-.admin-wp.admin-dark tbody tr:hover { background-color: var(--a-row-hover) !important; }
-.admin-wp.admin-dark td {
-  border-color: var(--a-border-soft) !important;
-  color: var(--a-fg);
-}
-
-.admin-wp.admin-dark .focus\:border-\[\#2271b1\]:focus { border-color: var(--a-accent) !important; }
-.admin-wp.admin-dark .focus\:ring-\[\#2271b1\]:focus { --tw-ring-color: var(--a-accent) !important; }
-
-.admin-wp.admin-dark button.bg-white,
-.admin-wp.admin-dark a.bg-white {
-  background-color: var(--a-card) !important;
-  color: var(--a-link);
-}
-
 .admin-wp.admin-dark [contenteditable="true"],
 .admin-wp.admin-dark .ProseMirror {
   background-color: var(--a-input-bg) !important;
@@ -225,4 +148,13 @@
 .admin-wp.admin-dark main {
   background-color: var(--a-bg) !important;
   color: var(--a-fg) !important;
+}
+
+/* Status chips stay readable on dark rows */
+.admin-wp.admin-dark .bg-emerald-100 {
+  background-color: #064e3b !important;
+  color: #a7f3d0 !important;
+}
+.admin-wp.admin-dark .text-emerald-800 {
+  color: #a7f3d0 !important;
 }
