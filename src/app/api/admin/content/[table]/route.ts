@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSql, isNeonConfigured } from "@/lib/db/neon";
-import { requireAdmin } from "@/lib/auth/session";
-import type { Sql } from "@/lib/db/neon";
+import { requireAdmin } from "@/lib/session";
 
 const ALLOWED = new Set([
   "brands",
-  "devices",
   "topics",
+  "devices",
   "glossary_terms",
   "guides",
   "forum_topics",
+  "forum_replies",
+  "site_settings",
+  "guide_feedback",
+  "profiles",
 ]);
 
 type Ctx = { params: Promise<{ table: string }> };
+type Sql = NonNullable<ReturnType<typeof getSql>>;
 
 async function selectAll(sql: Sql, table: string) {
   switch (table) {
@@ -44,6 +48,14 @@ async function selectAll(sql: Sql, table: string) {
       return sql`SELECT * FROM guides ORDER BY created_at DESC NULLS LAST LIMIT 500`;
     case "forum_topics":
       return sql`SELECT * FROM forum_topics ORDER BY created_at DESC NULLS LAST LIMIT 500`;
+    case "forum_replies":
+      return sql`SELECT * FROM forum_replies ORDER BY created_at DESC NULLS LAST LIMIT 500`;
+    case "site_settings":
+      return sql`SELECT * FROM site_settings LIMIT 10`;
+    case "guide_feedback":
+      return sql`SELECT * FROM guide_feedback ORDER BY created_at DESC NULLS LAST LIMIT 500`;
+    case "profiles":
+      return sql`SELECT * FROM profiles ORDER BY created_at DESC NULLS LAST LIMIT 500`;
     default:
       return [];
   }
@@ -63,6 +75,12 @@ async function deleteById(sql: Sql, table: string, id: string) {
       return sql`DELETE FROM guides WHERE id::text = ${id}`;
     case "forum_topics":
       return sql`DELETE FROM forum_topics WHERE id::text = ${id}`;
+    case "forum_replies":
+      return sql`DELETE FROM forum_replies WHERE id::text = ${id}`;
+    case "guide_feedback":
+      return sql`DELETE FROM guide_feedback WHERE id::text = ${id}`;
+    case "profiles":
+      return sql`DELETE FROM profiles WHERE id::text = ${id}`;
     default:
       throw new Error("Unknown table");
   }
