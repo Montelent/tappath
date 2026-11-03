@@ -33,6 +33,8 @@ export type Guide = {
   compatibleDevices: { name: string; os: string; href: string }[];
   confirmations: number;
   forumVerified?: boolean;
+  /** Featured / OG cover image URL */
+  featuredImageUrl?: string;
 };
 
 export const guides: Record<string, Guide> = {
