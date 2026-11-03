@@ -1,13 +1,13 @@
-/* Admin theme — light + dark */
+/* Admin theme — polished WordPress-inspired light + dark */
 .admin-wp {
   color-scheme: light;
-  --a-bg: #f0f0f1;
+  --a-bg: #f0f2f5;
   --a-fg: #1d2327;
   --a-muted: #646970;
-  --a-border: #c3c4c7;
-  --a-border-soft: #dcdcde;
+  --a-border: #d0d5dd;
+  --a-border-soft: #e4e7ec;
   --a-card: #ffffff;
-  --a-panel-head: #f6f7f7;
+  --a-panel-head: #f8f9fa;
   --a-input-bg: #ffffff;
   --a-input-border: #8c8f94;
   --a-accent: #2271b1;
@@ -31,33 +31,37 @@
   --a-warn-fg: #614200;
   --a-row-hover: #f6f7f7;
   --a-thead: #f6f7f7;
+  --a-radius: 10px;
+  --a-shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.1);
   background: var(--a-bg);
   color: var(--a-fg);
   min-height: 100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 .admin-wp.admin-dark {
   color-scheme: dark;
-  --a-bg: #1c2126;
+  --a-bg: #14181c;
   --a-fg: #f0f0f1;
   --a-muted: #a7aaad;
   --a-border: #3c434a;
   --a-border-soft: #2c3338;
-  --a-card: #2c3338;
+  --a-card: #1e242a;
   --a-panel-head: #23282d;
-  --a-input-bg: #1d2327;
+  --a-input-bg: #1a1f24;
   --a-input-border: #50575e;
   --a-accent: #72aee6;
   --a-accent-hover: #9ec5e8;
-  --a-accent-text: #1d2327;
-  --a-link: #72aee6;
-  --a-sidebar: #111417;
+  --a-accent-text: #0b1419;
+  --a-link: #8ec2f0;
+  --a-sidebar: #0d1013;
   --a-sidebar-fg: #f0f0f1;
   --a-sidebar-muted: #8c8f94;
-  --a-sidebar-hover: #2c3338;
-  --a-sidebar-active: #2c3338;
+  --a-sidebar-hover: #1e242a;
+  --a-sidebar-active: #1e242a;
   --a-sidebar-active-border: #72aee6;
-  --a-header-bg: #23282d;
+  --a-header-bg: #1a1f24;
   --a-danger: #f18383;
   --a-danger-bg: #3a1f1f;
   --a-ok-bg: #1e3a24;
@@ -66,58 +70,42 @@
   --a-warn-bg: #3a3218;
   --a-warn-border: #f0c930;
   --a-warn-fg: #f5e6a8;
-  --a-row-hover: #32373c;
+  --a-row-hover: #262c33;
   --a-thead: #23282d;
-
-  /* Remap frontend tokens so Guides/Topics/etc. tables using
-     bg-[var(--card)] / text-[var(--foreground)] are dark too */
-  --background: #1c2126;
+  --background: #14181c;
   --foreground: #f0f0f1;
   --muted: #23282d;
   --muted-foreground: #a7aaad;
   --border: #3c434a;
-  --card: #2c3338;
-  --card-elevated: #32373c;
+  --card: #1e242a;
   --accent: #72aee6;
   --accent-hover: #9ec5e8;
-  --accent-muted: rgba(114, 174, 230, 0.18);
-  --accent-subtle: rgba(114, 174, 230, 0.08);
-  --accent-foreground: #1d2327;
+  --accent-foreground: #0b1419;
   --primary: #72aee6;
-  --primary-foreground: #1d2327;
+  --primary-foreground: #0b1419;
 }
 
-.admin-wp .a-fg { color: var(--a-fg) !important; }
-.admin-wp .a-muted { color: var(--a-muted) !important; }
-.admin-wp .a-link { color: var(--a-link) !important; }
-.admin-wp .a-card { background: var(--a-card) !important; border-color: var(--a-border) !important; color: var(--a-fg) !important; }
-.admin-wp .a-panel-head { background: var(--a-panel-head) !important; border-color: var(--a-border) !important; color: var(--a-fg) !important; }
-.admin-wp .a-input {
-  background: var(--a-input-bg) !important;
-  border-color: var(--a-input-border) !important;
+.admin-wp .a-card {
+  background: var(--a-card) !important;
+  border-color: var(--a-border) !important;
   color: var(--a-fg) !important;
+  border-radius: var(--a-radius);
+  box-shadow: var(--a-shadow);
 }
 .admin-wp .a-btn-primary {
   background: var(--a-accent) !important;
   border-color: var(--a-accent) !important;
   color: var(--a-accent-text) !important;
+  border-radius: 8px;
+  font-weight: 600;
 }
-.admin-wp .a-btn-primary:hover { background: var(--a-accent-hover) !important; border-color: var(--a-accent-hover) !important; }
-.admin-wp .a-btn-secondary {
-  background: var(--a-card) !important;
-  border-color: var(--a-border) !important;
-  color: var(--a-link) !important;
-}
-.admin-wp .a-thead { background: var(--a-thead) !important; color: var(--a-fg) !important; border-color: var(--a-border) !important; }
-.admin-wp .a-row:hover { background: var(--a-row-hover) !important; }
 .admin-wp .a-header {
   background: var(--a-header-bg) !important;
   border-color: var(--a-border) !important;
-  color: var(--a-fg) !important;
+  box-shadow: var(--a-shadow);
 }
 .admin-wp .a-sidebar { background: var(--a-sidebar) !important; color: var(--a-sidebar-fg) !important; }
 
-/* Force table surfaces */
 .admin-wp.admin-dark table,
 .admin-wp.admin-dark thead,
 .admin-wp.admin-dark tbody,
@@ -129,14 +117,9 @@
   border-color: var(--a-border) !important;
 }
 .admin-wp.admin-dark thead,
-.admin-wp.admin-dark thead tr,
-.admin-wp.admin-dark th {
-  background-color: var(--a-thead) !important;
-}
+.admin-wp.admin-dark th { background-color: var(--a-thead) !important; }
 .admin-wp.admin-dark tbody tr:hover,
-.admin-wp.admin-dark tbody tr:hover td {
-  background-color: var(--a-row-hover) !important;
-}
+.admin-wp.admin-dark tbody tr:hover td { background-color: var(--a-row-hover) !important; }
 
 .admin-wp.admin-dark .bg-white,
 .admin-wp.admin-dark [class*="bg-white"] {
@@ -151,26 +134,22 @@
   color: var(--a-fg) !important;
   border-color: var(--a-input-border) !important;
 }
-.admin-wp.admin-dark input::placeholder,
-.admin-wp.admin-dark textarea::placeholder {
-  color: var(--a-muted) !important;
-}
-
-.admin-wp.admin-dark [contenteditable="true"],
-.admin-wp.admin-dark .ProseMirror {
-  background-color: var(--a-input-bg) !important;
-  color: var(--a-fg) !important;
-}
 
 .admin-wp.admin-dark main {
   background-color: var(--a-bg) !important;
   color: var(--a-fg) !important;
 }
 
-.admin-wp.admin-dark .bg-emerald-100 {
-  background-color: #064e3b !important;
-  color: #a7f3d0 !important;
+.admin-wp main th {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
 }
-.admin-wp.admin-dark .text-emerald-800 {
-  color: #a7f3d0 !important;
+
+@media (max-width: 768px) {
+  .admin-wp main {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
 }
