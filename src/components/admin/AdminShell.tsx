@@ -29,10 +29,11 @@ import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import "@/app/admin-wp.css";
 
-const NAV_GROUPS: { label?: string; items: { href: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] }[] = [
-  {
-    items: [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true }],
-  },
+const NAV_GROUPS: {
+  label?: string;
+  items: { href: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }[];
+}[] = [
+  { items: [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true }] },
   {
     label: "Content",
     items: [
@@ -72,8 +73,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("admin-theme");
-      setAdminDark(stored === "dark");
+      setAdminDark(localStorage.getItem("admin-theme") === "dark");
     } catch {
       /* ignore */
     }
@@ -102,7 +102,10 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       {NAV_GROUPS.map((group, gi) => (
         <div key={gi} className={gi > 0 ? "mt-4" : ""}>
           {group.label && (
-            <div className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-wider text-[#8c8f94]">
+            <div
+              className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-wider"
+              style={{ color: "var(--a-sidebar-muted)" }}
+            >
               {group.label}
             </div>
           )}
@@ -115,12 +118,12 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                   <Link
                     href={item.href}
                     onClick={onNavigate}
-                    className={cn(
-                      "flex items-center gap-2.5 rounded-sm border-l-4 px-3 py-2 text-[13px] font-medium transition",
-                      active
-                        ? "border-[#72aee6] bg-[#2c3338] text-white"
-                        : "border-transparent text-[#c3c4c7] hover:bg-[#2c3338] hover:text-white"
-                    )}
+                    className="flex items-center gap-2.5 rounded-sm border-l-4 px-3 py-2 text-[13px] font-medium transition"
+                    style={{
+                      borderColor: active ? "var(--a-sidebar-active-border)" : "transparent",
+                      background: active ? "var(--a-sidebar-active)" : "transparent",
+                      color: active ? "#fff" : "var(--a-sidebar-muted)",
+                    }}
                   >
                     <Icon className="h-4 w-4 shrink-0 opacity-90" />
                     {item.label}
@@ -135,26 +138,30 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   );
 
   return (
-    <div
-      className={cn(
-        "admin-wp min-h-screen",
-        adminDark ? "admin-dark bg-[#1d2327] text-[#f0f0f1]" : "bg-[#f0f0f1] text-[#1d2327]"
-      )}
-    >
+    <div className={cn("admin-wp min-h-screen", adminDark && "admin-dark")}>
       <div className="flex min-h-screen">
-        <aside className="hidden w-[160px] shrink-0 flex-col bg-[#1d2327] text-[#f0f0f1] lg:flex xl:w-[180px]">
-          <div className="flex h-12 items-center gap-2 border-b border-[#2c3338] px-3">
-            <Shield className="h-4 w-4 text-[#72aee6]" />
+        <aside
+          className="a-sidebar hidden w-[160px] shrink-0 flex-col lg:flex xl:w-[180px]"
+          style={{ background: "var(--a-sidebar)", color: "var(--a-sidebar-fg)" }}
+        >
+          <div
+            className="flex h-12 items-center gap-2 border-b px-3"
+            style={{ borderColor: "var(--a-sidebar-hover)" }}
+          >
+            <Shield className="h-4 w-4" style={{ color: "var(--a-sidebar-active-border)" }} />
             <span className="text-sm font-semibold tracking-tight">TapPath</span>
           </div>
           <nav className="flex-1 overflow-y-auto px-2 py-3">
             <NavLinks />
           </nav>
-          <div className="border-t border-[#2c3338] p-3 text-[12px]">
-            <div className="mb-2 truncate text-[#8c8f94]">{user?.email}</div>
+          <div className="border-t p-3 text-[12px]" style={{ borderColor: "var(--a-sidebar-hover)" }}>
+            <div className="mb-2 truncate" style={{ color: "var(--a-sidebar-muted)" }}>
+              {user?.email}
+            </div>
             <Link
               href="/"
-              className="mb-1 flex items-center gap-2 rounded-sm px-2 py-1.5 text-[#c3c4c7] hover:bg-[#2c3338] hover:text-white"
+              className="mb-1 flex items-center gap-2 rounded-sm px-2 py-1.5"
+              style={{ color: "var(--a-sidebar-muted)" }}
             >
               <ExternalLink className="h-3.5 w-3.5" />
               View site
@@ -162,7 +169,8 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             <button
               type="button"
               onClick={() => signOut()}
-              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-[#c3c4c7] hover:bg-[#2c3338] hover:text-white"
+              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5"
+              style={{ color: "var(--a-sidebar-muted)" }}
             >
               <LogOut className="h-3.5 w-3.5" />
               Sign out
@@ -171,27 +179,42 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 flex h-12 items-center gap-3 border-b border-[#c3c4c7] bg-white px-3 shadow-sm sm:px-4">
+          <header
+            className="a-header sticky top-0 z-30 flex h-12 items-center gap-3 border-b px-3 shadow-sm sm:px-4"
+            style={{
+              background: "var(--a-header-bg)",
+              borderColor: "var(--a-border)",
+              color: "var(--a-fg)",
+            }}
+          >
             <button
               type="button"
-              className="rounded border border-[#c3c4c7] p-1.5 text-[#50575e] lg:hidden"
+              className="rounded border p-1.5 lg:hidden"
+              style={{ borderColor: "var(--a-border)", color: "var(--a-muted)" }}
               onClick={() => setMobileOpen(true)}
               aria-label="Open menu"
             >
               <Menu className="h-4 w-4" />
             </button>
-            <div className="flex items-center gap-1 text-[13px] text-[#646970]">
-              <Link href="/admin" className="hover:text-[#2271b1]">
+            <div className="flex items-center gap-1 text-[13px]" style={{ color: "var(--a-muted)" }}>
+              <Link href="/admin" style={{ color: "var(--a-link)" }}>
                 Admin
               </Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <span className="font-semibold text-[#1d2327]">{current}</span>
+              <span className="font-semibold" style={{ color: "var(--a-fg)" }}>
+                {current}
+              </span>
             </div>
             <div className="ml-auto flex items-center gap-2">
               <button
                 type="button"
                 onClick={toggleAdminTheme}
-                className="rounded border border-[#c3c4c7] p-1.5 text-[#50575e] hover:bg-[#f0f0f1]"
+                className="rounded border p-1.5"
+                style={{
+                  borderColor: "var(--a-border)",
+                  color: "var(--a-muted)",
+                  background: "var(--a-card)",
+                }}
                 aria-label={adminDark ? "Switch to light mode" : "Switch to dark mode"}
                 title={adminDark ? "Light mode" : "Dark mode"}
               >
@@ -199,7 +222,12 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
               </button>
               <Link
                 href="/"
-                className="hidden rounded border border-[#c3c4c7] bg-white px-2.5 py-1 text-[12px] font-medium text-[#2271b1] hover:border-[#2271b1] sm:inline-flex"
+                className="hidden rounded border px-2.5 py-1 text-[12px] font-medium sm:inline-flex"
+                style={{
+                  borderColor: "var(--a-border)",
+                  color: "var(--a-link)",
+                  background: "var(--a-card)",
+                }}
               >
                 View site
               </Link>
@@ -208,11 +236,17 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
           {mobileOpen && (
             <div className="fixed inset-0 z-50 lg:hidden">
-              <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-              <aside className="absolute left-0 top-0 flex h-full w-[220px] flex-col bg-[#1d2327] text-[#f0f0f1] shadow-xl">
-                <div className="flex h-12 items-center justify-between border-b border-[#2c3338] px-3">
+              <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
+              <aside
+                className="absolute left-0 top-0 flex h-full w-[220px] flex-col shadow-xl"
+                style={{ background: "var(--a-sidebar)", color: "var(--a-sidebar-fg)" }}
+              >
+                <div
+                  className="flex h-12 items-center justify-between border-b px-3"
+                  style={{ borderColor: "var(--a-sidebar-hover)" }}
+                >
                   <span className="text-sm font-semibold">TapPath</span>
-                  <button type="button" onClick={() => setMobileOpen(false)} className="p-1 text-[#c3c4c7]">
+                  <button type="button" onClick={() => setMobileOpen(false)} className="p-1">
                     <X className="h-4 w-4" />
                   </button>
                 </div>
@@ -223,7 +257,12 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             </div>
           )}
 
-          <main className="flex-1 p-4 sm:p-5 lg:p-6">{children}</main>
+          <main
+            className="flex-1 p-4 sm:p-5 lg:p-6"
+            style={{ background: "var(--a-bg)", color: "var(--a-fg)" }}
+          >
+            {children}
+          </main>
         </div>
       </div>
     </div>
