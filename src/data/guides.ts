@@ -35,6 +35,15 @@ export type Guide = {
   forumVerified?: boolean;
   /** Featured / OG cover image URL */
   featuredImageUrl?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  focusKeyword?: string;
+  canonicalUrl?: string;
+  robotsIndex?: boolean;
+  robotsFollow?: boolean;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
 };
 
 export const guides: Record<string, Guide> = {
