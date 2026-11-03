@@ -96,4 +96,5 @@ export type AdminStats = {
   glossary: number;
   forumTopics: number;
   feedback: number;
+  usingSupabase: boolean;
 };

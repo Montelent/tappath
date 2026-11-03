@@ -31,7 +31,7 @@ const cards = [
 
 export default async function AdminPage() {
   const stats = await getAdminStats();
-  const live = isNeonConfigured() || stats.usingSupabase;
+  const live = isNeonConfigured();
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
