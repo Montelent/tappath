@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { useAuthOptional } from "@/context/AuthContext";
+import ShareButtons from "@/components/share/ShareButtons";
 
 type Topic = {
   id: string;
@@ -120,6 +121,9 @@ export default function ForumTopicPage() {
           {topic.brand} · {topic.category}
         </p>
         <h1 className="mt-2 text-2xl font-bold tracking-tight">{topic.title}</h1>
+        <div className="mt-4 mb-6">
+          <ShareButtons title={topic.title} text={`Forum: ${topic.title}`} />
+        </div>
         <p className="mt-1 text-sm text-[var(--muted-foreground)]">
           by {topic.authorName} · {topic.views} views
         </p>
@@ -129,14 +133,9 @@ export default function ForumTopicPage() {
       <h2 className="mb-3 mt-10 text-lg font-bold">Replies ({replies.length})</h2>
       <ul className="space-y-3">
         {replies.map((r) => (
-          <li
-            key={r.id}
-            className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4"
-          >
+          <li key={r.id} className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
             <p className="text-sm font-medium">{r.authorName}</p>
-            <p className="mt-1 whitespace-pre-wrap text-sm text-[var(--muted-foreground)]">
-              {r.body}
-            </p>
+            <p className="mt-1 whitespace-pre-wrap text-sm text-[var(--muted-foreground)]">{r.body}</p>
           </li>
         ))}
       </ul>
