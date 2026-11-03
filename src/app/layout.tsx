@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Source_Sans_3, Newsreader, IBM_Plex_Mono } from "next/font/google";
+import { Inter, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import CustomCode from "@/components/CustomCode";
 import SiteChrome from "@/components/SiteChrome";
@@ -8,16 +8,9 @@ import { LanguageProvider } from "@/i18n/LanguageProvider";
 import { AuthProvider } from "@/context/AuthContext";
 import { getSiteSettings } from "@/lib/site-settings";
 
-/* Human editorial pairing — not the usual Inter / geometric AI stack */
-const sourceSans = Source_Sans_3({
+const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
-  display: "swap",
-});
-
-const newsreader = Newsreader({
-  subsets: ["latin"],
-  variable: "--font-serif",
   display: "swap",
 });
 
@@ -94,8 +87,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f2ea" },
-    { media: "(prefers-color-scheme: dark)", color: "#1c1916" },
+    { media: "(prefers-color-scheme: light)", color: "#f7f9fc" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b0f14" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -105,7 +98,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${sourceSans.variable} ${newsreader.variable} ${plexMono.variable}`}
+      className={`${inter.variable} ${plexMono.variable}`}
       suppressHydrationWarning
     >
       <body className="min-h-screen flex flex-col font-sans">
