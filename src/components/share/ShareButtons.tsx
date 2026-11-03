@@ -5,32 +5,47 @@ import { Share2, Link2, Check, ChevronDown } from "lucide-react";
 
 type Props = {
   title: string;
+  /** Full share title e.g. "Samsung: Add a Fingerprint" — preferred over title */
+  shareTitle?: string;
   text?: string;
+  /** Short excerpt included in share body where platforms allow it */
+  description?: string;
   url?: string;
   className?: string;
 };
+
+type ShareCtx = { url: string; title: string; text: string };
 
 type Net = {
   id: string;
   label: string;
   color: string;
-  href: (c: { url: string; title: string; text: string }) => string;
+  href: (c: ShareCtx) => string;
 };
+
+function shareBody(title: string, text: string, url?: string): string {
+  const parts = [title];
+  if (text && text !== title) parts.push("", text);
+  if (url) parts.push("", url);
+  return parts.join("\n");
+}
 
 const NETWORKS: Net[] = [
   {
     id: "facebook",
     label: "Facebook",
     color: "#1877F2",
-    href: ({ url }) =>
-      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+    href: ({ url, title }) =>
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`,
   },
   {
     id: "x",
     label: "X",
     color: "#0f1419",
-    href: ({ url, title }) =>
-      `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
+    href: ({ url, title, text }) => {
+      const body = text && text !== title ? `${title}\n\n${text}` : title;
+      return `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(body)}`;
+    },
   },
   {
     id: "linkedin",
@@ -43,15 +58,17 @@ const NETWORKS: Net[] = [
     id: "whatsapp",
     label: "WhatsApp",
     color: "#25D366",
-    href: ({ url, title }) =>
-      `https://api.whatsapp.com/send?text=${encodeURIComponent(`${title}\n${url}`)}`,
+    href: ({ url, title, text }) =>
+      `https://api.whatsapp.com/send?text=${encodeURIComponent(shareBody(title, text, url))}`,
   },
   {
     id: "telegram",
     label: "Telegram",
     color: "#26A5E4",
-    href: ({ url, title }) =>
-      `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
+    href: ({ url, title, text }) => {
+      const body = text && text !== title ? `${title}\n\n${text}` : title;
+      return `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(body)}`;
+    },
   },
   {
     id: "reddit",
@@ -64,24 +81,24 @@ const NETWORKS: Net[] = [
     id: "pinterest",
     label: "Pinterest",
     color: "#E60023",
-    href: ({ url, title }) =>
-      `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(url)}&description=${encodeURIComponent(title)}`,
+    href: ({ url, title, text }) => {
+      const desc = text && text !== title ? `${title} — ${text}` : title;
+      return `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(url)}&description=${encodeURIComponent(desc)}`;
+    },
   },
   {
     id: "threads",
     label: "Threads",
     color: "#000000",
-    href: ({ url, title }) =>
-      `https://www.threads.net/intent/post?text=${encodeURIComponent(`${title} ${url}`)}`,
+    href: ({ url, title, text }) =>
+      `https://www.threads.net/intent/post?text=${encodeURIComponent(shareBody(title, text, url))}`,
   },
   {
     id: "email",
     label: "Email",
     color: "#6B7280",
     href: ({ url, title, text }) =>
-      `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(
-        `${text ? text + "\n\n" : ""}${url}`
-      )}`,
+      `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(shareBody(title, text, url))}`,
   },
 ];
 
@@ -149,7 +166,9 @@ function NetIcon({ id, className = "h-4 w-4" }: { id: string; className?: string
 
 export default function ShareButtons({
   title,
+  shareTitle,
   text = "",
+  description,
   url,
   className = "",
 }: Props) {
@@ -187,7 +206,9 @@ export default function ShareButtons({
     };
   }, [open]);
 
-  const ctx = { url: pageUrl, title, text: text || title };
+  const resolvedTitle = (shareTitle || title || "").trim() || "Share";
+  const resolvedText = (description || text || "").trim();
+  const ctx: ShareCtx = { url: pageUrl, title: resolvedTitle, text: resolvedText };
 
   const openShare = useCallback((href: string) => {
     setOpen(false);
@@ -201,7 +222,11 @@ export default function ShareButtons({
   const nativeShare = async () => {
     setOpen(false);
     try {
-      await navigator.share({ title, text: text || title, url: pageUrl });
+      await navigator.share({
+        title: resolvedTitle,
+        text: resolvedText ? `${resolvedTitle}\n\n${resolvedText}` : resolvedTitle,
+        url: pageUrl,
+      });
     } catch {
       /* cancelled */
     }
