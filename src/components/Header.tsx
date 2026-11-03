@@ -82,11 +82,11 @@ export default function Header() {
           openInNewTab: !!item.openInNewTab,
         }))
       : [
-          { href: "/", label: s.nav_home },
-          { href: "/topics", label: s.nav_topics },
-          { href: "/devices", label: s.nav_devices },
-          { href: "/glossary", label: s.nav_glossary },
-          { href: "/forum", label: s.nav_forum },
+          { href: "/", label: s.nav_home, openInNewTab: false },
+          { href: "/topics", label: s.nav_topics, openInNewTab: false },
+          { href: "/devices", label: s.nav_devices, openInNewTab: false },
+          { href: "/glossary", label: s.nav_glossary, openInNewTab: false },
+          { href: "/forum", label: s.nav_forum, openInNewTab: false },
         ];
 
   return (
