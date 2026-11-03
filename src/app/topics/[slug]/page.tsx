@@ -12,9 +12,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const topic = await resolveTopic(slug);
   if (!topic) return { title: "Topic not found" };
+  const { getSiteSettings } = await import("@/lib/site-settings");
+  const { applySeoTemplate } = await import("@/lib/seo/templates");
+  const s = await getSiteSettings();
+  const vars = {
+    title: topic.name,
+    sitename: s.site_name,
+    sep: s.seo_title_separator || "·",
+    excerpt: topic.description || "",
+    description: topic.description || "",
+    category: topic.name,
+  };
+  const title = applySeoTemplate(
+    s.seo_tpl_topic_title,
+    vars,
+    `${topic.name}: Guides & tips`
+  );
+  const description = applySeoTemplate(
+    s.seo_tpl_topic_description,
+    vars,
+    topic.description || `Settings guides for ${topic.name}.`
+  );
   return {
-    title: `${topic.name}: Guides & tips`,
-    description: topic.description || `Settings guides for ${topic.name}.`,
+    title: { absolute: title },
+    description,
+    alternates: { canonical: `/topics/${slug}` },
+    robots: {
+      index: s.seo_robots_index !== false,
+      follow: s.seo_robots_follow !== false,
+    },
   };
 }
 
