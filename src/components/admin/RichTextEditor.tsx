@@ -9,6 +9,7 @@ type Props = {
   help?: string;
   minHeight?: number;
   placeholder?: string;
+  /** Compact toolbar for shorter fields */
   compact?: boolean;
 };
 
@@ -28,7 +29,11 @@ declare global {
   }
 }
 
-const SCRIPT_SRC = "https://cdn.jsdelivr.net/npm/tinymce@7.5.1/tinymce.min.js";
+/** Free open-source TinyMCE 7 (GPL) from jsDelivr — no API key required */
+const TINYMCE_VER = "7.5.1";
+const SCRIPT_SRC = `https://cdn.jsdelivr.net/npm/tinymce@${TINYMCE_VER}/tinymce.min.js`;
+const SKIN_URL = `https://cdn.jsdelivr.net/npm/tinymce@${TINYMCE_VER}/skins/ui/oxide`;
+const CONTENT_CSS = `https://cdn.jsdelivr.net/npm/tinymce@${TINYMCE_VER}/skins/content/default/content.min.css`;
 
 function loadTiny(): Promise<void> {
   if (typeof window === "undefined") return Promise.resolve();
@@ -52,15 +57,15 @@ function loadTiny(): Promise<void> {
 }
 
 /**
- * Free GPL TinyMCE — responsive desktop + mobile toolbars.
- * Tuned for mobile select / copy / paste.
+ * Free GPL TinyMCE 7 — full toolbars (Tables, Styles, Source, Media, etc.).
+ * license_key: "gpl" = open-source free edition, no Tiny Cloud account.
  */
 export default function RichTextEditor({
   value,
   onChange,
   label = "Content",
   help,
-  minHeight = 220,
+  minHeight = 280,
   placeholder = "Write content…",
   compact = false,
 }: Props) {
@@ -82,34 +87,100 @@ export default function RichTextEditor({
         const prev = window.tinymce.get(editorId);
         if (prev) prev.remove();
 
-        const desktopToolbar = compact
-          ? "undo redo | bold italic underline | bullist numlist | link | removeformat"
-          : "undo redo | styles | bold italic underline strikethrough | alignleft aligncenter alignright | bullist numlist outdent indent | link unlink | removeformat | code";
+        // Full free toolbar (WordPress-like)
+        const fullToolbar =
+          "undo redo | blocks styles | bold italic underline strikethrough | " +
+          "alignleft aligncenter alignright alignjustify | " +
+          "bullist numlist outdent indent | " +
+          "link unlink image media table | " +
+          "blockquote hr charmap | " +
+          "removeformat | searchreplace visualblocks code fullscreen preview | help";
 
-        const mobileToolbar = compact
-          ? "undo redo | bold italic | bullist numlist | link"
-          : "undo redo | bold italic underline | bullist numlist | link | removeformat";
+        const compactToolbar =
+          "undo redo | blocks | bold italic underline | " +
+          "bullist numlist | link | table | removeformat | code";
+
+        const fullPlugins =
+          "advlist autolink lists link image charmap preview anchor " +
+          "searchreplace visualblocks code fullscreen insertdatetime media table " +
+          "help wordcount autoresize";
+
+        const compactPlugins =
+          "advlist lists link table code autoresize searchreplace";
 
         await window.tinymce.init({
           selector: `#${editorId}`,
+          // Free GPL open-source license — no paid Cloud account
           license_key: "gpl",
           promotion: false,
-          menubar: false,
           branding: false,
+          // Full menu bar like classic WordPress editor
+          menubar: compact
+            ? false
+            : "file edit view insert format tools table help",
           statusbar: true,
           resize: true,
           min_height: minHeight,
-          height: minHeight,
+          height: Math.max(minHeight, 320),
           placeholder,
-          plugins: "lists link autoresize code paste searchreplace",
-          toolbar: desktopToolbar,
-          toolbar_mode: "sliding",
+          plugins: compact ? compactPlugins : fullPlugins,
+          toolbar: compact ? compactToolbar : fullToolbar,
+          toolbar_mode: "wrap",
           toolbar_sticky: false,
+          // Image dialog (URL-based; free, no premium image tools)
+          image_title: true,
+          image_description: true,
+          image_dimensions: true,
+          automatic_uploads: false,
+          file_picker_types: "image",
+          // Table defaults
+          table_toolbar:
+            "tableprops tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | " +
+            "tableinsertcolbefore tableinsertcolafter tabledeletecol",
+          table_appearance_options: true,
+          table_grid: true,
+          table_resize_bars: true,
+          table_style_by_css: true,
+          // Formats dropdown (Styles)
+          style_formats_merge: true,
+          style_formats: [
+            {
+              title: "Headings",
+              items: [
+                { title: "Heading 2", format: "h2" },
+                { title: "Heading 3", format: "h3" },
+                { title: "Heading 4", format: "h4" },
+              ],
+            },
+            {
+              title: "Inline",
+              items: [
+                { title: "Bold", format: "bold" },
+                { title: "Italic", format: "italic" },
+                { title: "Underline", format: "underline" },
+                { title: "Strikethrough", format: "strikethrough" },
+                { title: "Code", format: "code" },
+              ],
+            },
+            {
+              title: "Blocks",
+              items: [
+                { title: "Paragraph", format: "p" },
+                { title: "Blockquote", format: "blockquote" },
+                { title: "Pre", format: "pre" },
+              ],
+            },
+          ],
+          block_formats:
+            "Paragraph=p; Heading 2=h2; Heading 3=h3; Heading 4=h4; Preformatted=pre",
+          // Mobile keeps useful tools
           mobile: {
             menubar: false,
             toolbar_mode: "scrolling",
-            toolbar: mobileToolbar,
-            plugins: "lists link paste autoresize",
+            toolbar: compact
+              ? "undo redo | bold italic | bullist numlist | link | table | code"
+              : "undo redo | blocks | bold italic underline | bullist numlist | link image table | code",
+            plugins: "lists link image table code autoresize",
           },
           paste_as_text: false,
           paste_data_images: false,
@@ -125,23 +196,46 @@ export default function RichTextEditor({
               padding: 10px 14px;
               -webkit-user-select: text !important;
               user-select: text !important;
-              -webkit-touch-callout: default;
               word-break: break-word;
             }
             p { margin: 0 0 0.75em; }
+            h2, h3, h4 { margin: 1em 0 0.5em; line-height: 1.3; }
             a { color: #2563eb; }
             ul, ol { padding-left: 1.25rem; margin: 0 0 0.75em; }
+            table { border-collapse: collapse; width: 100%; margin: 0 0 1em; }
+            table td, table th { border: 1px solid #c3c4c7; padding: 6px 10px; }
+            table th { background: #f6f7f7; font-weight: 600; }
+            blockquote {
+              border-left: 3px solid #c3c4c7;
+              margin: 0 0 1em;
+              padding: 0.25em 0 0.25em 1em;
+              color: #50575e;
+            }
+            pre, code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+            pre { background: #f6f7f7; padding: 10px; overflow-x: auto; }
+            img { max-width: 100%; height: auto; }
+            hr { border: none; border-top: 1px solid #c3c4c7; margin: 1.25em 0; }
           `,
-          skin_url: "https://cdn.jsdelivr.net/npm/tinymce@7.5.1/skins/ui/oxide",
-          content_css:
-            "https://cdn.jsdelivr.net/npm/tinymce@7.5.1/skins/content/default/content.min.css",
+          skin_url: SKIN_URL,
+          content_css: CONTENT_CSS,
+          // Allow full free HTML subset including tables
           valid_elements:
-            "p,br,strong/b,em/i,u,s,a[href|target|rel|title],ul,ol,li,h2,h3,h4,blockquote,code,pre,span",
-          extended_valid_elements: "a[href|target|_blank|rel]",
+            "p,br,strong/b,em/i,u,s,a[href|target|rel|title],ul,ol,li," +
+            "h1,h2,h3,h4,h5,h6,blockquote,code,pre,span[style|class]," +
+            "div[style|class],hr,img[src|alt|width|height|title|class]," +
+            "table[border|cellpadding|cellspacing|width|class|style]," +
+            "thead,tbody,tfoot,tr," +
+            "th[colspan|rowspan|width|height|align|valign|scope|class|style]," +
+            "td[colspan|rowspan|width|height|align|valign|class|style]," +
+            "caption,figure,figcaption,iframe[src|width|height|frameborder|allowfullscreen|title]," +
+            "video[src|controls|width|height],source[src|type]",
+          extended_valid_elements:
+            "a[href|target|_blank|rel|title],img[src|alt|width|height|title|class|style]," +
+            "table[*],td[*],th[*],tr[*],iframe[*]",
           relative_urls: false,
           convert_urls: true,
           browser_spellcheck: true,
-          contextmenu: false,
+          contextmenu: "link image table",
           setup: (editor: {
             on: (ev: string, cb: (...args: unknown[]) => void) => void;
             getContent: () => string;
@@ -191,21 +285,21 @@ export default function RichTextEditor({
   return (
     <div className="w-full">
       {label && (
-        <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">
+        <span className="mb-1 block text-[13px] font-semibold text-[var(--a-fg,#1d2327)]">
           {label}
         </span>
       )}
       {help && (
-        <p className="mb-2 text-[11px] text-[var(--muted-foreground)]">{help}</p>
+        <p className="mb-2 text-[12px] text-[var(--a-muted,#646970)]">{help}</p>
       )}
-      <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--background)] touch-manipulation">
+      <div className="overflow-hidden rounded border border-[var(--a-input-border,#8c8f94)] bg-[var(--a-card,#fff)] shadow-sm touch-manipulation">
         <textarea
           id={editorId}
           defaultValue={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          rows={Math.max(6, Math.round(minHeight / 28))}
-          className="w-full resize-y bg-transparent px-3 py-2 text-sm leading-relaxed outline-none min-h-[140px]"
+          rows={Math.max(8, Math.round(minHeight / 28))}
+          className="w-full resize-y bg-transparent px-3 py-2 text-sm leading-relaxed outline-none min-h-[160px]"
           style={{
             WebkitUserSelect: "text",
             userSelect: "text",
