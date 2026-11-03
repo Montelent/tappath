@@ -2,51 +2,48 @@ export type DbBrand = {
   id: string;
   slug: string;
   name: string;
-  color: string;
-  description: string;
+  color?: string | null;
+  description?: string | null;
   guides_count: number;
   devices_count: number;
-  product_lines: { name: string; count: number; href: string }[];
+  product_lines: { name: string }[];
   top_guides: { title: string; href: string; category: string }[];
   devices_list: { name: string; os: string; href: string }[];
-  seo_updates: string;
-  seo_help: string;
-  published: boolean;
-  sort_order: number;
+  seo_updates?: string | null;
+  seo_help?: string | null;
+  published?: boolean;
 };
 
 export type DbTopic = {
   id: string;
   slug: string;
   name: string;
-  description: string;
-  icon: string;
-  guide_count: number;
-  brands: string[];
-  published: boolean;
-  sort_order: number;
+  description?: string | null;
+  guide_count?: number;
+  brands?: string[];
+  published?: boolean;
+  sort_order?: number;
 };
 
 export type DbDevice = {
   id: string;
   slug: string;
   name: string;
+  brand: string;
   brand_slug: string;
-  brand_name: string;
-  os: string;
-  href: string;
-  year: number | null;
+  os?: string | null;
+  href?: string | null;
   guides: { title: string; href: string }[];
-  published: boolean;
+  published?: boolean;
 };
 
 export type DbGlossaryTerm = {
   id: string;
   slug: string;
   term: string;
-  category: string;
-  short: string;
-  definition: string;
+  short?: string | null;
+  definition?: string | null;
+  category?: string | null;
   faqs?: { q: string; a: string }[] | null;
   related_guides: { title: string; href: string; brand?: string }[];
   seo_title?: string | null;
@@ -73,6 +70,7 @@ export type DbGuide = {
   confirmations: number;
   forum_verified: boolean;
   published: boolean;
+  featured_image_url?: string | null;
 };
 
 export type DbForumTopic = {
@@ -98,5 +96,4 @@ export type AdminStats = {
   glossary: number;
   forumTopics: number;
   feedback: number;
-  usingSupabase: boolean;
 };
