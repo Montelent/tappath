@@ -107,7 +107,21 @@ export async function listDevices(): Promise<DbDevice[]> {
     try {
       const sql = getSql()!;
       const rows = await sql`SELECT * FROM devices WHERE published = true`;
-      return rows as DbDevice[];
+      return (rows as Record<string, unknown>[]).map((r) => ({
+        id: String(r.id ?? r.slug ?? ""),
+        slug: String(r.slug ?? ""),
+        name: String(r.name ?? ""),
+        brand: String(r.brand ?? r.brand_name ?? ""),
+        brand_slug: String(r.brand_slug ?? ""),
+        brand_name: r.brand_name != null ? String(r.brand_name) : null,
+        os: r.os != null ? String(r.os) : null,
+        href: r.href != null ? String(r.href) : null,
+        year: r.year != null ? Number(r.year) : null,
+        guides: Array.isArray(r.guides)
+          ? (r.guides as { title: string; href: string }[])
+          : [],
+        published: r.published !== false,
+      }));
     } catch (e) {
       console.error("[listDevices]", e);
       return [];
@@ -117,6 +131,7 @@ export async function listDevices(): Promise<DbDevice[]> {
     id: d.slug,
     slug: d.slug,
     name: d.name,
+    brand: d.brand,
     brand_slug: d.brandSlug,
     brand_name: d.brand,
     os: d.os,
@@ -192,6 +207,7 @@ export async function listGuides(): Promise<DbGuide[]> {
     confirmations: g.confirmations,
     forum_verified: !!g.forumVerified,
     published: true,
+    featured_image_url: g.featuredImageUrl ?? null,
   }));
 }
 

@@ -12,6 +12,7 @@ export type DbBrand = {
   seo_updates?: string | null;
   seo_help?: string | null;
   published?: boolean;
+  sort_order?: number | null;
 };
 
 export type DbTopic = {
@@ -19,20 +20,25 @@ export type DbTopic = {
   slug: string;
   name: string;
   description?: string | null;
+  icon?: string | null;
   guide_count?: number;
   brands?: string[];
   published?: boolean;
-  sort_order?: number;
+  sort_order?: number | null;
 };
 
 export type DbDevice = {
   id: string;
   slug: string;
   name: string;
+  /** Display brand name (required) */
   brand: string;
   brand_slug: string;
+  /** Alias some rows use instead of brand */
+  brand_name?: string | null;
   os?: string | null;
   href?: string | null;
+  year?: number | null;
   guides: { title: string; href: string }[];
   published?: boolean;
 };
