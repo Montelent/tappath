@@ -18,7 +18,6 @@ const ALLOWED = new Set([
 type Ctx = { params: Promise<{ table: string }> };
 type Sql = NonNullable<ReturnType<typeof getSql>>;
 
-/** Explicit queries — Neon cannot bind table names as $1 parameters. */
 async function selectAll(sql: Sql, table: string) {
   switch (table) {
     case "brands":
@@ -231,12 +230,24 @@ export async function DELETE(req: NextRequest, ctx: Ctx) {
   }
 }
 
+async function ensureGuideColumns(sql: Sql) {
+  try {
+    await sql`ALTER TABLE guides ADD COLUMN IF NOT EXISTS featured_image_url text`;
+    await sql`ALTER TABLE guides ADD COLUMN IF NOT EXISTS seo_title text`;
+    await sql`ALTER TABLE guides ADD COLUMN IF NOT EXISTS seo_description text`;
+  } catch {
+    /* column may already exist */
+  }
+}
+
 async function insertGuide(sql: Sql, b: Record<string, unknown>) {
+  await ensureGuideColumns(sql);
   const rows = await sql`
     INSERT INTO guides (
       slug, brand, brand_slug, product_line, title, short_description,
       updated_label, read_time, category, versions, article, faqs,
-      related, compatible_devices, confirmations, forum_verified, published
+      related, compatible_devices, confirmations, forum_verified, published,
+      featured_image_url, seo_title, seo_description
     ) VALUES (
       ${String(b.slug || "")},
       ${String(b.brand || "")},
@@ -254,7 +265,10 @@ async function insertGuide(sql: Sql, b: Record<string, unknown>) {
       ${JSON.stringify(b.compatible_devices || [])}::jsonb,
       ${Number(b.confirmations) || 0},
       ${Boolean(b.forum_verified)},
-      ${Boolean(b.published)}
+      ${Boolean(b.published)},
+      ${String(b.featured_image_url || "") || null},
+      ${String(b.seo_title || "") || null},
+      ${String(b.seo_description || "") || null}
     )
     RETURNING *
   `;
@@ -262,6 +276,7 @@ async function insertGuide(sql: Sql, b: Record<string, unknown>) {
 }
 
 async function updateGuide(sql: Sql, id: string, b: Record<string, unknown>) {
+  await ensureGuideColumns(sql);
   const rows = await sql`
     UPDATE guides SET
       slug = ${String(b.slug || "")},
@@ -280,7 +295,10 @@ async function updateGuide(sql: Sql, id: string, b: Record<string, unknown>) {
       compatible_devices = ${JSON.stringify(b.compatible_devices || [])}::jsonb,
       confirmations = ${Number(b.confirmations) || 0},
       forum_verified = ${Boolean(b.forum_verified)},
-      published = ${Boolean(b.published)}
+      published = ${Boolean(b.published)},
+      featured_image_url = ${String(b.featured_image_url || "") || null},
+      seo_title = ${String(b.seo_title || "") || null},
+      seo_description = ${String(b.seo_description || "") || null}
     WHERE id::text = ${id}
     RETURNING *
   `;
