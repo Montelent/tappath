@@ -44,6 +44,13 @@ export default function AdminGlossaryPage() {
           related_guides: [],
           seo_title: "",
           seo_description: "",
+          focus_keyword: "",
+          canonical_url: "",
+          robots_index: true,
+          robots_follow: true,
+          og_title: "",
+          og_description: "",
+          og_image: "",
           published: true,
         }}
         fields={[
@@ -76,13 +83,10 @@ export default function AdminGlossaryPage() {
             help: "Only if you want to force specific links. Otherwise the site auto-finds guides that mention this term.",
           },
           {
-            key: "seo_title",
-            label: "SEO title (optional — defaults to “What is TERM? …”)",
-          },
-          {
-            key: "seo_description",
-            label: "SEO meta description (optional)",
-            type: "textarea",
+            key: "seo",
+            label: "SEO",
+            type: "seo-box",
+            help: "Title, description, social preview, and robots for this term.",
           },
           { key: "published", label: "Published", type: "boolean" },
         ]}
