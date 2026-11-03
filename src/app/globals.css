@@ -3,20 +3,20 @@
 @tailwind utilities;
 
 :root {
-  /* Light — warm paper, soft reds, comfortable contrast */
-  --background: #f7f1ec;
-  --foreground: #2a1f1c;
-  --muted: #efe6df;
-  --muted-foreground: #6a5a54;
-  --border: #e2d5cd;
-  --card: #fffbf8;
+  /* Light — clean paper with clear red accents (Techbone-inspired, human-tuned) */
+  --background: #faf8f7;
+  --foreground: #1a1210;
+  --muted: #f3eeeb;
+  --muted-foreground: #6b5b55;
+  --border: #e8ddd7;
+  --card: #ffffff;
   --card-elevated: #ffffff;
-  --accent: #b83a28;
-  --accent-hover: #9a3022;
-  --accent-soft: #d45a48;
-  --accent-muted: rgba(184, 58, 40, 0.11);
-  --accent-subtle: rgba(184, 58, 40, 0.05);
-  --accent-foreground: #fff9f6;
+  --accent: #c62828;
+  --accent-hover: #a61e1e;
+  --accent-soft: #e57373;
+  --accent-muted: rgba(198, 40, 40, 0.12);
+  --accent-subtle: rgba(198, 40, 40, 0.06);
+  --accent-foreground: #ffffff;
   --primary: var(--accent);
   --primary-foreground: var(--accent-foreground);
   --shadow-sm: 0 1px 2px rgba(42, 31, 28, 0.04);
@@ -47,20 +47,20 @@
 }
 
 .dark {
-  /* Dark — warm charcoal, not pure black; softer coral accent */
-  --background: #1a1614;
-  --foreground: #f0e6e0;
-  --muted: #2a2421;
-  --muted-foreground: #c2b2a9;
-  --border: #3d342f;
-  --card: #221d1a;
-  --card-elevated: #2c2622;
-  --accent: #e07060;
-  --accent-hover: #eb8576;
-  --accent-soft: #f0a090;
-  --accent-muted: rgba(224, 112, 96, 0.16);
-  --accent-subtle: rgba(224, 112, 96, 0.07);
-  --accent-foreground: #1a1412;
+  /* Dark — deep charcoal with vivid red accents */
+  --background: #121010;
+  --foreground: #f5ebe6;
+  --muted: #1e1a18;
+  --muted-foreground: #b8a9a0;
+  --border: #3a302c;
+  --card: #1a1614;
+  --card-elevated: #241f1c;
+  --accent: #ef5350;
+  --accent-hover: #ff6b68;
+  --accent-soft: #ff8a80;
+  --accent-muted: rgba(239, 83, 80, 0.18);
+  --accent-subtle: rgba(239, 83, 80, 0.08);
+  --accent-foreground: #1a1010;
   --primary: var(--accent);
   --primary-foreground: var(--accent-foreground);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
