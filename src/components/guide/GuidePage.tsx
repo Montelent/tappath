@@ -5,6 +5,7 @@ import GuideFeedback from "./GuideFeedback";
 import GuideFAQ from "./GuideFAQ";
 import AuthorBox from "./AuthorBox";
 import AdSlot from "@/components/ads/AdSlot";
+import ShareButtons from "@/components/share/ShareButtons";
 
 type Props = {
   guide: Guide;
@@ -76,6 +77,17 @@ export default function GuidePage({ guide }: Props) {
               </p>
             </header>
 
+            <div className="mb-8">
+              <ShareButtons
+                title={guide.title}
+                text={
+                  (typeof guide.shortDescription === "string"
+                    ? guide.shortDescription.replace(/<[^>]+>/g, "").slice(0, 160)
+                    : "") || `How to ${guide.title} on ${guide.brand}`
+                }
+              />
+            </div>
+
             <AdSlot placement="after_title" />
 
             <section className="mb-12" aria-label="Interactive steps">
@@ -140,30 +152,15 @@ export default function GuidePage({ guide }: Props) {
 
               {guide.related?.length > 0 && (
                 <section aria-labelledby="related-guides-heading">
-                  <h2
-                    id="related-guides-heading"
-                    className="font-display text-xl mb-4"
-                  >
+                  <h2 id="related-guides-heading" className="font-display text-xl mb-4">
                     Related guides
                   </h2>
-                  <p className="mb-4 text-sm text-[var(--muted-foreground)]">
-                    Similar how-tos for {guide.brand}
-                    {guide.category ? ` · ${guide.category}` : ""}
-                    {guide.productLine ? ` · ${guide.productLine}` : ""}.
-                  </p>
                   <ul className="grid-guides">
                     {guide.related.map((r) => (
                       <li key={r.href}>
-                        <Link
-                          href={r.href}
-                          className="surface-card block px-4 py-3.5 link-quiet h-full"
-                        >
-                          {r.category && (
-                            <span className="label-caps">{r.category}</span>
-                          )}
-                          <span className="mt-1 block font-medium tracking-tight break-words">
-                            {r.title}
-                          </span>
+                        <Link href={r.href} className="surface-card block px-4 py-3.5 link-quiet h-full">
+                          {r.category && <span className="label-caps">{r.category}</span>}
+                          <span className="mt-1 block font-medium tracking-tight break-words">{r.title}</span>
                         </Link>
                       </li>
                     ))}
@@ -178,16 +175,6 @@ export default function GuidePage({ guide }: Props) {
           <aside className="hidden lg:block min-w-0">
             <div className="sticky top-20 space-y-6">
               <AdSlot placement="sidebar" />
-              <div className="rounded-2xl border border-[var(--border)] p-4 text-sm text-[var(--muted-foreground)]">
-                <p className="label-caps mb-2 text-[var(--foreground)]">On this page</p>
-                <ul className="space-y-1.5">
-                  <li>Step-by-step simulator</li>
-                  {guide.article?.length > 0 && <li>Notes</li>}
-                  {guide.faqs?.length > 0 && <li>FAQ</li>}
-                  {guide.compatibleDevices?.length > 0 && <li>Compatible devices</li>}
-                  {guide.related?.length > 0 && <li>Related guides</li>}
-                </ul>
-              </div>
             </div>
           </aside>
         </div>
