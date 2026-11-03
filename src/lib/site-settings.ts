@@ -40,6 +40,19 @@ export type SiteSettings = {
   seo_force_canonical_host: boolean;
   seo_redirects: SeoRedirect[];
 
+  /** XML sitemap controls (Admin → SEO → Sitemap) */
+  seo_sitemap_enabled: boolean;
+  seo_sitemap_include_guides: boolean;
+  seo_sitemap_include_glossary: boolean;
+  seo_sitemap_include_topics: boolean;
+  seo_sitemap_include_devices: boolean;
+  seo_sitemap_include_brands: boolean;
+  seo_sitemap_include_forum: boolean;
+  seo_sitemap_changefreq_guides: string;
+  seo_sitemap_priority_guides: string;
+  seo_sitemap_changefreq_default: string;
+  seo_sitemap_priority_default: string;
+
   seo_tpl_guide_title: string;
   seo_tpl_guide_description: string;
   seo_tpl_glossary_title: string;
@@ -146,6 +159,17 @@ export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
   seo_redirect_trailing_slash: true,
   seo_force_canonical_host: false,
   seo_redirects: [],
+  seo_sitemap_enabled: true,
+  seo_sitemap_include_guides: true,
+  seo_sitemap_include_glossary: true,
+  seo_sitemap_include_topics: true,
+  seo_sitemap_include_devices: true,
+  seo_sitemap_include_brands: true,
+  seo_sitemap_include_forum: true,
+  seo_sitemap_changefreq_guides: "weekly",
+  seo_sitemap_priority_guides: "0.9",
+  seo_sitemap_changefreq_default: "weekly",
+  seo_sitemap_priority_default: "0.7",
   seo_tpl_guide_title: "%title% %sep% %brand% %sep% %sitename%",
   seo_tpl_guide_description: "%excerpt%",
   seo_tpl_glossary_title: "What is %term%? %sep% %sitename%",
