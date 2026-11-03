@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import {
   listBrands,
   listGuides,
@@ -7,9 +8,46 @@ import {
 } from "@/lib/db/content";
 import { guideHref } from "@/lib/guides/resolve";
 import { getSiteSettings } from "@/lib/site-settings";
+import { applySeoTemplate } from "@/lib/seo/templates";
 import { brandColorCss, brandColorTint } from "@/lib/brand-color";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSiteSettings();
+  const vars = {
+    sitename: s.site_name,
+    sep: s.seo_title_separator || "·",
+    title: s.site_name,
+    excerpt: s.meta_description || s.homepage_hero_subtitle || "",
+    description: s.meta_description || s.homepage_hero_subtitle || "",
+  };
+  const title =
+    applySeoTemplate(s.seo_tpl_homepage_title, vars, s.meta_title || s.site_name) ||
+    s.meta_title ||
+    s.site_name;
+  const description =
+    applySeoTemplate(s.seo_tpl_homepage_description, vars, s.meta_description) ||
+    s.meta_description;
+  return {
+    title: { absolute: title },
+    description,
+    keywords: s.meta_keywords
+      .split(",")
+      .map((k) => k.trim())
+      .filter(Boolean),
+    robots: {
+      index: s.seo_robots_index !== false,
+      follow: s.seo_robots_follow !== false,
+    },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      images: s.og_image_url ? [{ url: s.og_image_url }] : undefined,
+    },
+  };
+}
 
 export default async function HomePage() {
   const [brands, guides, topics, settings] = await Promise.all([
