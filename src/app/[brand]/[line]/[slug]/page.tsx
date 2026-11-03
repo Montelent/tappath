@@ -39,25 +39,34 @@ export async function generateMetadata({
   const { getSiteSettings } = await import("@/lib/site-settings");
   const { applySeoTemplate } = await import("@/lib/seo/templates");
   const s = await getSiteSettings();
+  const plainExcerpt = String(guide.shortDescription || "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
   const vars = {
     title: guide.title,
     brand: guide.brand,
     sitename: s.site_name,
     sep: s.seo_title_separator || "·",
-    excerpt: guide.shortDescription,
-    description: guide.shortDescription,
+    excerpt: plainExcerpt,
+    description: plainExcerpt,
     product_line: guide.productLine || line,
   };
-  const title = applySeoTemplate(
-    s.seo_tpl_guide_title,
-    vars,
-    `${guide.brand}: ${guide.title}`
-  );
-  const description = applySeoTemplate(
-    s.seo_tpl_guide_description,
-    vars,
-    guide.shortDescription
-  );
+  // Prefer per-guide RankMath fields, then site-wide templates from Admin → SEO
+  const title =
+    (guide.seoTitle && guide.seoTitle.trim()) ||
+    applySeoTemplate(
+      s.seo_tpl_guide_title,
+      vars,
+      `${guide.brand}: ${guide.title}`
+    );
+  const description =
+    (guide.seoDescription && guide.seoDescription.trim()) ||
+    applySeoTemplate(
+      s.seo_tpl_guide_description,
+      vars,
+      plainExcerpt
+    );
   const plainDesc = String(description || "")
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
@@ -69,7 +78,8 @@ export async function generateMetadata({
     ""
   ).replace(/\/$/, "");
   const featured =
-    (guide as { featuredImageUrl?: string }).featuredImageUrl ||
+    guide.ogImage ||
+    guide.featuredImageUrl ||
     s.og_image_url ||
     "/og.png";
   const ogImage = featured.startsWith("http")
@@ -77,22 +87,29 @@ export async function generateMetadata({
     : origin
       ? `${origin}${featured.startsWith("/") ? "" : "/"}${featured}`
       : featured;
+  const ogTitle = (guide.ogTitle && guide.ogTitle.trim()) || title;
+  const ogDesc = (guide.ogDescription && guide.ogDescription.trim()) || plainDesc || description;
+  const canonicalPath = (guide.canonicalUrl && guide.canonicalUrl.trim()) || path;
+  const index = guide.robotsIndex !== false && s.seo_robots_index !== false;
+  const follow = guide.robotsFollow !== false && s.seo_robots_follow !== false;
 
   return {
-    title,
+    // absolute avoids layout template doubling site name after full SEO templates
+    title: { absolute: title },
     description: plainDesc || description,
-    alternates: { canonical: path },
+    alternates: { canonical: canonicalPath },
+    robots: { index, follow },
     openGraph: {
-      title,
-      description: plainDesc || description,
+      title: ogTitle,
+      description: ogDesc,
       type: "article",
-      url: path,
-      images: [{ url: ogImage, alt: title }],
+      url: canonicalPath,
+      images: [{ url: ogImage, alt: ogTitle }],
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description: plainDesc || description,
+      title: ogTitle,
+      description: ogDesc,
       images: [ogImage],
     },
   };
