@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Loader2, Plus, Trash2, Save, RefreshCw, Database } from "lucide-react";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import SortOrderField, { nextSortOrder } from "@/components/admin/SortOrderField";
+import SeoMetaBox from "@/components/admin/SeoMetaBox";
 
 type Props = {
   table: string;
@@ -13,7 +14,7 @@ type Props = {
   fields: {
     key: string;
     label: string;
-    type?: "text" | "textarea" | "richtext" | "number" | "boolean" | "json" | "faq-list" | "related-list";
+    type?: "text" | "textarea" | "richtext" | "number" | "boolean" | "json" | "faq-list" | "related-list" | "seo-box";
     help?: string;
   }[];
 };
@@ -188,17 +189,43 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                   f.type === "json" ||
                   f.type === "faq-list" ||
                   f.type === "related-list" ||
+                  f.type === "seo-box" ||
                   f.key === "sort_order"
                     ? "sm:col-span-2"
                     : ""
                 }
               >
-                {f.key !== "sort_order" && (
+                {f.key !== "sort_order" && f.type !== "seo-box" && (
                   <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">{f.label}</span>
                 )}
-                {f.help && <p className="mb-2 text-[11px] text-[var(--muted-foreground)]">{f.help}</p>}
+                {f.help && f.type !== "seo-box" && (
+                  <p className="mb-2 text-[11px] text-[var(--muted-foreground)]">{f.help}</p>
+                )}
                 {f.type === "boolean" ? (
                   <input type="checkbox" checked={!!editing[f.key]} onChange={(e) => setEditing({ ...editing, [f.key]: e.target.checked })} className="h-4 w-4" />
+                ) : f.type === "seo-box" ? (
+                  <SeoMetaBox
+                    value={{
+                      focus_keyword: String(editing.focus_keyword ?? ""),
+                      seo_title: String(editing.seo_title ?? ""),
+                      seo_description: String(editing.seo_description ?? ""),
+                      canonical_url: String(editing.canonical_url ?? ""),
+                      robots_index: editing.robots_index !== false,
+                      robots_follow: editing.robots_follow !== false,
+                      og_title: String(editing.og_title ?? ""),
+                      og_description: String(editing.og_description ?? ""),
+                      og_image: String(editing.og_image ?? ""),
+                    }}
+                    onChange={(seo) => setEditing({ ...editing, ...seo })}
+                    defaultTitle={String(editing.term || editing.title || "Title")}
+                    defaultDescription={String(editing.short || editing.short_description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160)}
+                    pathPreview={
+                      table === "glossary_terms"
+                        ? `/glossary/${String(editing.slug || "")}`
+                        : `/${String(editing.slug || "")}`
+                    }
+                    imageUrl={String(editing.featured_image_url || editing.og_image || "") || undefined}
+                  />
                 ) : f.type === "faq-list" ? (
                   <FaqListEditor
                     value={Array.isArray(editing[f.key]) ? (editing[f.key] as { q: string; a: string }[]) : []}
