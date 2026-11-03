@@ -68,6 +68,23 @@
   --a-warn-fg: #f5e6a8;
   --a-row-hover: #32373c;
   --a-thead: #23282d;
+
+  /* Remap frontend tokens so Guides/Topics/etc. tables using
+     bg-[var(--card)] / text-[var(--foreground)] are dark too */
+  --background: #1c2126;
+  --foreground: #f0f0f1;
+  --muted: #23282d;
+  --muted-foreground: #a7aaad;
+  --border: #3c434a;
+  --card: #2c3338;
+  --card-elevated: #32373c;
+  --accent: #72aee6;
+  --accent-hover: #9ec5e8;
+  --accent-muted: rgba(114, 174, 230, 0.18);
+  --accent-subtle: rgba(114, 174, 230, 0.08);
+  --accent-foreground: #1d2327;
+  --primary: #72aee6;
+  --primary-foreground: #1d2327;
 }
 
 .admin-wp .a-fg { color: var(--a-fg) !important; }
@@ -100,7 +117,7 @@
 }
 .admin-wp .a-sidebar { background: var(--a-sidebar) !important; color: var(--a-sidebar-fg) !important; }
 
-/* Force ALL table cells + white panels in dark mode */
+/* Force table surfaces */
 .admin-wp.admin-dark table,
 .admin-wp.admin-dark thead,
 .admin-wp.admin-dark tbody,
@@ -150,7 +167,6 @@
   color: var(--a-fg) !important;
 }
 
-/* Status chips stay readable on dark rows */
 .admin-wp.admin-dark .bg-emerald-100 {
   background-color: #064e3b !important;
   color: #a7f3d0 !important;
