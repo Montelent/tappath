@@ -97,6 +97,17 @@ export function dbGuideToGuide(db: DbGuide): Guide {
   const faqsRaw = parseJsonField(db.faqs);
   const relatedRaw = parseJsonField(db.related);
   const devicesRaw = parseJsonField(db.compatible_devices);
+  const extra = db as DbGuide & {
+    seo_title?: string | null;
+    seo_description?: string | null;
+    focus_keyword?: string | null;
+    canonical_url?: string | null;
+    robots_index?: boolean | null;
+    robots_follow?: boolean | null;
+    og_title?: string | null;
+    og_description?: string | null;
+    og_image?: string | null;
+  };
 
   return {
     slug: db.slug,
@@ -118,6 +129,15 @@ export function dbGuideToGuide(db: DbGuide): Guide {
     confirmations: db.confirmations || 0,
     forumVerified: !!db.forum_verified,
     featuredImageUrl: db.featured_image_url || undefined,
+    seoTitle: extra.seo_title || undefined,
+    seoDescription: extra.seo_description || undefined,
+    focusKeyword: extra.focus_keyword || undefined,
+    canonicalUrl: extra.canonical_url || undefined,
+    robotsIndex: extra.robots_index ?? undefined,
+    robotsFollow: extra.robots_follow ?? undefined,
+    ogTitle: extra.og_title || undefined,
+    ogDescription: extra.og_description || undefined,
+    ogImage: extra.og_image || undefined,
   };
 }
 
