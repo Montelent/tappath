@@ -54,7 +54,7 @@ export async function listDevicesPublic(): Promise<Device[]> {
       return [];
     }
   }
-  if (isNeonConfigured()) return [];
+  if (isNeonConfigured() || process.env.NODE_ENV === "production") return [];
   return getStaticDevices();
 }
 
@@ -73,7 +73,7 @@ export async function resolveDevice(slug: string): Promise<Device | null> {
     }
   }
 
-  if (isNeonConfigured()) return null;
+  if (isNeonConfigured() || process.env.NODE_ENV === "production") return null;
   return getStaticDevice(key) ?? null;
 }
 
