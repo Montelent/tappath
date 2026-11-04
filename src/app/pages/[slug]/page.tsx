@@ -1,17 +1,36 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPublishedPage } from "@/lib/db/pages";
+import { getSiteSettings } from "@/lib/site-settings";
+import { applySeoTemplate } from "@/lib/seo/templates";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const page = await getPublishedPage(slug);
+  const [page, settings] = await Promise.all([getPublishedPage(slug), getSiteSettings()]);
   if (!page) return { title: "Page not found" };
+  const plainExcerpt = (page.excerpt || "").replace(/<[^>]+>/g, " ").replace(/\\s+/g, " ").trim();
+  const title = page.seo_title || applySeoTemplate(
+    settings.seo_tpl_page_title,
+    { title: page.title, sitename: settings.site_name, sep: settings.seo_title_separator, excerpt: plainExcerpt },
+    page.title
+  );
+  const description = page.seo_description || applySeoTemplate(
+    settings.seo_tpl_page_description,
+    { title: page.title, sitename: settings.site_name, sep: settings.seo_title_separator, excerpt: plainExcerpt },
+    plainExcerpt
+  );
+  const canonical = page.canonical_url || `/pages/${page.slug}`;
+  const ogTitle = page.og_title || title;
+  const ogDescription = page.og_description || description;
   return {
-    title: page.seo_title || page.title,
-    description: page.seo_description || page.excerpt || undefined,
-    robots: { index: true, follow: true },
+    title,
+    description: description || undefined,
+    alternates: { canonical },
+    robots: { index: page.robots_index !== false, follow: page.robots_follow !== false },
+    openGraph: { type: "article", title: ogTitle, description: ogDescription, url: canonical, images: page.og_image ? [page.og_image] : undefined },
+    twitter: { card: "summary_large_image", title: ogTitle, description: ogDescription, images: page.og_image ? [page.og_image] : undefined },
   };
 }
 
