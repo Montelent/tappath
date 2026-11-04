@@ -101,7 +101,7 @@ export default function SeoSettings() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Titles & Meta</h1>
           <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            Rank Math–style templates with shortcodes for Guides, Glossary, Devices, and more.
+            Rank Math–style templates with shortcodes for Pages, Guides, Glossary, Devices, and more.
           </p>
         </div>
         <button type="button" onClick={save} disabled={saving} className="inline-flex items-center gap-1.5 rounded bg-[#2271b1] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#135e96] disabled:opacity-50">
