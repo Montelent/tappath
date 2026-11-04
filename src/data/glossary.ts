@@ -444,3 +444,19 @@ export function getTermsByCategory(category: string): GlossaryTerm[] {
   if (!category || category === "All") return glossaryTerms;
   return glossaryTerms.filter((t) => t.category === category);
 }
+
+export function getTermsGroupedByLetter(): Record<string, GlossaryTerm[]> {
+  const sorted = [...glossaryTerms].sort((a, b) =>
+    a.term.localeCompare(b.term, undefined, { sensitivity: "base" })
+  );
+  const groups: Record<string, GlossaryTerm[]> = {};
+  for (const t of sorted) {
+    const letter = t.term.charAt(0).toUpperCase();
+    const key = /[A-Z]/.test(letter) ? letter : "#";
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(t);
+  }
+  return groups;
+}
+
+export const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
