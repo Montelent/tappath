@@ -45,6 +45,7 @@ export async function listBrands(): Promise<DbBrand[]> {
       return [];
     }
   }
+  if (process.env.NODE_ENV === "production") return [];
   return Object.values(staticBrands).map((b, i) => ({
     id: b.slug,
     slug: b.slug,
@@ -127,6 +128,7 @@ export async function listDevices(): Promise<DbDevice[]> {
       return [];
     }
   }
+  if (process.env.NODE_ENV === "production") return [];
   return staticDevices().map((d) => ({
     id: d.slug,
     slug: d.slug,
@@ -153,6 +155,7 @@ export async function listGlossary(): Promise<DbGlossaryTerm[]> {
       return [];
     }
   }
+  if (process.env.NODE_ENV === "production") return [];
   return staticGlossary.map((t) => ({
     id: t.slug,
     slug: t.slug,
@@ -293,7 +296,7 @@ export async function getBrandBySlug(slug: string): Promise<DbBrand | null> {
   const all = await listBrands();
   const hit = all.find((b) => b.slug === slug.toLowerCase());
   if (hit) return hit;
-  if (!isNeonConfigured()) {
+  if (!isNeonConfigured() && process.env.NODE_ENV !== "production") {
     const s = staticBrands[slug as keyof typeof staticBrands];
     if (!s) return null;
     return {
