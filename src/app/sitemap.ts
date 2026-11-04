@@ -82,7 +82,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
     const deviceRoutes = devicesWithGuides.map((d) => ({
-      url: `${host}${d.href || `/${d.brand_slug}/${d.slug}`}`,
+      url: `${host}${d.href || `/${d.brandSlug}/${d.slug}`}`,
       lastModified: now,
       changeFrequency: defFreq,
       priority: defPri,
