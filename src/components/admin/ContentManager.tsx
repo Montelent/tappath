@@ -354,7 +354,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                     const value = e.target.value;
                     const slugify = (input: string) => input
                       .normalize("NFKD")
-                      .replace(/[\\u0300-\\u036f]/g, "")
+                      .replace(/[\u0300-\u036f]/g, "")
                       .toLowerCase()
                       .trim()
                       .replace(/[^a-z0-9]+/g, "-")
