@@ -54,6 +54,9 @@ CREATE TABLE IF NOT EXISTS pages (
   title text NOT NULL, slug text NOT NULL UNIQUE,
   content text NOT NULL DEFAULT '', excerpt text NOT NULL DEFAULT '',
   published boolean NOT NULL DEFAULT false, seo_title text, seo_description text,
+  focus_keyword text, canonical_url text,
+  robots_index boolean NOT NULL DEFAULT true, robots_follow boolean NOT NULL DEFAULT true,
+  og_title text, og_description text, og_image text,
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now()
 );
 
