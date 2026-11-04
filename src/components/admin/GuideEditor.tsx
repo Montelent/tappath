@@ -416,14 +416,15 @@ export default function GuideEditor() {
               ))}
             </div>
           </div>
-          <div className="overflow-x-auto rounded-2xl border border-[var(--border)]">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--card)]">
+          <table className="w-full min-w-[760px] text-sm">
             <thead className="bg-[var(--muted)]/40 text-left text-xs uppercase tracking-wide text-[var(--muted-foreground)]">
               <tr>
-                <th className="px-3 py-2">Title</th>
-                <th className="px-3 py-2">Brand</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2" />
+                <th className="whitespace-nowrap px-4 py-3">Title</th>
+                <th className="whitespace-nowrap px-4 py-3">Brand</th>
+                <th className="whitespace-nowrap px-4 py-3">Status</th>
+                <th className="whitespace-nowrap px-4 py-3 text-right">Slug</th>
+                <th className="w-[250px] whitespace-nowrap px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -432,16 +433,19 @@ export default function GuideEditor() {
                 .filter((r) => !listSearch.trim() || [r.title, r.brand, r.slug].join(" ").toLowerCase().includes(listSearch.toLowerCase()))
                 .map((r) => (
                 <tr key={r.id || r.slug} className="border-t border-[var(--border)] hover:bg-[var(--muted)]/30">
-                  <td className="px-3 py-3">
-                    <div className="font-medium">{r.title || "—"}</div>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-[var(--muted-foreground)]">
-                      <button type="button" className="text-brand-600 hover:underline" onClick={() => { setSlugLocked(true); setEditing(r); setTimeout(() => document.getElementById("guide-edit-form")?.scrollIntoView({ behavior: "smooth", block: "start" }), 40); }}>Edit</button>
-                      <span aria-hidden>·</span>
-                      {previewHref(r) ? (
-                        <Link href={previewHref(r)!} target="_blank" className="inline-flex items-center gap-0.5 hover:underline">View <ExternalLink className="h-3 w-3" /></Link>
-                      ) : <span className="opacity-50">View</span>}
-                      <span aria-hidden>·</span>
-                      <button type="button" className="text-red-600 hover:underline" onClick={async () => {
+                  <td className="max-w-[360px] break-words px-4 py-4 font-medium">{r.title || "—"}</td>
+                  <td className="px-4 py-4">{r.brand}</td>
+                  <td className="px-4 py-4">
+                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${r.published ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"}`}>
+                      {r.published ? "Published" : "Draft"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 text-right font-mono text-xs text-[var(--muted-foreground)]">{r.slug}</td>
+                  <td className="px-4 py-4">
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <button type="button" className="inline-flex min-h-9 items-center justify-center rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-brand-600 hover:bg-[var(--muted)]" onClick={() => { setSlugLocked(true); setEditing(r); setTimeout(() => document.getElementById("guide-edit-form")?.scrollIntoView({ behavior: "smooth", block: "start" }), 40); }}>Edit</button>
+                      {previewHref(r) ? <Link href={previewHref(r)!} target="_blank" className="inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium hover:bg-[var(--muted)]">View <ExternalLink className="h-3 w-3" /></Link> : <span className="px-3 text-xs text-[var(--muted-foreground)]">Not published</span>}
+                      <button type="button" className="inline-flex min-h-9 items-center justify-center rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950" onClick={async () => {
                         if (!r.id) return;
                         if (!confirm(`Move “${r.title}” to trash? This cannot be undone.`)) return;
                         setMessage("");
@@ -454,13 +458,6 @@ export default function GuideEditor() {
                       }}>Trash</button>
                     </div>
                   </td>
-                  <td className="px-3 py-3">{r.brand}</td>
-                  <td className="px-3 py-3">
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${r.published ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"}`}>
-                      {r.published ? "Published" : "Draft"}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3 text-right text-xs text-[var(--muted-foreground)]">{r.slug}</td>
                 </tr>
               ))}
             </tbody>
