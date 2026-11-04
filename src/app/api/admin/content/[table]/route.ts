@@ -18,39 +18,45 @@ const ALLOWED = new Set([
 type Ctx = { params: Promise<{ table: string }> };
 type Sql = NonNullable<ReturnType<typeof getSql>>;
 
-let pagesSchemaReady = false;
+let pagesSchemaReady: Promise<void> | null = null;
 
 async function ensurePagesTable(sql: Sql) {
-  if (pagesSchemaReady) return;
-  await sql`
-    CREATE TABLE IF NOT EXISTS pages (
-      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      title text NOT NULL,
-      slug text NOT NULL UNIQUE,
-      content text NOT NULL DEFAULT '',
-      excerpt text NOT NULL DEFAULT '',
-      published boolean NOT NULL DEFAULT false,
-      seo_title text,
-      seo_description text,
-      focus_keyword text,
-      canonical_url text,
-      robots_index boolean NOT NULL DEFAULT true,
-      robots_follow boolean NOT NULL DEFAULT true,
-      og_title text,
-      og_description text,
-      og_image text,
-      created_at timestamptz NOT NULL DEFAULT now(),
-      updated_at timestamptz NOT NULL DEFAULT now()
-    )
-  `;
-  await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS focus_keyword text`;
-  await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS canonical_url text`;
-  await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS robots_index boolean NOT NULL DEFAULT true`;
-  await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS robots_follow boolean NOT NULL DEFAULT true`;
-  await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS og_title text`;
-  await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS og_description text`;
-  await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS og_image text`;
-  pagesSchemaReady = true;
+  if (!pagesSchemaReady) {
+    pagesSchemaReady = (async () => {
+      await sql`
+        CREATE TABLE IF NOT EXISTS pages (
+          id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+          title text NOT NULL,
+          slug text NOT NULL UNIQUE,
+          content text NOT NULL DEFAULT '',
+          excerpt text NOT NULL DEFAULT '',
+          published boolean NOT NULL DEFAULT false,
+          seo_title text,
+          seo_description text,
+          focus_keyword text,
+          canonical_url text,
+          robots_index boolean NOT NULL DEFAULT true,
+          robots_follow boolean NOT NULL DEFAULT true,
+          og_title text,
+          og_description text,
+          og_image text,
+          created_at timestamptz NOT NULL DEFAULT now(),
+          updated_at timestamptz NOT NULL DEFAULT now()
+        )
+      `;
+      await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS focus_keyword text`;
+      await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS canonical_url text`;
+      await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS robots_index boolean NOT NULL DEFAULT true`;
+      await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS robots_follow boolean NOT NULL DEFAULT true`;
+      await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS og_title text`;
+      await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS og_description text`;
+      await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS og_image text`;
+    })().catch((error) => {
+      pagesSchemaReady = null;
+      throw error;
+    });
+  }
+  await pagesSchemaReady;
 }
 
 async function selectAll(sql: Sql, table: string) {
