@@ -301,6 +301,60 @@ export default function GuideEditor() {
             versions={editing.versions || []}
             onChange={(versions) => setEditing({ ...editing, versions })}
           />
+          <section className="space-y-3 rounded-xl border border-[var(--border)] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold">Frequently asked questions (FAQs)</h3>
+                <p className="mt-1 text-xs text-[var(--muted-foreground)]">Add questions and answers that will appear with this guide.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditing({ ...editing, faqs: [...(editing.faqs || []), { q: "", a: "" }] })}
+                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[var(--border)] px-3 py-1.5 text-xs font-medium"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add FAQ
+              </button>
+            </div>
+            {(editing.faqs || []).length === 0 ? (
+              <p className="text-sm text-[var(--muted-foreground)]">No FAQs added yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {(editing.faqs || []).map((faq, index) => (
+                  <div key={index} className="space-y-2 rounded-lg bg-[var(--muted)]/30 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-medium text-[var(--muted-foreground)]">FAQ {index + 1}</span>
+                      <button
+                        type="button"
+                        onClick={() => setEditing({ ...editing, faqs: (editing.faqs || []).filter((_, i) => i !== index) })}
+                        className="text-xs text-red-600 hover:underline"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <label className="block">
+                      <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">Question</span>
+                      <input
+                        value={faq.q || ""}
+                        onChange={(e) => setEditing({ ...editing, faqs: (editing.faqs || []).map((item, i) => i === index ? { ...item, q: e.target.value } : item) })}
+                        placeholder="Enter a frequently asked question"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">Answer</span>
+                      <textarea
+                        value={faq.a || ""}
+                        onChange={(e) => setEditing({ ...editing, faqs: (editing.faqs || []).map((item, i) => i === index ? { ...item, a: e.target.value } : item) })}
+                        rows={3}
+                        placeholder="Write the answer"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
+                      />
+                    </label>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
           <SeoMetaBox
             value={{
               focus_keyword: editing.focus_keyword,
