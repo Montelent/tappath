@@ -250,8 +250,10 @@ export async function getAdminStats(): Promise<AdminStats> {
   if (isNeonConfigured()) {
     try {
       const sql = getSql()!;
-      const [g, b, t, d, gl, f, fb] = await Promise.all([
+      await sql`CREATE TABLE IF NOT EXISTS pages (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), title text NOT NULL, slug text NOT NULL UNIQUE, content text NOT NULL DEFAULT '', excerpt text NOT NULL DEFAULT '', published boolean NOT NULL DEFAULT false, seo_title text, seo_description text, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now())`;
+      const [g, p, b, t, d, gl, f, fb] = await Promise.all([
         sql`SELECT count(*)::int AS c FROM guides`,
+        sql`SELECT count(*)::int AS c FROM pages`,
         sql`SELECT count(*)::int AS c FROM brands`,
         sql`SELECT count(*)::int AS c FROM topics`,
         sql`SELECT count(*)::int AS c FROM devices`,
@@ -261,6 +263,7 @@ export async function getAdminStats(): Promise<AdminStats> {
       ]);
       return {
         guides: (g[0] as { c: number }).c,
+        pages: (p[0] as { c: number }).c,
         brands: (b[0] as { c: number }).c,
         topics: (t[0] as { c: number }).c,
         devices: (d[0] as { c: number }).c,
@@ -275,6 +278,7 @@ export async function getAdminStats(): Promise<AdminStats> {
   }
   return {
     guides: Object.keys(staticGuides).length,
+    pages: 0,
     brands: Object.keys(staticBrands).length,
     topics: staticTopics.length,
     devices: staticDevices().length,
