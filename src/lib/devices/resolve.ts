@@ -9,9 +9,20 @@ import { isNeonConfigured } from "@/lib/db/neon";
 import { guideHref } from "@/lib/guides/resolve";
 import type { DbDevice, DbGuide } from "@/lib/db/types";
 
+function guideMatchesDevice(g: DbGuide, d: DbDevice): boolean {
+  const normalize = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const slug = normalize(d.slug);
+  const name = normalize(d.name);
+  return (g.compatible_devices || []).some((item) => {
+    const itemName = normalize(item.name || "");
+    const itemHref = normalize(item.href || "");
+    return itemName === slug || itemName === name || itemHref.endsWith(slug) || itemHref.includes(slug);
+  });
+}
+
 function dbDeviceToDevice(d: DbDevice, guides: DbGuide[]): Device {
-  const brandGuides = guides
-    .filter((g) => g.brand_slug === d.brand_slug)
+  const deviceGuides = guides.filter((g) => g.brand_slug === d.brand_slug && guideMatchesDevice(g, d));
+  const brandGuides = deviceGuides
     .slice(0, 12)
     .map((g) => ({
       title: g.title,
@@ -48,7 +59,7 @@ export async function listDevicesPublic(): Promise<Device[]> {
   if (isDatabaseConfigured()) {
     try {
       const [devices, guides] = await Promise.all([listDevices(), listGuides()]);
-      return devices.map((d) => dbDeviceToDevice(d, guides));
+      return devices.filter((d) => guides.some((g) => g.brand_slug === d.brand_slug && guideMatchesDevice(g, d))).map((d) => dbDeviceToDevice(d, guides));
     } catch (e) {
       console.error("[listDevicesPublic]", e);
       return [];
@@ -64,7 +75,7 @@ export async function resolveDevice(slug: string): Promise<Device | null> {
   if (isDatabaseConfigured()) {
     try {
       const [devices, guides] = await Promise.all([listDevices(), listGuides()]);
-      const hit = devices.find((d) => d.slug === key);
+      const hit = devices.find((d) => d.slug === key && guides.some((g) => g.brand_slug === d.brand_slug && guideMatchesDevice(g, d)));
       if (!hit) return null;
       return dbDeviceToDevice(hit, guides);
     } catch (e) {
