@@ -135,14 +135,11 @@ export default function BrandEditor() {
           const line = String(g.product_line || "Guides");
           lineMap.set(line, (lineMap.get(line) || 0) + 1);
         }
-        const product_lines =
-          lineMap.size > 0
-            ? Array.from(lineMap.entries()).map(([name, count]) => ({
-                name,
-                count,
-                href: `/${slug}/${name.toLowerCase().replace(/\s+/g, "-")}`,
-              }))
-            : prev.product_lines;
+        const product_lines = Array.from(lineMap.entries()).map(([name, count]) => ({
+          name,
+          count,
+          href: `/${slug}/${name.toLowerCase().replace(/\s+/g, "-")}`,
+        }));
         return { ...prev, guides_count: brandGuides.length, top_guides: mapped, product_lines };
       });
     } catch {
@@ -164,8 +161,8 @@ export default function BrandEditor() {
       const isNew = !editing.id;
       const payload = {
         ...editing,
-        top_guides: autoGuides.length > 0 ? autoGuides : editing.top_guides,
-        guides_count: autoGuides.length > 0 ? autoGuides.length : editing.guides_count,
+        top_guides: autoGuides,
+        guides_count: autoGuides.length,
       };
       const res = await fetch("/api/admin/content/brands", {
         method: isNew ? "POST" : "PATCH",
@@ -361,6 +358,7 @@ export default function BrandEditor() {
                 <th className="whitespace-nowrap px-4 py-3">Name</th>
                 <th className="whitespace-nowrap px-4 py-3">Slug</th>
                 <th className="whitespace-nowrap px-4 py-3">Guides</th>
+                <th className="whitespace-nowrap px-4 py-3">Devices</th>
                 <th className="whitespace-nowrap px-4 py-3">Status</th>
                 <th className="w-[260px] whitespace-nowrap px-4 py-3 text-right">Actions</th>
               </tr>
@@ -370,7 +368,8 @@ export default function BrandEditor() {
                 <tr key={String(row.id)} className="hover:bg-[var(--muted)]/30">
                   <td className="max-w-[280px] break-words px-4 py-4 font-medium">{row.name}</td>
                   <td className="px-4 py-4 font-mono text-xs">{row.slug}</td>
-                  <td className="px-4 py-4">{row.guides_count}</td>
+                  <td className="px-4 py-4 tabular-nums">{row.guides_count ?? 0}</td>
+                  <td className="px-4 py-4 tabular-nums">{row.devices_count ?? 0}</td>
                   <td className="px-4 py-4">
                     {row.published ? (
                       <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">Live</span>
@@ -404,7 +403,7 @@ export default function BrandEditor() {
                 </tr>
               ))}
               {rows.length === 0 && (
-                <tr><td colSpan={5} className="px-3 py-8 text-center text-[var(--muted-foreground)]">No brands. Connect Neon and Seed DB.</td></tr>
+                <tr><td colSpan={6} className="px-3 py-8 text-center text-[var(--muted-foreground)]">No brands. Connect Neon and Seed DB.</td></tr>
               )}
             </tbody>
           </table>
