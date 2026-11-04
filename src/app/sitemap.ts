@@ -57,21 +57,34 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       s.seo_sitemap_include_guides !== false ? listGuides() : Promise.resolve([]),
     ]);
 
-    const brandRoutes = brands.map((b) => ({
+    const brandsWithGuides = brands.filter((b) => guides.some((g) => g.brand_slug === b.slug));
+    const topicsWithGuides = topics.filter((t) => guides.some((g) => {
+      const category = (g.category || "").toLowerCase();
+      const name = (t.name || "").toLowerCase();
+      const slug = (t.slug || "").toLowerCase().replace(/-/g, " ");
+      return !!category && (category === name || category.includes(name) || name.includes(category) || category.includes(slug) || slug.includes(category));
+    }));
+    const devicesWithGuides = devices.filter((d) => guides.some((g) => g.brand_slug === d.brand_slug && (g.compatible_devices || []).some((item) => {
+      const normalize = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const slug = normalize(d.slug);
+      return normalize(item.name || "") === slug || normalize(item.href || "").endsWith(slug) || normalize(item.href || "").includes(slug);
+    })));
+
+    const brandRoutes = brandsWithGuides.map((b) => ({
       url: `${host}/${b.slug}`,
       lastModified: now,
       changeFrequency: defFreq,
       priority: 0.85,
     }));
 
-    const topicRoutes = topics.map((t) => ({
+    const topicRoutes = topicsWithGuides.map((t) => ({
       url: `${host}/topics/${t.slug}`,
       lastModified: now,
       changeFrequency: defFreq,
       priority: 0.8,
     }));
 
-    const deviceRoutes = devices.map((d) => ({
+    const deviceRoutes = devicesWithGuides.map((d) => ({
       url: `${host}${d.href || `/${d.brand_slug}/${d.slug}`}`,
       lastModified: now,
       changeFrequency: defFreq,
