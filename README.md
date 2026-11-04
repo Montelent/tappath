@@ -18,19 +18,21 @@ Env (optional):
 
 - Homepage, brands (8), guides + Live Simulator
 - Topics (14), devices, glossary (50+)
-- Auth sessions (demo accounts)
+- Auth sessions (account registration; requires AUTH_SECRET)
 - AI Copilot + `/api/copilot`
 - SEO (sitemap, robots, HowTo JSON-LD)
 - i18n EN/DE
 - Admin dashboard (admin-gated)
 - Community Forum
 
-### Demo accounts
+### Production configuration
 
-| Email | Password | Role |
-|-------|----------|------|
-| admin@tappath.com | admin1234 | admin |
-| user@tappath.com | user1234 | user |
+Set `AUTH_SECRET` to a cryptographically random value of at least 32 characters.
+Do not rely on demo credentials or mock storage for production deployments.
+For Neon deployments, configure `DATABASE_URL`; the protected content bootstrap
+also requires a one-time `SETUP_SECRET` of at least 32 characters, sent as the
+`x-setup-secret` header. The bootstrap seeds content only and never creates or
+resets user accounts.
 
 ### Key routes
 
