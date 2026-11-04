@@ -29,6 +29,13 @@ async function ensurePagesTable(sql: Sql) {
       published boolean NOT NULL DEFAULT false,
       seo_title text,
       seo_description text,
+      focus_keyword text,
+      canonical_url text,
+      robots_index boolean NOT NULL DEFAULT true,
+      robots_follow boolean NOT NULL DEFAULT true,
+      og_title text,
+      og_description text,
+      og_image text,
       created_at timestamptz NOT NULL DEFAULT now(),
       updated_at timestamptz NOT NULL DEFAULT now()
     )
@@ -162,7 +169,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       const title = String(body.title || "").trim();
       const slug = String(body.slug || "").trim().toLowerCase();
       if (!title || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) throw new Error("A title and valid URL slug are required");
-      const rows = await sql`INSERT INTO pages (title, slug, content, excerpt, published, seo_title, seo_description) VALUES (${title}, ${slug}, ${String(body.content || "")}, ${String(body.excerpt || "")}, ${body.published === true}, ${String(body.seo_title || "") || null}, ${String(body.seo_description || "") || null}) RETURNING *`;
+      const rows = await sql`INSERT INTO pages (title, slug, content, excerpt, published, seo_title, seo_description, focus_keyword, canonical_url, robots_index, robots_follow, og_title, og_description, og_image) VALUES (${title}, ${slug}, ${String(body.content || "")}, ${String(body.excerpt || "")}, ${body.published === true}, ${String(body.seo_title || "") || null}, ${String(body.seo_description || "") || null}, ${String(body.focus_keyword || "") || null}, ${String(body.canonical_url || "") || null}, ${body.robots_index === false ? false : true}, ${body.robots_follow === false ? false : true}, ${String(body.og_title || "") || null}, ${String(body.og_description || "") || null}, ${String(body.og_image || "") || null}) RETURNING *`;
       return NextResponse.json({ row: rows[0] }, { status: 201 });
     }
     if (table === "guides") {
@@ -214,7 +221,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       const title = String(body.title || "").trim();
       const slug = String(body.slug || "").trim().toLowerCase();
       if (!title || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) throw new Error("A title and valid URL slug are required");
-      const rows = await sql`UPDATE pages SET title = ${title}, slug = ${slug}, content = ${String(body.content || "")}, excerpt = ${String(body.excerpt || "")}, published = ${body.published === true}, seo_title = ${String(body.seo_title || "") || null}, seo_description = ${String(body.seo_description || "") || null}, updated_at = now() WHERE id::text = ${id} RETURNING *`;
+      const rows = await sql`UPDATE pages SET title = ${title}, slug = ${slug}, content = ${String(body.content || "")}, excerpt = ${String(body.excerpt || "")}, published = ${body.published === true}, seo_title = ${String(body.seo_title || "") || null}, seo_description = ${String(body.seo_description || "") || null}, focus_keyword = ${String(body.focus_keyword || "") || null}, canonical_url = ${String(body.canonical_url || "") || null}, robots_index = ${body.robots_index === false ? false : true}, robots_follow = ${body.robots_follow === false ? false : true}, og_title = ${String(body.og_title || "") || null}, og_description = ${String(body.og_description || "") || null}, og_image = ${String(body.og_image || "") || null}, updated_at = now() WHERE id::text = ${id} RETURNING *`;
       if (!rows[0]) throw new Error("Page not found");
       return NextResponse.json({ row: rows[0] });
     }
