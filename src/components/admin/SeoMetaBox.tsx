@@ -56,7 +56,7 @@ export default function SeoMetaBox({
   defaultTitle,
   defaultDescription,
   pathPreview,
-  siteHost = "yoursite.com",
+  siteHost = "tappath.com",
   imageUrl,
   className,
 }: Props) {
@@ -100,7 +100,7 @@ export default function SeoMetaBox({
   const overall =
     total === 0 ? "empty" : passed / total >= 0.8 ? "good" : passed / total >= 0.5 ? "ok" : "bad";
 
-  const host = siteHost.replace(/^https?:\/\//, "").replace(/\/$/, "") || "yoursite.com";
+  const host = siteHost.replace(/^https?:\/\//, "").replace(/\/$/, "") || "tappath.com";
   const path = pathPreview.startsWith("/") ? pathPreview : `/${pathPreview}`;
   const crumbs = path.split("/").filter(Boolean).slice(0, 3);
 
