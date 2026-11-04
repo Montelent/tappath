@@ -166,10 +166,10 @@ export default function Header() {
         >
           <nav className="flex flex-col gap-0.5 p-2" aria-label="Mobile">
             {nav.map((item) => (
-              <li key={item.id} className="list-none">
+              <div key={item.id}>
                 <Link href={item.href} onClick={() => setMobileOpen(false)} {...(item.openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="block rounded-xl px-3 py-3 text-base font-medium link-quiet hover:bg-[var(--muted)]">{item.label}</Link>
                 {item.children?.length ? <div className="ml-4 border-l border-[var(--border)] pl-2">{item.children.map((child) => <Link key={child.id} href={child.href} onClick={() => setMobileOpen(false)} {...(child.openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="block rounded-lg px-3 py-2 text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)]">{child.label}</Link>)}</div> : null}
-              </li>
+              </div>
             ))}
             <div className="my-1 border-t border-[var(--border)]" />
             {auth?.user ? (
