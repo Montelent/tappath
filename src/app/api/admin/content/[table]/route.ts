@@ -208,6 +208,10 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       const row = await insertGuide(sql, body);
       return NextResponse.json({ row }, { status: 201 });
     }
+    if (table === "devices") {
+      const row = await insertDevice(sql, body);
+      return NextResponse.json({ row }, { status: 201 });
+    }
     if (table === "brands") {
       const row = await insertBrand(sql, body);
       return NextResponse.json({ row }, { status: 201 });
@@ -259,6 +263,10 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     }
     if (table === "guides") {
       const row = await updateGuide(sql, id, body);
+      return NextResponse.json({ row });
+    }
+    if (table === "devices") {
+      const row = await updateDevice(sql, id, body);
       return NextResponse.json({ row });
     }
     if (table === "brands") {
@@ -338,6 +346,46 @@ async function ensureGlossaryColumns(sql: Sql) {
   } catch {
     /* column may already exist */
   }
+}
+
+
+async function normalizeDeviceInput(sql: Sql, b: Record<string, unknown>) {
+  await ensureDevicesColumns(sql);
+  const name = String(b.name || "").trim();
+  const slug = String(b.slug || name).normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  const brandSlug = String(b.brand_slug || "").trim().toLowerCase();
+  if (!name || !slug || !brandSlug) throw new Error("Device name and brand are required");
+  const brands = await sql`SELECT slug, name FROM brands WHERE slug = ${brandSlug} LIMIT 1`;
+  if (!brands[0]) throw new Error("Select a valid brand");
+  return {
+    name, slug, brandSlug, brandName: String(brands[0].name),
+    os: String(b.os || ""), href: `/${brandSlug}/${slug}`,
+    year: b.year == null || b.year === "" ? null : Number(b.year),
+    guides: JSON.stringify(Array.isArray(b.guides) ? b.guides : []),
+    published: b.published !== false,
+  };
+}
+
+async function insertDevice(sql: Sql, b: Record<string, unknown>) {
+  const d = await normalizeDeviceInput(sql, b);
+  const rows = await sql`
+    INSERT INTO devices (slug, name, brand_slug, brand_name, os, href, year, guides, published)
+    VALUES (${d.slug}, ${d.name}, ${d.brandSlug}, ${d.brandName}, ${d.os}, ${d.href}, ${d.year}, ${d.guides}::jsonb, ${d.published})
+    RETURNING *
+  `;
+  return rows[0];
+}
+
+async function updateDevice(sql: Sql, id: string, b: Record<string, unknown>) {
+  const d = await normalizeDeviceInput(sql, b);
+  const rows = await sql`
+    UPDATE devices SET slug = ${d.slug}, name = ${d.name}, brand_slug = ${d.brandSlug},
+      brand_name = ${d.brandName}, os = ${d.os}, href = ${d.href}, year = ${d.year},
+      guides = ${d.guides}::jsonb, published = ${d.published}, updated_at = now()
+    WHERE id::text = ${id} RETURNING *
+  `;
+  if (!rows[0]) throw new Error("Device not found");
+  return rows[0];
 }
 
 async function insertGuide(sql: Sql, b: Record<string, unknown>) {
