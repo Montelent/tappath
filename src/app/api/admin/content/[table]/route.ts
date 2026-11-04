@@ -371,6 +371,8 @@ async function insertGuide(sql: Sql, b: Record<string, unknown>) {
 
 async function updateGuide(sql: Sql, id: string, b: Record<string, unknown>) {
   await ensureGuideColumns(sql);
+  const previousRows = await sql`SELECT brand_slug, product_line, slug FROM guides WHERE id::text = ${id} LIMIT 1`;
+  const previous = previousRows[0] as { brand_slug?: string; product_line?: string; slug?: string } | undefined;
   const rows = await sql`
     UPDATE guides SET
       slug = ${String(b.slug || "")},
@@ -404,6 +406,43 @@ async function updateGuide(sql: Sql, id: string, b: Record<string, unknown>) {
     RETURNING *
   `;
   if (!rows[0]) throw new Error("Guide not found");
+
+  if (previous?.slug) {
+    const pathFor = (brand: unknown, line: unknown, slug: unknown) => {
+      const brandPart = String(brand || "").trim().toLowerCase();
+      const linePart = String(line || "guides").toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "");
+      return `/${brandPart}/${linePart || "guides"}/${String(slug || "").trim()}`;
+    };
+    const oldPath = pathFor(previous.brand_slug, previous.product_line, previous.slug);
+    const newPath = pathFor(rows[0].brand_slug, rows[0].product_line, rows[0].slug);
+    if (oldPath !== newPath) {
+      const settingRows = await sql`SELECT value FROM site_settings WHERE key = 'seo_redirects' LIMIT 1`;
+      let redirects: { id?: string; from?: string; to?: string; code?: number; enabled?: boolean }[] = [];
+      const raw = settingRows[0]?.value;
+      if (Array.isArray(raw)) redirects = raw;
+      else if (typeof raw === "string") {
+        try { const parsed = JSON.parse(raw); if (Array.isArray(parsed)) redirects = parsed; } catch { /* use empty list */ }
+      } else if (raw && typeof raw === "object") {
+        const value = (raw as { value?: unknown }).value;
+        if (Array.isArray(value)) redirects = value as typeof redirects;
+      }
+      redirects = redirects.map((item) =>
+        item && item.to === oldPath ? { ...item, to: newPath } : item
+      );
+      const existingIndex = redirects.findIndex((item) => item?.from === oldPath);
+      const automatic = { id: `guide-${id}`, from: oldPath, to: newPath, code: 301, enabled: true };
+      if (existingIndex >= 0) redirects[existingIndex] = automatic;
+      else redirects.push(automatic);
+      const json = JSON.stringify(redirects);
+      await sql`
+        INSERT INTO site_settings (key, value, updated_at)
+        VALUES ('seo_redirects', ${json}::jsonb, now())
+        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()
+      `;
+    }
+  }
   return rows[0];
 }
 
