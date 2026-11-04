@@ -70,18 +70,6 @@ export default async function HomePage() {
     }))
     .filter((b) => b.count > 0);
 
-  const brandsComingSoon = brands
-    .map((b) => ({
-      name: b.name,
-      slug: b.slug,
-      color: (b as { color?: string }).color || "",
-      count:
-        typeof b.guides_count === "number"
-          ? b.guides_count
-          : guides.filter((g) => g.brand_slug === b.slug).length,
-    }))
-    .filter((b) => b.count === 0);
-
   const featured = guides.slice(0, 12).map((g, i) => {
     const brandRow = brands.find((b) => b.slug === g.brand_slug);
     return {
@@ -213,19 +201,7 @@ export default async function HomePage() {
           ) : (
             <p className="text-sm text-[var(--muted-foreground)]">{settings.homepage_no_brands_text}</p>
           )}
-          {brandsComingSoon.length > 0 && (
-            <div className="mt-8">
-              <p className="label-caps mb-3">{settings.homepage_coming_soon_label}</p>
-              <ul className="flex flex-wrap gap-2">
-                {brandsComingSoon.map((b) => (
-                  <li key={b.slug} className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1 text-sm text-[var(--muted-foreground)]">
-                    <span className="brand-swatch" style={{ backgroundColor: brandColorCss(b.color) }} aria-hidden />
-                    {b.name}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+
         </section>
 
         {featured.length > 0 && (
@@ -261,7 +237,7 @@ export default async function HomePage() {
           </section>
         )}
 
-        {topics.length > 0 && (
+        {topics.filter((t) => (Number(t.guide_count) || guides.filter((g) => (g.category || "").toLowerCase().includes(t.name.toLowerCase()) || t.name.toLowerCase().includes((g.category || "").toLowerCase())).length) > 0).length > 0 && (
           <section className="max-wide border-t border-[var(--border)] section-y" aria-labelledby="home-topics">
             <div className="mb-6 flex items-baseline justify-between gap-4">
               <h2 id="home-topics" className="font-display text-xl sm:text-2xl">{settings.homepage_topics_heading}</h2>
@@ -270,7 +246,7 @@ export default async function HomePage() {
               </Link>
             </div>
             <ul className="grid-cards">
-              {topics.slice(0, 12).map((t) => (
+              {topics.filter((t) => guides.some((g) => (g.category || "").toLowerCase().includes(t.name.toLowerCase()) || t.name.toLowerCase().includes((g.category || "").toLowerCase()))).slice(0, 12).map((t) => (
                 <li key={t.slug || t.id}>
                   <Link href={`/topics/${t.slug}`} className="surface-card block h-full px-4 py-3.5 text-sm font-medium link-quiet">
                     {t.name}
