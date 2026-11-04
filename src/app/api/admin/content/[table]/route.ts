@@ -701,8 +701,9 @@ function slugifyBrandValue(value: string) {
 
 async function insertBrand(sql: Sql, b: Record<string, unknown>) {
   const name = String(b.name || "").trim();
-  const slug = slugifyBrandValue(name);
-  if (!name || !slug) throw new Error("Enter a valid brand name");
+  const requestedSlug = String(b.slug || "").trim();
+  const slug = slugifyBrandValue(requestedSlug || name);
+  if (!name || !slug) throw new Error("Enter a valid brand name and slug");
   const rows = await sql`
     INSERT INTO brands (
       slug, name, color, description, guides_count, devices_count,
@@ -730,8 +731,11 @@ async function insertBrand(sql: Sql, b: Record<string, unknown>) {
 
 async function updateBrand(sql: Sql, id: string, b: Record<string, unknown>) {
   const name = String(b.name || "").trim();
-  const slug = slugifyBrandValue(name);
-  if (!name || !slug) throw new Error("Enter a valid brand name");
+  const currentRows = await sql`SELECT slug FROM brands WHERE id::text = ${id} LIMIT 1`;
+  if (!currentRows[0]) throw new Error("Brand not found");
+  const requestedSlug = String(b.slug || "").trim();
+  const slug = slugifyBrandValue(requestedSlug || String(currentRows[0].slug || ""));
+  if (!name || !slug) throw new Error("Enter a valid brand name and slug");
   const rows = await sql`
     UPDATE brands SET
       slug = ${slug},
