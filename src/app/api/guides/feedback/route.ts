@@ -100,5 +100,13 @@ export async function GET(req: NextRequest) {
 
   const feedback = getStore().feedback;
   const filtered = guideSlug ? feedback.filter((f) => f.guideSlug === guideSlug) : feedback;
-  return NextResponse.json({ feedback: filtered });
+  const grouped = new Map<string, { guide_slug: string; yes: number; no: number; total: number }>();
+  for (const item of filtered) {
+    const row = grouped.get(item.guideSlug) || { guide_slug: item.guideSlug, yes: 0, no: 0, total: 0 };
+    if (item.correct) row.yes += 1;
+    else row.no += 1;
+    row.total += 1;
+    grouped.set(item.guideSlug, row);
+  }
+  return NextResponse.json({ feedback: [...grouped.values()] });
 }
