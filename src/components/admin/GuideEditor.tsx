@@ -340,16 +340,14 @@ export default function GuideEditor() {
                         className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
                       />
                     </label>
-                    <label className="block">
-                      <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">Answer</span>
-                      <textarea
-                        value={faq.a || ""}
-                        onChange={(e) => setEditing({ ...editing, faqs: (editing.faqs || []).map((item, i) => i === index ? { ...item, a: e.target.value } : item) })}
-                        rows={3}
-                        placeholder="Write the answer"
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
-                      />
-                    </label>
+                    <RichTextEditor
+                      label="Answer"
+                      value={faq.a || ""}
+                      onChange={(html) => setEditing({ ...editing, faqs: (editing.faqs || []).map((item, i) => i === index ? { ...item, a: html } : item) })}
+                      minHeight={160}
+                      placeholder="Write the answer"
+                      compact
+                    />
                   </div>
                 ))}
               </div>
