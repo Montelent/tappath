@@ -331,16 +331,16 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                   <label key={f.key} className="block">
                     <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">{f.label}</span>
                     <input value={String(editing.slug || "")} onChange={(e) => setEditing({ ...editing, slug: e.target.value })} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
-                    <span className="mt-1 block text-[11px] text-[var(--muted-foreground)]">Auto-generated from the topic name. You can edit it manually.</span>
+                    <span className="mt-1 block text-[11px] text-[var(--muted-foreground)]">Auto-generated when creating. During editing, it stays unchanged unless you edit it manually.</span>
                   </label>
                 );
               }
               if (table === "devices" && f.key === "slug") {
                 return (
                   <label key={f.key} className="block">
-                    <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">{f.label} (auto-generated)</span>
-                    <input readOnly value={String(editing.slug || "")} className="w-full rounded-xl border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-sm" />
-                    <span className="mt-1 block text-[11px] text-[var(--muted-foreground)]">Generated from the device name.</span>
+                    <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">{f.label}</span>
+                    <input value={String(editing.slug || "")} onChange={(e) => setEditing({ ...editing, slug: e.target.value })} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
+                    <span className="mt-1 block text-[11px] text-[var(--muted-foreground)]">Auto-generated when creating. During editing, it stays unchanged unless you edit it manually.</span>
                   </label>
                 );
               }
@@ -412,8 +412,8 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                       table === "pages" &&
                       f.key === "title" &&
                       (!String(editing.slug || "") || String(editing.slug) === previousAutoSlug);
-                    const shouldUpdateDeviceSlug = table === "devices" && f.key === "name";
-                    const shouldUpdateTopicSlug = table === "topics" && f.key === "name";
+                    const shouldUpdateDeviceSlug = !editing.id && table === "devices" && f.key === "name";
+                    const shouldUpdateTopicSlug = !editing.id && table === "topics" && f.key === "name";
                     setEditing({
                       ...editing,
                       [f.key]: value,
