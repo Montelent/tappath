@@ -245,7 +245,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                           ? applySeoTemplate(seoTpl.glossaryDescription, { title: String(editing.term || ""), term: String(editing.term || ""), sitename: seoTpl.siteName, sep: seoTpl.sep, excerpt: String(editing.short || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160) }, String(editing.short || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160))
                           : applySeoTemplate(seoTpl.guideDescription, { title: String(editing.title || ""), brand: String(editing.brand || ""), sitename: seoTpl.siteName, sep: seoTpl.sep, excerpt: String(editing.short_description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160) }, String(editing.short_description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160))
                       }
-                      pathPreview={table === "glossary_terms" ? `/glossary/${String(editing.slug || "")}` : `/${String(editing.slug || "")}`}
+                      pathPreview={table === "glossary_terms" ? `/glossary/${String(editing.slug || "")}` : table === "pages" ? `/pages/${String(editing.slug || "")}` : `/${String(editing.slug || "")}`}
                       imageUrl={String(editing.featured_image_url || editing.og_image || "") || undefined}
                     />
                   </div>
@@ -376,7 +376,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                           <div className="font-medium">{String(r[c.key] ?? "—")}</div>
                           <div className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-[var(--muted-foreground)]">
                             <button type="button" className="text-brand-600 hover:underline" onClick={() => { setEditing(r); setTimeout(() => document.getElementById("content-edit-form")?.scrollIntoView({ behavior: "smooth", block: "start" }), 40); }}>Edit</button>
-                            {table === "glossary_terms" && r.slug ? (<><span aria-hidden>·</span><a href={`/glossary/${String(r.slug)}`} target="_blank" rel="noreferrer" className="hover:underline">View</a></>) : null}
+                            {(table === "glossary_terms" || table === "pages") && r.slug && r.published ? (<><span aria-hidden>·</span><a href={table === "pages" ? `/pages/${String(r.slug)}` : `/glossary/${String(r.slug)}`} target="_blank" rel="noreferrer" className="hover:underline">View</a></>) : null}
                             {r.id != null && (<><span aria-hidden>·</span><button type="button" className="text-red-600 hover:underline" onClick={() => remove(String(r.id))}>Trash</button></>)}
                           </div>
                         </>
