@@ -22,6 +22,7 @@ type Props = {
 
 export default function ContentManager({ table, title, columns, emptyRow, fields }: Props) {
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
+  const [brandOptions, setBrandOptions] = useState<{ slug: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [usingDb, setUsingDb] = useState(false);
@@ -65,6 +66,18 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (table !== "devices") return;
+    let cancelled = false;
+    fetch("/api/admin/content/brands", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled) setBrandOptions((data.rows || []).map((b: Record<string, unknown>) => ({ slug: String(b.slug || ""), name: String(b.name || "") })).filter((b: { slug: string; name: string }) => b.slug && b.name));
+      })
+      .catch(() => { if (!cancelled) setBrandOptions([]); });
+    return () => { cancelled = true; };
+  }, [table]);
 
   useEffect(() => {
     let cancelled = false;
@@ -297,6 +310,31 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                   </div>
                 );
               }
+              if (table === "devices" && f.key === "brand_slug") {
+                return (
+                  <label key={f.key} className="block">
+                    <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">Brand</span>
+                    <select value={String(editing.brand_slug || "")} onChange={(e) => {
+                      const brand = brandOptions.find((item) => item.slug === e.target.value);
+                      setEditing({ ...editing, brand_slug: brand?.slug || "", brand_name: brand?.name || "" });
+                    }} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm">
+                      <option value="">Select a brand…</option>
+                      {brandOptions.map((brand) => <option key={brand.slug} value={brand.slug}>{brand.name}</option>)}
+                    </select>
+                    {brandOptions.length === 0 && <span className="mt-1 block text-[11px] text-amber-600">No brands found. Add brands first or refresh this form.</span>}
+                  </label>
+                );
+              }
+              if (table === "devices" && f.key === "brand_name") return null;
+              if (table === "devices" && f.key === "slug") {
+                return (
+                  <label key={f.key} className="block">
+                    <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">{f.label} (auto-generated)</span>
+                    <input readOnly value={String(editing.slug || "")} className="w-full rounded-xl border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-sm" />
+                    <span className="mt-1 block text-[11px] text-[var(--muted-foreground)]">Generated from the device name.</span>
+                  </label>
+                );
+              }
               if (f.type === "boolean") {
                 return (
                   <label key={f.key} className="flex items-center gap-2 text-sm">
@@ -365,10 +403,11 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                       table === "pages" &&
                       f.key === "title" &&
                       (!String(editing.slug || "") || String(editing.slug) === previousAutoSlug);
+                    const shouldUpdateDeviceSlug = table === "devices" && f.key === "name";
                     setEditing({
                       ...editing,
                       [f.key]: value,
-                      ...(shouldUpdatePageSlug ? { slug: nextSlug } : {}),
+                      ...(shouldUpdatePageSlug || shouldUpdateDeviceSlug ? { slug: nextSlug } : {}),
                     });
                   }} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
                   {f.help && <span className="mt-1 block text-[11px] text-[var(--muted-foreground)]">{f.help}</span>}
