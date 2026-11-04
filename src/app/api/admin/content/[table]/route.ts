@@ -80,8 +80,8 @@ async function selectAll(sql: Sql, table: string) {
     case "brands":
       return sql`
         SELECT b.*,
-          (SELECT count(*)::int FROM guides g WHERE g.brand_slug = b.slug) AS guides_count,
-          (SELECT count(*)::int FROM devices d WHERE d.brand_slug = b.slug) AS devices_count
+          (SELECT count(*)::int FROM guides g WHERE g.brand_slug = b.slug AND g.published = true) AS guides_count,
+          (SELECT count(*)::int FROM devices d WHERE d.brand_slug = b.slug AND COALESCE(d.published, true) = true) AS devices_count
         FROM brands b
         ORDER BY b.sort_order ASC NULLS LAST, b.name ASC
         LIMIT 500
@@ -571,6 +571,58 @@ async function updateGlossary(sql: Sql, id: string, b: Record<string, unknown>) 
   return rows[0];
 }
 
+async function refreshBrandCounts(sql: Sql, slug: string) {
+  const rows = await sql`
+    UPDATE brands b SET
+      guides_count = (
+        SELECT count(*)::int FROM guides g
+        WHERE g.brand_slug = b.slug AND g.published = true
+      ),
+      devices_count = (
+        SELECT count(*)::int FROM devices d
+        WHERE d.brand_slug = b.slug AND COALESCE(d.published, true) = true
+      ),
+      product_lines = COALESCE((
+        SELECT jsonb_agg(jsonb_build_object(
+          'name', line.name,
+          'count', line.guide_count,
+          'href', '/' || b.slug || '/' || regexp_replace(lower(line.name), '[^a-z0-9]+', '-', 'g')
+        ) ORDER BY line.name)
+        FROM (
+          SELECT g.product_line AS name, count(*)::int AS guide_count
+          FROM guides g
+          WHERE g.brand_slug = b.slug AND g.published = true
+            AND COALESCE(g.product_line, '') <> ''
+          GROUP BY g.product_line
+        ) line
+      ), '[]'::jsonb),
+      top_guides = COALESCE((
+        SELECT jsonb_agg(jsonb_build_object(
+          'title', guide.title,
+          'href', '/' || b.slug || '/' || regexp_replace(lower(COALESCE(guide.product_line, 'guides')), '[^a-z0-9]+', '-', 'g') || '/' || guide.slug,
+          'category', COALESCE(guide.category, 'General')
+        ) ORDER BY guide.updated_at DESC NULLS LAST)
+        FROM (
+          SELECT g.title, g.product_line, g.slug, g.category, g.updated_at
+          FROM guides g
+          WHERE g.brand_slug = b.slug AND g.published = true
+          ORDER BY g.updated_at DESC NULLS LAST
+          LIMIT 24
+        ) guide
+      ), '[]'::jsonb),
+      devices_list = COALESCE((
+        SELECT jsonb_agg(jsonb_build_object(
+          'name', d.name, 'os', COALESCE(d.os, ''), 'href', COALESCE(d.href, '/' || b.slug || '/' || d.slug)
+        ) ORDER BY d.name)
+        FROM devices d
+        WHERE d.brand_slug = b.slug AND COALESCE(d.published, true) = true
+      ), '[]'::jsonb)
+    WHERE b.slug = ${slug}
+    RETURNING b.*
+  `;
+  return rows[0] || null;
+}
+
 async function insertBrand(sql: Sql, b: Record<string, unknown>) {
   const rows = await sql`
     INSERT INTO brands (
@@ -594,7 +646,8 @@ async function insertBrand(sql: Sql, b: Record<string, unknown>) {
     )
     RETURNING *
   `;
-  return rows[0];
+  const slug = String(rows[0]?.slug || b.slug || "");
+  return (await refreshBrandCounts(sql, slug)) || rows[0];
 }
 
 async function updateBrand(sql: Sql, id: string, b: Record<string, unknown>) {
@@ -617,7 +670,8 @@ async function updateBrand(sql: Sql, id: string, b: Record<string, unknown>) {
     RETURNING *
   `;
   if (!rows[0]) throw new Error("Brand not found");
-  return rows[0];
+  const slug = String(rows[0].slug || "");
+  return (await refreshBrandCounts(sql, slug)) || rows[0];
 }
 
 async function updateForumTopic(sql: Sql, id: string, b: Record<string, unknown>) {
