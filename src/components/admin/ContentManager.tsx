@@ -385,34 +385,37 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
           </div>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-[var(--border)]">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--card)]">
+          <table className="w-full min-w-[680px] text-sm">
             <thead className="bg-[var(--muted)]/40 text-left text-xs uppercase tracking-wide text-[var(--muted-foreground)]">
               <tr>
                 {columns.map((c) => (
-                  <th key={c.key} className="px-3 py-2">{c.label}</th>
+                  <th key={c.key} className="whitespace-nowrap px-4 py-3">{c.label}</th>
                 ))}
+                <th className="w-[220px] whitespace-nowrap px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((r) => (
                 <tr key={String(r.id || r.slug)} className="border-t border-[var(--border)] hover:bg-[var(--muted)]/30">
-                  {columns.map((c, idx) => (
-                    <td key={c.key} className="px-3 py-3">
-                      {idx === 0 ? (
-                        <>
-                          <div className="font-medium">{String(r[c.key] ?? "—")}</div>
-                          <div className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-[var(--muted-foreground)]">
-                            <button type="button" className="text-brand-600 hover:underline" onClick={() => { setEditing(r); setTimeout(() => document.getElementById("content-edit-form")?.scrollIntoView({ behavior: "smooth", block: "start" }), 40); }}>Edit</button>
-                            {(table === "glossary_terms" || table === "pages") && r.slug && r.published ? (<><span aria-hidden>·</span><a href={table === "pages" ? `/pages/${String(r.slug)}` : `/glossary/${String(r.slug)}`} target="_blank" rel="noreferrer" className="hover:underline">View</a></>) : null}
-                            {r.id != null && (<><span aria-hidden>·</span><button type="button" className="text-red-600 hover:underline" onClick={() => remove(String(r.id))}>Trash</button></>)}
-                          </div>
-                        </>
-                      ) : (
-                        String(r[c.key] ?? "—")
-                      )}
+                  {columns.map((c) => (
+                    <td key={c.key} className="max-w-[320px] break-words px-4 py-4 align-middle">
+                      {c.key === "published" ? (
+                        <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${r.published ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"}`}>
+                          {r.published ? "Published" : "Draft"}
+                        </span>
+                      ) : String(r[c.key] ?? "—")}
                     </td>
                   ))}
+                  <td className="px-4 py-4 align-middle">
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <button type="button" className="inline-flex min-h-9 items-center justify-center rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-brand-600 hover:bg-[var(--muted)]" onClick={() => { setEditing(r); setTimeout(() => document.getElementById("content-edit-form")?.scrollIntoView({ behavior: "smooth", block: "start" }), 40); }}>Edit</button>
+                      {(table === "glossary_terms" || table === "pages") && r.slug && r.published ? (
+                        <a href={table === "pages" ? `/pages/${String(r.slug)}` : `/glossary/${String(r.slug)}`} target="_blank" rel="noreferrer" className="inline-flex min-h-9 items-center justify-center rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium hover:bg-[var(--muted)]">View</a>
+                      ) : null}
+                      {r.id != null && <button type="button" className="inline-flex min-h-9 items-center justify-center rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950" onClick={() => remove(String(r.id))}>Trash</button>}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
