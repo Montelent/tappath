@@ -72,6 +72,15 @@ export default function MenuEditor({ label, help, items, onChange }: Props) {
     update(parentIdx, { children: children.length ? children : undefined });
   }
 
+  function moveChild(parentIdx: number, childIdx: number, dir: -1 | 1) {
+    const parent = list[parentIdx];
+    const children = [...(parent.children || [])];
+    const target = childIdx + dir;
+    if (target < 0 || target >= children.length) return;
+    [children[childIdx], children[target]] = [children[target], children[childIdx]];
+    update(parentIdx, { children });
+  }
+
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -208,14 +217,15 @@ export default function MenuEditor({ label, help, items, onChange }: Props) {
                     placeholder="/path"
                     className="rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-1.5 font-mono text-sm"
                   />
-                  <button
-                    type="button"
-                    className="text-red-500 justify-self-end"
-                    onClick={() => removeChild(i, ci)}
-                    aria-label="Remove sub-link"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center justify-end gap-1">
+                    <button type="button" className="rounded p-1 text-[var(--muted-foreground)] disabled:opacity-30" onClick={() => moveChild(i, ci, -1)} disabled={ci === 0} aria-label="Move sub-link up"><ChevronUp className="h-4 w-4" /></button>
+                    <button type="button" className="rounded p-1 text-[var(--muted-foreground)] disabled:opacity-30" onClick={() => moveChild(i, ci, 1)} disabled={ci === (item.children || []).length - 1} aria-label="Move sub-link down"><ChevronDown className="h-4 w-4" /></button>
+                    <button type="button" className="rounded p-1 text-red-500" onClick={() => removeChild(i, ci)} aria-label="Remove sub-link"><Trash2 className="h-4 w-4" /></button>
+                  </div>
+                  <label className="flex items-center gap-2 text-[11px] text-[var(--muted-foreground)] sm:col-span-2">
+                    <input type="checkbox" checked={!!child.openInNewTab} onChange={(e) => updateChild(i, ci, { openInNewTab: e.target.checked })} />
+                    Open sub-link in new tab
+                  </label>
                 </div>
               ))}
             </div>
