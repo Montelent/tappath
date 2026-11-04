@@ -248,7 +248,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                       }
                       defaultDescription={
                         table === "pages"
-                          ? String(editing.excerpt || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160)
+                          ? applySeoTemplate(seoTpl.pageDescription, { title: String(editing.title || ""), sitename: seoTpl.siteName, sep: seoTpl.sep, excerpt: String(editing.excerpt || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160) }, String(editing.excerpt || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160))
                           : table === "glossary_terms"
                           ? applySeoTemplate(seoTpl.glossaryDescription, { title: String(editing.term || ""), term: String(editing.term || ""), sitename: seoTpl.siteName, sep: seoTpl.sep, excerpt: String(editing.short || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160) }, String(editing.short || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160))
                           : applySeoTemplate(seoTpl.guideDescription, { title: String(editing.title || ""), brand: String(editing.brand || ""), sitename: seoTpl.siteName, sep: seoTpl.sep, excerpt: String(editing.short_description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160) }, String(editing.short_description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160))
