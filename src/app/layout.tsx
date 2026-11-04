@@ -21,10 +21,41 @@ const plexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
-const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://tappath.com";
+/** Resolve site origin from settings / env / live request — never hardcode a domain. */
+async function resolveSiteOrigin(canonicalHost?: string): Promise<string> {
+  const candidates = [
+    (canonicalHost || "").trim(),
+    (process.env.NEXT_PUBLIC_SITE_URL || "").trim(),
+    (process.env.VERCEL_URL || "").trim()
+      ? `https://${(process.env.VERCEL_URL || "").trim().replace(/^https?:\/\//, "")}`
+      : "",
+  ];
+  for (const c of candidates) {
+    if (!c) continue;
+    try {
+      const u = new URL(c.startsWith("http") ? c : `https://${c}`);
+      return u.origin;
+    } catch {
+      /* try next */
+    }
+  }
+  try {
+    const { headers } = await import("next/headers");
+    const h = await headers();
+    const host = h.get("x-forwarded-host") || h.get("host");
+    if (host) {
+      const proto = h.get("x-forwarded-proto") || "https";
+      return `${proto}://${host}`.replace(/\/$/, "");
+    }
+  } catch {
+    /* no request context */
+  }
+  return "http://localhost:3000";
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSiteSettings();
+  const origin = await resolveSiteOrigin(s.seo_canonical_host);
   const title = s.meta_title || `${s.site_name} — Phone settings, step by step`;
   const description = s.meta_description;
   const keywords = s.meta_keywords
@@ -50,7 +81,7 @@ export async function generateMetadata(): Promise<Metadata> {
   if (s.seo_pinterest_verification) other["p:domain_verify"] = s.seo_pinterest_verification;
 
   return {
-    metadataBase: new URL(BASE),
+    metadataBase: new URL(origin),
     title: {
       default: title,
       template: `%s ${sep} ${s.site_name}`,
@@ -63,7 +94,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       locale: "en_US",
-      url: BASE,
+      url: origin,
       siteName: s.site_name,
       title,
       description,
@@ -81,7 +112,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     verification: Object.keys(verification).length ? verification : undefined,
     other: Object.keys(other).length ? other : undefined,
-    alternates: { canonical: BASE },
+    alternates: { canonical: "/" },
   };
 }
 
