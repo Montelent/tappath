@@ -38,6 +38,7 @@ const NAV_GROUPS: {
     label: "Content",
     items: [
       { href: "/admin/guides", label: "Guides", icon: BookOpen },
+      { href: "/admin/pages", label: "Pages", icon: BookMarked },
       { href: "/admin/brands", label: "Brands", icon: Tag },
       { href: "/admin/topics", label: "Topics", icon: LayoutGrid },
       { href: "/admin/devices", label: "Devices", icon: Smartphone },
