@@ -40,6 +40,13 @@ async function ensurePagesTable(sql: Sql) {
       updated_at timestamptz NOT NULL DEFAULT now()
     )
   `;
+  await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS focus_keyword text`;
+  await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS canonical_url text`;
+  await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS robots_index boolean NOT NULL DEFAULT true`;
+  await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS robots_follow boolean NOT NULL DEFAULT true`;
+  await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS og_title text`;
+  await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS og_description text`;
+  await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS og_image text`;
 }
 
 async function selectAll(sql: Sql, table: string) {
