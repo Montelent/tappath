@@ -96,6 +96,7 @@ export type DbForumTopic = {
 
 export type AdminStats = {
   guides: number;
+  pages: number;
   brands: number;
   topics: number;
   devices: number;
