@@ -236,12 +236,16 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                       }}
                       onChange={(seo) => setEditing({ ...editing, ...seo })}
                       defaultTitle={
-                        table === "glossary_terms"
+                        table === "pages"
+                          ? applySeoTemplate("%title% %sep% %sitename%", { title: String(editing.title || ""), sitename: seoTpl.siteName, sep: seoTpl.sep }, String(editing.title || "Title"))
+                          : table === "glossary_terms"
                           ? applySeoTemplate(seoTpl.glossaryTitle, { title: String(editing.term || ""), term: String(editing.term || ""), sitename: seoTpl.siteName, sep: seoTpl.sep, excerpt: String(editing.short || ""), category: String(editing.category || "") }, String(editing.term || "Title"))
                           : applySeoTemplate(seoTpl.guideTitle, { title: String(editing.title || ""), brand: String(editing.brand || ""), sitename: seoTpl.siteName, sep: seoTpl.sep, excerpt: String(editing.short_description || "") }, String(editing.title || "Title"))
                       }
                       defaultDescription={
-                        table === "glossary_terms"
+                        table === "pages"
+                          ? String(editing.excerpt || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160)
+                          : table === "glossary_terms"
                           ? applySeoTemplate(seoTpl.glossaryDescription, { title: String(editing.term || ""), term: String(editing.term || ""), sitename: seoTpl.siteName, sep: seoTpl.sep, excerpt: String(editing.short || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160) }, String(editing.short || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160))
                           : applySeoTemplate(seoTpl.guideDescription, { title: String(editing.title || ""), brand: String(editing.brand || ""), sitename: seoTpl.siteName, sep: seoTpl.sep, excerpt: String(editing.short_description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160) }, String(editing.short_description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160))
                       }
