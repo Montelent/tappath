@@ -395,6 +395,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                     <SortOrderField
                       value={Number(editing.sort_order) || 0}
                       onChange={(v) => setEditing({ ...editing, sort_order: v })}
+                      autoValue={nextSortOrder(rows, editing.id != null ? String(editing.id) : undefined)}
                     />
                   </div>
                 );
