@@ -49,6 +49,14 @@ CREATE TABLE IF NOT EXISTS glossary_terms (
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS pages (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title text NOT NULL, slug text NOT NULL UNIQUE,
+  content text NOT NULL DEFAULT '', excerpt text NOT NULL DEFAULT '',
+  published boolean NOT NULL DEFAULT false, seo_title text, seo_description text,
+  created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS guides (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), slug text NOT NULL,
   brand text NOT NULL, brand_slug text NOT NULL, product_line text NOT NULL DEFAULT '',
