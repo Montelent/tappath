@@ -355,34 +355,35 @@ export default function BrandEditor() {
         <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-brand-600" /></div>
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--card)]">
-          <table className="w-full text-left text-sm">
+          <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="border-b border-[var(--border)] bg-[var(--muted)]/40 text-xs uppercase tracking-wider text-[var(--muted-foreground)]">
               <tr>
-                <th className="px-3 py-2.5">Name</th>
-                <th className="px-3 py-2.5">Slug</th>
-                <th className="px-3 py-2.5">Guides</th>
-                <th className="px-3 py-2.5">Status</th>
-                <th className="px-3 py-2.5" />
+                <th className="whitespace-nowrap px-4 py-3">Name</th>
+                <th className="whitespace-nowrap px-4 py-3">Slug</th>
+                <th className="whitespace-nowrap px-4 py-3">Guides</th>
+                <th className="whitespace-nowrap px-4 py-3">Status</th>
+                <th className="w-[260px] whitespace-nowrap px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
               {rows.map((row) => (
                 <tr key={String(row.id)} className="hover:bg-[var(--muted)]/30">
-                  <td className="px-3 py-2.5 font-medium">{row.name}</td>
-                  <td className="px-3 py-2.5 font-mono text-xs">{row.slug}</td>
-                  <td className="px-3 py-2.5">{row.guides_count}</td>
-                  <td className="px-3 py-2.5">
+                  <td className="max-w-[280px] break-words px-4 py-4 font-medium">{row.name}</td>
+                  <td className="px-4 py-4 font-mono text-xs">{row.slug}</td>
+                  <td className="px-4 py-4">{row.guides_count}</td>
+                  <td className="px-4 py-4">
                     {row.published ? (
                       <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">Live</span>
                     ) : (
                       <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800 dark:bg-amber-950 dark:text-amber-200">Draft</span>
                     )}
                   </td>
-                  <td className="px-3 py-2.5 text-right whitespace-nowrap">
-                    <Link href={`/${row.slug}`} target="_blank" className="mr-2 text-[var(--muted-foreground)]"><ExternalLink className="inline h-3.5 w-3.5" /></Link>
-                    <button
-                      type="button"
-                      onClick={() => {
+                  <td className="px-4 py-4">
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <Link href={`/${row.slug}`} target="_blank" className="inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium hover:bg-[var(--muted)]">
+                        <ExternalLink className="h-3.5 w-3.5" /> View
+                      </Link>
+                      <button type="button" onClick={() => {
                         const next = {
                           ...emptyBrand(),
                           ...row,
@@ -392,12 +393,13 @@ export default function BrandEditor() {
                         };
                         setEditing(next);
                         void loadAutoGuides(String(next.slug || ""));
-                      }}
-                      className="mr-2 text-brand-600"
-                    >
-                      Edit
-                    </button>
-                    <button type="button" onClick={() => row.id && remove(String(row.id))} className="text-red-600"><Trash2 className="inline h-4 w-4" /></button>
+                      }} className="inline-flex min-h-9 items-center justify-center rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-brand-600 hover:bg-[var(--muted)]">
+                        Edit
+                      </button>
+                      <button type="button" onClick={() => row.id && remove(String(row.id))} className="inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950">
+                        <Trash2 className="h-3.5 w-3.5" /> Trash
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
