@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { Moon, Sun, Menu, X } from "lucide-react";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { useAuthOptional } from "@/context/AuthContext";
-import type { SiteSettings } from "@/lib/site-settings";
+import type { NavMenuItem, SiteSettings } from "@/lib/site-settings";
 import { SITE_SETTINGS_DEFAULTS } from "@/lib/site-settings";
 
 export default function Header() {
@@ -21,7 +21,7 @@ export default function Header() {
     nav_forum: SITE_SETTINGS_DEFAULTS.nav_forum,
     nav_admin: SITE_SETTINGS_DEFAULTS.nav_admin,
     nav_sign_in: SITE_SETTINGS_DEFAULTS.nav_sign_in,
-    nav_items: [] as { id?: string; label?: string; href?: string; openInNewTab?: boolean }[],
+    nav_items: [] as NavMenuItem[],
   });
   const auth = useAuthOptional();
 
@@ -74,19 +74,15 @@ export default function Header() {
     localStorage.setItem("theme", next ? "dark" : "light");
   };
 
-  const nav =
+  const nav: NavMenuItem[] =
     Array.isArray(s.nav_items) && s.nav_items.length > 0
-      ? s.nav_items.map((item) => ({
-          href: item.href || "/",
-          label: item.label || "Link",
-          openInNewTab: !!item.openInNewTab,
-        }))
+      ? s.nav_items
       : [
-          { href: "/", label: s.nav_home, openInNewTab: false },
-          { href: "/topics", label: s.nav_topics, openInNewTab: false },
-          { href: "/devices", label: s.nav_devices, openInNewTab: false },
-          { href: "/glossary", label: s.nav_glossary, openInNewTab: false },
-          { href: "/forum", label: s.nav_forum, openInNewTab: false },
+          { id: "home", href: "/", label: s.nav_home },
+          { id: "topics", href: "/topics", label: s.nav_topics },
+          { id: "devices", href: "/devices", label: s.nav_devices },
+          { id: "glossary", href: "/glossary", label: s.nav_glossary },
+          { id: "forum", href: "/forum", label: s.nav_forum },
         ];
 
   return (
@@ -106,14 +102,22 @@ export default function Header() {
 
         <nav className="ml-2 hidden items-center gap-0.5 md:flex" aria-label="Main">
           {nav.map((item) => (
-            <Link
-              key={item.href + item.label}
-              href={item.href}
-              {...(item.openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-              className="rounded-full px-3 py-1.5 text-sm font-medium text-[var(--muted-foreground)] link-quiet hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
-            >
-              {item.label}
-            </Link>
+            item.children?.length ? (
+              <div key={item.id} className="relative">
+                <details className="group">
+                  <summary className="flex cursor-pointer list-none items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]">
+                    {item.label}<span aria-hidden="true" className="text-[10px]">▾</span>
+                  </summary>
+                  <div className="absolute left-0 top-full z-50 mt-1 min-w-48 rounded-xl border border-[var(--border)] bg-[var(--card)] p-1.5 shadow-xl">
+                    {item.children.map((child) => (
+                      <Link key={child.id} href={child.href} {...(child.openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="block rounded-lg px-3 py-2 text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]">{child.label}</Link>
+                    ))}
+                  </div>
+                </details>
+              </div>
+            ) : (
+              <Link key={item.id} href={item.href} {...(item.openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="rounded-full px-3 py-1.5 text-sm font-medium text-[var(--muted-foreground)] link-quiet hover:bg-[var(--muted)] hover:text-[var(--foreground)]">{item.label}</Link>
+            )
           ))}
         </nav>
 
@@ -162,15 +166,10 @@ export default function Header() {
         >
           <nav className="flex flex-col gap-0.5 p-2" aria-label="Mobile">
             {nav.map((item) => (
-              <Link
-                key={item.href + item.label}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                {...(item.openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                className="rounded-xl px-3 py-3 text-base font-medium link-quiet hover:bg-[var(--muted)]"
-              >
-                {item.label}
-              </Link>
+              <li key={item.id} className="list-none">
+                <Link href={item.href} onClick={() => setMobileOpen(false)} {...(item.openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="block rounded-xl px-3 py-3 text-base font-medium link-quiet hover:bg-[var(--muted)]">{item.label}</Link>
+                {item.children?.length ? <div className="ml-4 border-l border-[var(--border)] pl-2">{item.children.map((child) => <Link key={child.id} href={child.href} onClick={() => setMobileOpen(false)} {...(child.openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="block rounded-lg px-3 py-2 text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)]">{child.label}</Link>)}</div> : null}
+              </li>
             ))}
             <div className="my-1 border-t border-[var(--border)]" />
             {auth?.user ? (
