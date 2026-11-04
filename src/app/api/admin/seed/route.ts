@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getSql, isNeonConfigured } from "@/lib/db/neon";
 import { requireAdmin } from "@/lib/session";
 import { brands } from "@/data/brands";
-import { topics } from "@/data/topics";
 import { devices } from "@/data/devices";
 import { glossaryTerms } from "@/data/glossary";
 import { guides } from "@/data/guides";
@@ -59,30 +58,8 @@ export async function POST() {
     results.brands = e instanceof Error ? e.message : "failed";
   }
 
-  try {
-    let n = 0;
-    for (const [i, t] of topics.entries()) {
-      const brandSlugs = (t.guidesByBrand ?? []).map((b) => b.brandSlug);
-      await sql`
-        INSERT INTO topics (slug, name, description, icon, guide_count, brands, published, sort_order)
-        VALUES (
-          ${t.slug}, ${t.name}, ${t.description}, ${t.icon},
-          ${t.guideCount}, ${brandSlugs}, true, ${i}
-        )
-        ON CONFLICT (slug) DO UPDATE SET
-          name = EXCLUDED.name,
-          description = EXCLUDED.description,
-          icon = EXCLUDED.icon,
-          guide_count = EXCLUDED.guide_count,
-          brands = EXCLUDED.brands,
-          sort_order = EXCLUDED.sort_order
-      `;
-      n++;
-    }
-    results.topics = n;
-  } catch (e) {
-    results.topics = e instanceof Error ? e.message : "failed";
-  }
+  // Topics are managed in Admin. Never overwrite editorial topic text or live counts with static seed data.
+  results.topics = "Skipped — manage Topics in Admin";
 
   try {
     let n = 0;
