@@ -21,11 +21,11 @@ export function verifyPassword(password: string, stored: string): boolean {
 }
 
 function secret(): string {
-  return (
-    process.env.AUTH_SECRET ||
-    process.env.NEXTAUTH_SECRET ||
-    "tappath-dev-secret-change-me-in-production"
-  );
+  const value = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+  if (!value || value.length < 32) {
+    throw new Error("AUTH_SECRET must be configured with at least 32 characters.");
+  }
+  return value;
 }
 
 export type SessionPayload = {
@@ -49,7 +49,12 @@ export function signSession(payload: Omit<SessionPayload, "exp">, ttlSec = 60 * 
 export function verifySession(token: string): SessionPayload | null {
   const [data, sig] = token.split(".");
   if (!data || !sig) return null;
-  const expected = createHmac("sha256", secret()).update(data).digest("base64url");
+  let expected: string;
+  try {
+    expected = createHmac("sha256", secret()).update(data).digest("base64url");
+  } catch {
+    return null;
+  }
   try {
     if (!timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
   } catch {
@@ -57,7 +62,17 @@ export function verifySession(token: string): SessionPayload | null {
   }
   try {
     const payload = JSON.parse(Buffer.from(data, "base64url").toString("utf8")) as SessionPayload;
-    if (payload.exp < Math.floor(Date.now() / 1000)) return null;
+    const now = Math.floor(Date.now() / 1000);
+    if (
+      !payload ||
+      typeof payload !== "object" ||
+      typeof payload.sub !== "string" || !payload.sub ||
+      typeof payload.email !== "string" || !payload.email ||
+      typeof payload.name !== "string" ||
+      (payload.role !== "user" && payload.role !== "admin") ||
+      !Number.isSafeInteger(payload.exp) ||
+      payload.exp <= now
+    ) return null;
     return payload;
   } catch {
     return null;

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { setSessionCookie } from "@/lib/session";
-import { authenticateUser, ensureDemoUsers, publicUser } from "@/lib/db/users";
+import { authenticateUser, publicUser } from "@/lib/db/users";
 import { isNeonConfigured } from "@/lib/db/neon";
 
 export const dynamic = "force-dynamic";
@@ -19,25 +19,6 @@ export async function POST(req: NextRequest) {
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password required." }, { status: 400 });
-    }
-
-    if (isNeonConfigured()) {
-      try {
-        await ensureDemoUsers();
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e);
-        if (msg.includes("password_hash") || msg.includes("does not exist")) {
-          return NextResponse.json(
-            {
-              error:
-                "Database profiles table is missing password_hash. Run the profiles fix SQL in Neon SQL Editor, then try again.",
-              backend: "neon",
-              code: "SCHEMA_FIX_REQUIRED",
-            },
-            { status: 503 }
-          );
-        }
-      }
     }
 
     let user;
@@ -68,7 +49,7 @@ export async function POST(req: NextRequest) {
           error: "Invalid email or password.",
           backend: isNeonConfigured() ? "neon" : "mock",
           hint: isNeonConfigured()
-            ? "After fixing schema, POST /api/setup once, then sign in."
+            ? "Create an account using the configured registration flow, then ask an administrator to grant admin access if needed."
             : "DATABASE_URL missing — mock mode.",
         },
         { status: 401 }

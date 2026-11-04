@@ -105,6 +105,7 @@ async function callOnce(
         ...provider.extraHeaders,
       },
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(15_000),
     });
   } catch (e) {
     return {
@@ -203,9 +204,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const message = (body.message || "").trim();
+  const message = body && typeof body.message === "string" ? body.message.trim() : "";
   if (!message) {
     return NextResponse.json({ error: "Empty message" }, { status: 400 });
+  }
+  if (message.length > 2000) {
+    return NextResponse.json({ error: "Message must be 2000 characters or fewer." }, { status: 413 });
   }
 
   const providers = await listProviders();
@@ -214,7 +218,11 @@ export async function POST(req: NextRequest) {
   for (const provider of providers) {
     const result = await chatComplete(provider, message);
     if ("text" in result) {
-      return NextResponse.json(result);
+      const safeLinks = result.links
+        .filter((link) => link && typeof link.label === "string" && typeof link.href === "string")
+        .filter((link) => link.href.startsWith("/") && !link.href.startsWith("//"))
+        .slice(0, 8);
+      return NextResponse.json({ ...result, links: safeLinks });
     }
     errors.push(`${result.provider}(${result.status ?? "?"}): ${result.error.slice(0, 140)}`);
   }

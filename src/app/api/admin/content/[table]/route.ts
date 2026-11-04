@@ -12,7 +12,6 @@ const ALLOWED = new Set([
   "forum_replies",
   "site_settings",
   "guide_feedback",
-  "profiles",
 ]);
 
 type Ctx = { params: Promise<{ table: string }> };
@@ -54,8 +53,6 @@ async function selectAll(sql: Sql, table: string) {
       return sql`SELECT * FROM site_settings LIMIT 10`;
     case "guide_feedback":
       return sql`SELECT * FROM guide_feedback ORDER BY created_at DESC NULLS LAST LIMIT 500`;
-    case "profiles":
-      return sql`SELECT * FROM profiles ORDER BY created_at DESC NULLS LAST LIMIT 500`;
     default:
       return [];
   }
@@ -79,8 +76,6 @@ async function deleteById(sql: Sql, table: string, id: string) {
       return sql`DELETE FROM forum_replies WHERE id::text = ${id}`;
     case "guide_feedback":
       return sql`DELETE FROM guide_feedback WHERE id::text = ${id}`;
-    case "profiles":
-      return sql`DELETE FROM profiles WHERE id::text = ${id}`;
     default:
       throw new Error("Unknown table");
   }

@@ -74,8 +74,24 @@ export async function GET(req: NextRequest) {
     try {
       const sql = getSql()!;
       const rows = guideSlug
-        ? await sql`SELECT * FROM guide_feedback WHERE guide_slug = ${guideSlug} ORDER BY created_at DESC`
-        : await sql`SELECT * FROM guide_feedback ORDER BY created_at DESC LIMIT 500`;
+        ? await sql`
+            SELECT guide_slug,
+              count(*) FILTER (WHERE correct)::int AS yes,
+              count(*) FILTER (WHERE NOT correct)::int AS no,
+              count(*)::int AS total
+            FROM guide_feedback
+            WHERE guide_slug = ${guideSlug}
+            GROUP BY guide_slug
+          `
+        : await sql`
+            SELECT guide_slug,
+              count(*) FILTER (WHERE correct)::int AS yes,
+              count(*) FILTER (WHERE NOT correct)::int AS no,
+              count(*)::int AS total
+            FROM guide_feedback
+            GROUP BY guide_slug
+            ORDER BY guide_slug
+          `;
       return NextResponse.json({ feedback: rows });
     } catch {
       /* fall through */
@@ -84,5 +100,13 @@ export async function GET(req: NextRequest) {
 
   const feedback = getStore().feedback;
   const filtered = guideSlug ? feedback.filter((f) => f.guideSlug === guideSlug) : feedback;
-  return NextResponse.json({ feedback: filtered });
+  const grouped = new Map<string, { guide_slug: string; yes: number; no: number; total: number }>();
+  for (const item of filtered) {
+    const row = grouped.get(item.guideSlug) || { guide_slug: item.guideSlug, yes: 0, no: 0, total: 0 };
+    if (item.correct) row.yes += 1;
+    else row.no += 1;
+    row.total += 1;
+    grouped.set(item.guideSlug, row);
+  }
+  return NextResponse.json({ feedback: [...grouped.values()] });
 }

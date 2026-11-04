@@ -95,12 +95,13 @@ export async function POST(req: NextRequest) {
       const sql = getSql()!;
       const rows = await sql`
         INSERT INTO forum_topics (
-          title, brand, brand_slug, category, author_name, excerpt, body
+          title, brand, brand_slug, category, author_id, author_name, excerpt, body
         ) VALUES (
           ${title},
           ${body.brand || "General"},
           ${body.brandSlug || "general"},
           ${body.category || "General"},
+          ${user.id},
           ${user.name},
           ${content.slice(0, 120)},
           ${content}

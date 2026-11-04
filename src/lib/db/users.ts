@@ -101,31 +101,3 @@ export async function authenticateUser(
   if (!verifyPassword(password, user.passwordHash)) return null;
   return user;
 }
-
-/** Ensure demo accounts exist in Neon (idempotent; refreshes passwords). */
-export async function ensureDemoUsers() {
-  if (!isNeonConfigured()) return;
-  const sql = getSql()!;
-  const demos: { email: string; name: string; password: string; role: Role }[] = [
-    { email: "admin@tappath.com", name: "Admin", password: "admin1234", role: "admin" },
-    { email: "user@tappath.com", name: "Demo User", password: "user1234", role: "user" },
-  ];
-  for (const d of demos) {
-    const hash = hashPassword(d.password);
-    const existing = (await sql`
-      SELECT id FROM profiles WHERE lower(email) = ${d.email} LIMIT 1
-    `) as { id: string }[];
-    if (existing[0]) {
-      await sql`
-        UPDATE profiles
-        SET password_hash = ${hash}, role = ${d.role}, name = ${d.name}
-        WHERE id::text = ${String(existing[0].id)}
-      `;
-    } else {
-      await sql`
-        INSERT INTO profiles (email, name, password_hash, role)
-        VALUES (${d.email}, ${d.name}, ${hash}, ${d.role})
-      `;
-    }
-  }
-}

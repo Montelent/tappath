@@ -50,6 +50,7 @@ async function loadCopilotDb(): Promise<CopilotDb> {
 /** Resolve providers from Admin → Copilot DB settings, falling back to env vars. */
 export async function listProviders(): Promise<ProviderConfig[]> {
   const db = await loadCopilotDb();
+  if (db.enabled === false) return [];
   const preferred = (
     db.preferred_provider ||
     process.env.COPILOT_PROVIDER ||

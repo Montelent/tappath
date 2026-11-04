@@ -43,14 +43,9 @@ export async function requireUser() {
   const session = await getSession();
   if (!session) return null;
   const user = await findUserById(session.sub);
-  if (!user) {
-    return {
-      id: session.sub,
-      email: session.email,
-      name: session.name,
-      role: session.role,
-    };
-  }
+  // A signed cookie is not sufficient on its own: the account may have been
+  // deleted, disabled, or had its role changed since the session was issued.
+  if (!user) return null;
   return publicUser(user);
 }
 
