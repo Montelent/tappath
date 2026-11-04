@@ -103,7 +103,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (isDatabaseConfigured()) {
     term = dbToTerm(await getGlossaryBySlug(slug));
   }
-  if (!term) term = getTerm(slug) || null;
+  if (!term && !isDatabaseConfigured() && process.env.NODE_ENV !== "production") term = getTerm(slug) || null;
   if (!term) return { title: "Term not found" };
 
   const { getSiteSettings } = await import("@/lib/site-settings");
@@ -196,7 +196,7 @@ export default async function GlossaryTermPage({ params }: Props) {
     }
   }
 
-  if (!term) {
+  if (!term && !isDatabaseConfigured() && process.env.NODE_ENV !== "production") {
     term = getTerm(slug) || null;
     if (term) {
       relatedTerms = glossaryTerms
