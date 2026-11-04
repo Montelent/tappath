@@ -304,7 +304,9 @@ export async function DELETE(req: NextRequest, ctx: Ctx) {
 
   const sql = getSql()!;
   try {
+    const guideBeforeDelete = table === "guides" ? await sql`SELECT brand_slug FROM guides WHERE id::text = ${id} LIMIT 1` : [];
     await deleteById(sql, table, id);
+    if (table === "guides" && guideBeforeDelete[0]?.brand_slug) await refreshBrandCounts(sql, String(guideBeforeDelete[0].brand_slug));
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json(
@@ -429,6 +431,7 @@ async function insertGuide(sql: Sql, b: Record<string, unknown>) {
     )
     RETURNING *
   `;
+  if (rows[0]?.brand_slug) await refreshBrandCounts(sql, String(rows[0].brand_slug));
   return rows[0];
 }
 
@@ -509,6 +512,8 @@ async function updateGuide(sql: Sql, id: string, b: Record<string, unknown>) {
       `;
     }
   }
+  if (previous?.brand_slug) await refreshBrandCounts(sql, String(previous.brand_slug));
+  if (rows[0]?.brand_slug && rows[0].brand_slug !== previous?.brand_slug) await refreshBrandCounts(sql, String(rows[0].brand_slug));
   return rows[0];
 }
 
