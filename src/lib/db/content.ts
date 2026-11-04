@@ -88,10 +88,12 @@ export async function listTopics(): Promise<DbTopic[]> {
           AND EXISTS (
             SELECT 1 FROM guides g
             WHERE g.published = true
+              AND COALESCE(trim(g.category), '') <> ''
               AND (
-                lower(g.category) = lower(t.name)
-                OR lower(g.category) LIKE '%' || lower(t.name) || '%'
-                OR lower(t.name) LIKE '%' || lower(g.category) || '%'
+                lower(trim(g.category)) = lower(trim(t.name))
+                OR lower(trim(g.category)) LIKE '%' || lower(trim(t.name)) || '%'
+                OR lower(trim(t.name)) LIKE '%' || lower(trim(g.category)) || '%'
+                OR lower(replace(trim(g.category), '&', 'and')) = lower(replace(trim(t.name), '&', 'and'))
               )
           )
         ORDER BY t.sort_order ASC NULLS LAST, t.name ASC
