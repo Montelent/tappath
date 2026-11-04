@@ -20,6 +20,20 @@ type Sql = NonNullable<ReturnType<typeof getSql>>;
 
 let pagesSchemaReady: Promise<void> | null = null;
 
+let devicesSchemaReady: Promise<void> | null = null;
+
+async function ensureDevicesColumns(sql: Sql) {
+  if (!devicesSchemaReady) {
+    devicesSchemaReady = sql`ALTER TABLE devices ADD COLUMN IF NOT EXISTS sort_order integer NOT NULL DEFAULT 0`
+      .then(() => undefined)
+      .catch((error) => {
+        devicesSchemaReady = null;
+        throw error;
+      });
+  }
+  await devicesSchemaReady;
+}
+
 async function ensurePagesTable(sql: Sql) {
   if (!pagesSchemaReady) {
     pagesSchemaReady = (async () => {
@@ -61,6 +75,7 @@ async function ensurePagesTable(sql: Sql) {
 
 async function selectAll(sql: Sql, table: string) {
   if (table === "pages") await ensurePagesTable(sql);
+  if (table === "devices") await ensureDevicesColumns(sql);
   switch (table) {
     case "brands":
       return sql`
