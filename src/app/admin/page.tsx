@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 
 const cards = [
   { href: "/admin/guides", label: "Guides", icon: BookOpen, key: "guides" as const, desc: "Step-by-step how-tos" },
+  { href: "/admin/pages", label: "Pages", icon: BookMarked, key: "pages" as const, desc: "About, Contact, Privacy…" },
   { href: "/admin/brands", label: "Brands", icon: Tag, key: "brands" as const, desc: "Samsung, Xiaomi, …" },
   { href: "/admin/topics", label: "Topics", icon: LayoutGrid, key: "topics" as const, desc: "Category hubs" },
   { href: "/admin/devices", label: "Devices", icon: Smartphone, key: "devices" as const, desc: "Phone directory" },
