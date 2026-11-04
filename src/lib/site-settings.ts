@@ -55,6 +55,8 @@ export type SiteSettings = {
 
   seo_tpl_guide_title: string;
   seo_tpl_guide_description: string;
+  seo_tpl_page_title: string;
+  seo_tpl_page_description: string;
   seo_tpl_glossary_title: string;
   seo_tpl_glossary_description: string;
   seo_tpl_device_title: string;
@@ -172,6 +174,8 @@ export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
   seo_sitemap_priority_default: "0.7",
   seo_tpl_guide_title: "%title% %sep% %brand% %sep% %sitename%",
   seo_tpl_guide_description: "%excerpt%",
+  seo_tpl_page_title: "%title% %sep% %sitename%",
+  seo_tpl_page_description: "%excerpt%",
   seo_tpl_glossary_title: "What is %term%? %sep% %sitename%",
   seo_tpl_glossary_description: "%excerpt%",
   seo_tpl_device_title: "%device% guides & specs %sep% %sitename%",
