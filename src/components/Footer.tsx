@@ -1,11 +1,19 @@
 import Link from "next/link";
-import { getSiteSettings, activeSocialLinks } from "@/lib/site-settings";
+import { getSiteSettings, activeSocialLinks, type NavMenuItem } from "@/lib/site-settings";
 
 export default async function Footer() {
   const year = new Date().getFullYear();
   const s = await getSiteSettings();
   const name = s.site_name || "TapPath";
   const social = activeSocialLinks(s);
+  const footerItems: NavMenuItem[] = Array.isArray(s.footer_items) && s.footer_items.length
+    ? s.footer_items
+    : [
+        { id: "topics", label: s.nav_topics, href: "/topics" },
+        { id: "devices", label: s.nav_devices, href: "/devices" },
+        { id: "glossary", label: s.nav_glossary, href: "/glossary" },
+        { id: "forum", label: s.nav_forum, href: "/forum" },
+      ];
 
   return (
     <footer className="border-t border-[var(--border)] mt-auto">
@@ -45,18 +53,20 @@ export default async function Footer() {
           <div className="flex flex-wrap gap-x-8 gap-y-4 text-sm">
             <div className="flex flex-col gap-2">
               <span className="label-caps">{s.footer_browse_heading}</span>
-              <Link href="/topics" className="link-quiet text-[var(--muted-foreground)]">
-                {s.nav_topics}
-              </Link>
-              <Link href="/devices" className="link-quiet text-[var(--muted-foreground)]">
-                {s.nav_devices}
-              </Link>
-              <Link href="/glossary" className="link-quiet text-[var(--muted-foreground)]">
-                {s.nav_glossary}
-              </Link>
-              <Link href="/forum" className="link-quiet text-[var(--muted-foreground)]">
-                {s.nav_forum}
-              </Link>
+              {footerItems.map((item) => (
+                <div key={item.id}>
+                  <Link href={item.href} {...(item.openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="link-quiet text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+                    {item.label}
+                  </Link>
+                  {item.children?.length ? (
+                    <div className="ml-3 mt-1 flex flex-col gap-1.5 border-l border-[var(--border)] pl-3">
+                      {item.children.map((child) => (
+                        <Link key={child.id} href={child.href} {...(child.openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="link-quiet text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)]">{child.label}</Link>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ))}
             </div>
             <div className="flex flex-col gap-2">
               <span className="label-caps">{s.footer_account_heading}</span>
