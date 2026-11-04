@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { resolveBrandPage } from "@/lib/brands/resolve";
 import { listGuides } from "@/lib/db/content";
 import { guideHref } from "@/lib/guides/resolve";
+import { resolveDevice } from "@/lib/devices/resolve";
+import DevicePage from "@/components/devices/DevicePage";
 
 type Params = { brand: string; line: string };
 
@@ -13,6 +15,14 @@ function lineSlug(value: string) {
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { brand: brandSlug, line } = await params;
+  const device = await resolveDevice(line);
+  if (device && device.brandSlug === brandSlug.toLowerCase()) {
+    return {
+      title: `${device.name} Settings, Guides & Help`,
+      description: device.description,
+      alternates: { canonical: `/${brandSlug}/${line}` },
+    };
+  }
   const brand = await resolveBrandPage(brandSlug);
   if (!brand) return { title: "Product line not found" };
   const guides = await listGuides();
@@ -27,6 +37,13 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 export default async function ProductLinePage({ params }: { params: Promise<Params> }) {
   const { brand: brandSlug, line } = await params;
+  // Device URLs share this route segment with product-line landing pages.
+  // Resolve devices exclusively from published database rows; unknown slugs stay 404.
+  const device = await resolveDevice(line);
+  if (device && device.brandSlug === brandSlug.toLowerCase()) {
+    return <DevicePage device={device} />;
+  }
+
   const brand = await resolveBrandPage(brandSlug);
   if (!brand) notFound();
 
