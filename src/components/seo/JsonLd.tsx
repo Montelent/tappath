@@ -17,6 +17,7 @@ export default function JsonLd({
 /**
  * Canonical site origin for absolute URLs in schema.
  * Prefers Vercel deployment host so preview deploys match the crawled page.
+ * Never hardcodes a production domain.
  */
 export function siteBase(): string {
   const vercel = (process.env.VERCEL_URL || "").trim().replace(/\/$/, "");
@@ -25,7 +26,7 @@ export function siteBase(): string {
   }
   const explicit = (process.env.NEXT_PUBLIC_SITE_URL || "").trim().replace(/\/$/, "");
   if (explicit) return explicit;
-  return "https://tappath.com";
+  return "";
 }
 
 /** Server Components: resolve origin from the incoming request host when possible. */

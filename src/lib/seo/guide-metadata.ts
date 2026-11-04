@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { Guide } from "@/data/guides";
 import { getSiteSettings } from "@/lib/site-settings";
 import { applySeoTemplate } from "@/lib/seo/templates";
+import { requestOrigin } from "@/components/seo/JsonLd";
 
 /**
  * Build Next.js Metadata for a guide page using:
@@ -51,9 +52,11 @@ export async function buildGuideMetadata(
     .trim()
     .slice(0, 200);
 
+  // Detect origin from the live request (or Admin canonical host if set). Never hardcode a domain.
+  const detected = await requestOrigin();
   const origin = (
-    s.seo_canonical_host ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
+    (s.seo_canonical_host || "").trim() ||
+    detected ||
     ""
   ).replace(/\/$/, "");
 
