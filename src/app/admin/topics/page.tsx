@@ -15,7 +15,6 @@ export default function AdminTopicsPage() {
         columns={[
           { key: "name", label: "Name" },
           { key: "slug", label: "Slug" },
-          { key: "guide_count", label: "Guides" },
           { key: "published", label: "Published" },
         ]}
         emptyRow={{
@@ -23,8 +22,6 @@ export default function AdminTopicsPage() {
           name: "",
           description: "",
           icon: "Wifi",
-          guide_count: 0,
-          brands: [],
           published: true,
           sort_order: 0,
         }}
@@ -33,10 +30,8 @@ export default function AdminTopicsPage() {
           { key: "slug", label: "Slug" },
           { key: "description", label: "Description", type: "textarea" },
           { key: "icon", label: "Icon (Lucide name)" },
-          { key: "guide_count", label: "Guide count", type: "number" },
           { key: "sort_order", label: "Sort order", type: "number" },
           { key: "published", label: "Published", type: "boolean" },
-          { key: "brands", label: "Brand slugs (JSON array)", type: "json" },
         ]}
       />
     </div>
