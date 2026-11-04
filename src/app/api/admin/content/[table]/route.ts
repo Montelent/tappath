@@ -8,6 +8,7 @@ const ALLOWED = new Set([
   "devices",
   "glossary_terms",
   "guides",
+  "pages",
   "forum_topics",
   "forum_replies",
   "site_settings",
@@ -17,7 +18,25 @@ const ALLOWED = new Set([
 type Ctx = { params: Promise<{ table: string }> };
 type Sql = NonNullable<ReturnType<typeof getSql>>;
 
+async function ensurePagesTable(sql: Sql) {
+  await sql`
+    CREATE TABLE IF NOT EXISTS pages (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      title text NOT NULL,
+      slug text NOT NULL UNIQUE,
+      content text NOT NULL DEFAULT '',
+      excerpt text NOT NULL DEFAULT '',
+      published boolean NOT NULL DEFAULT false,
+      seo_title text,
+      seo_description text,
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now()
+    )
+  `;
+}
+
 async function selectAll(sql: Sql, table: string) {
+  if (table === "pages") await ensurePagesTable(sql);
   switch (table) {
     case "brands":
       return sql`
@@ -45,6 +64,8 @@ async function selectAll(sql: Sql, table: string) {
       return sql`SELECT * FROM glossary_terms ORDER BY term ASC LIMIT 500`;
     case "guides":
       return sql`SELECT * FROM guides ORDER BY created_at DESC NULLS LAST LIMIT 500`;
+    case "pages":
+      return sql`SELECT * FROM pages ORDER BY updated_at DESC LIMIT 500`;
     case "forum_topics":
       return sql`SELECT * FROM forum_topics ORDER BY created_at DESC NULLS LAST LIMIT 500`;
     case "forum_replies":
@@ -59,6 +80,7 @@ async function selectAll(sql: Sql, table: string) {
 }
 
 async function deleteById(sql: Sql, table: string, id: string) {
+  if (table === "pages") await ensurePagesTable(sql);
   switch (table) {
     case "brands":
       return sql`DELETE FROM brands WHERE id::text = ${id}`;
@@ -70,6 +92,8 @@ async function deleteById(sql: Sql, table: string, id: string) {
       return sql`DELETE FROM glossary_terms WHERE id::text = ${id}`;
     case "guides":
       return sql`DELETE FROM guides WHERE id::text = ${id}`;
+    case "pages":
+      return sql`DELETE FROM pages WHERE id::text = ${id}`;
     case "forum_topics":
       return sql`DELETE FROM forum_topics WHERE id::text = ${id}`;
     case "forum_replies":
@@ -133,6 +157,14 @@ export async function POST(req: NextRequest, ctx: Ctx) {
 
   const sql = getSql()!;
   try {
+    if (table === "pages") {
+      await ensurePagesTable(sql);
+      const title = String(body.title || "").trim();
+      const slug = String(body.slug || "").trim().toLowerCase();
+      if (!title || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) throw new Error("A title and valid URL slug are required");
+      const rows = await sql`INSERT INTO pages (title, slug, content, excerpt, published, seo_title, seo_description) VALUES (${title}, ${slug}, ${String(body.content || "")}, ${String(body.excerpt || "")}, ${body.published === true}, ${String(body.seo_title || "") || null}, ${String(body.seo_description || "") || null}) RETURNING *`;
+      return NextResponse.json({ row: rows[0] }, { status: 201 });
+    }
     if (table === "guides") {
       const row = await insertGuide(sql, body);
       return NextResponse.json({ row }, { status: 201 });
@@ -177,6 +209,15 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
 
   const sql = getSql()!;
   try {
+    if (table === "pages") {
+      await ensurePagesTable(sql);
+      const title = String(body.title || "").trim();
+      const slug = String(body.slug || "").trim().toLowerCase();
+      if (!title || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) throw new Error("A title and valid URL slug are required");
+      const rows = await sql`UPDATE pages SET title = ${title}, slug = ${slug}, content = ${String(body.content || "")}, excerpt = ${String(body.excerpt || "")}, published = ${body.published === true}, seo_title = ${String(body.seo_title || "") || null}, seo_description = ${String(body.seo_description || "") || null}, updated_at = now() WHERE id::text = ${id} RETURNING *`;
+      if (!rows[0]) throw new Error("Page not found");
+      return NextResponse.json({ row: rows[0] });
+    }
     if (table === "guides") {
       const row = await updateGuide(sql, id, body);
       return NextResponse.json({ row });
