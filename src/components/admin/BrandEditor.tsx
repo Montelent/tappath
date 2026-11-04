@@ -153,8 +153,8 @@ export default function BrandEditor() {
 
   const save = async () => {
     if (!editing) return;
-    const generatedSlug = slugifyBrand(editing.name);
-    if (!editing.name.trim() || !generatedSlug) {
+    const requestedSlug = editing.slug.trim();
+    if (!editing.name.trim() || !requestedSlug) {
       setMessage("Enter a valid brand name to generate its URL slug.");
       return;
     }
@@ -164,7 +164,7 @@ export default function BrandEditor() {
       const isNew = !editing.id;
       const payload = {
         ...editing,
-        slug: generatedSlug,
+        slug: requestedSlug,
         top_guides: autoGuides,
         guides_count: autoGuides.length,
       };
@@ -272,12 +272,12 @@ export default function BrandEditor() {
           <div className="grid gap-3 sm:grid-cols-2">
             <label>
               <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">Name</span>
-              <input value={editing.name} onChange={(e) => { const name = e.target.value; setEditing((prev) => prev ? { ...prev, name, slug: slugifyBrand(name) } : prev); }} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
+              <input value={editing.name} onChange={(e) => { const name = e.target.value; setEditing((prev) => prev ? { ...prev, name, ...(!prev.id ? { slug: slugifyBrand(name) } : {}) } : prev); }} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
             </label>
             <label>
               <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">Slug</span>
-              <input value={editing.slug} readOnly aria-readonly="true" className="w-full cursor-not-allowed rounded-xl border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-sm" />
-              <span className="mt-1 block text-[11px] text-[var(--muted-foreground)]">Generated automatically from the brand name.</span>
+              <input value={editing.slug} onChange={(e) => setEditing((prev) => prev ? { ...prev, slug: e.target.value } : prev)} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
+              <span className="mt-1 block text-[11px] text-[var(--muted-foreground)]">Auto-generated when creating. During editing, it stays unchanged unless you edit it manually.</span>
             </label>
             <BrandColorPicker value={editing.color} onChange={(color) => setEditing({ ...editing, color })} />
             <div>
