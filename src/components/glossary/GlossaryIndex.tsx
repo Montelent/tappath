@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 type Props = { terms?: GlossaryTerm[] };
 
 export default function GlossaryIndex({ terms }: Props) {
-  const source = terms && terms.length > 0 ? terms : staticTerms;
+  const source = terms !== undefined ? terms : staticTerms;
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
 
