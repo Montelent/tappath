@@ -348,8 +348,9 @@ function slugifyTopicName(value: string) {
 
 async function insertTopic(sql: Sql, body: Record<string, unknown>) {
   const name = String(body.name || "").trim();
-  const slug = slugifyTopicName(name);
-  if (!name || !slug) throw new Error("A topic name is required");
+  const requestedSlug = String(body.slug || "").trim();
+  const slug = slugifyTopicName(requestedSlug || name);
+  if (!name || !slug) throw new Error("A topic name and valid slug are required");
   const description = String(body.description || "").trim();
   const icon = String(body.icon || "Settings").trim() || "Settings";
   const published = body.published !== false;
@@ -364,8 +365,9 @@ async function insertTopic(sql: Sql, body: Record<string, unknown>) {
 
 async function updateTopic(sql: Sql, id: string, body: Record<string, unknown>) {
   const name = String(body.name || "").trim();
-  const slug = slugifyTopicName(name);
-  if (!name || !slug) throw new Error("A topic name is required");
+  const requestedSlug = String(body.slug || "").trim();
+  const slug = slugifyTopicName(requestedSlug || name);
+  if (!name || !slug) throw new Error("A topic name and valid slug are required");
   const description = String(body.description || "").trim();
   const icon = String(body.icon || "Settings").trim() || "Settings";
   const published = body.published !== false;
