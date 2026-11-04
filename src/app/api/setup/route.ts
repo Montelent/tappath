@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
 import { getSql, isNeonConfigured } from "@/lib/db/neon";
-import { ensureDemoUsers } from "@/lib/db/users";
 import { brands } from "@/data/brands";
 import { topics } from "@/data/topics";
 import { devices } from "@/data/devices";
@@ -10,10 +10,21 @@ import { guides } from "@/data/guides";
 export const dynamic = "force-dynamic";
 
 /**
- * First-time bootstrap: creates demo admin + seeds content into Neon.
- * After this, sign in with admin@tappath.com / admin1234 and open /admin.
+ * Protected first-time content bootstrap. Configure SETUP_SECRET (32+ chars)
+ * and send it in the x-setup-secret header. This endpoint never creates or
+ * resets accounts; create an account through registration and grant admin
+ * privileges through a trusted database/admin workflow.
  */
-export async function POST() {
+export async function POST(req: NextRequest) {
+  const supplied = req.headers.get("x-setup-secret") || "";
+  const expected = process.env.SETUP_SECRET || "";
+  if (
+    expected.length < 32 ||
+    Buffer.byteLength(supplied) !== Buffer.byteLength(expected) ||
+    !timingSafeEqual(Buffer.from(supplied), Buffer.from(expected))
+  ) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   if (!isNeonConfigured()) {
     return NextResponse.json(
       { error: "DATABASE_URL not set on Vercel." },
@@ -40,13 +51,6 @@ export async function POST() {
   }
 
   const results: Record<string, number | string> = {};
-
-  try {
-    await ensureDemoUsers();
-    results.demoUsers = "ok";
-  } catch (e) {
-    results.demoUsers = e instanceof Error ? e.message : "failed";
-  }
 
   if (guideCount === 0) {
     try {
@@ -163,7 +167,7 @@ export async function POST() {
       results.guides = e instanceof Error ? e.message : "failed";
     }
   } else {
-    results.content = "already seeded (guides > 0); only refreshed demo users";
+    results.content = "already seeded (guides > 0); no account changes performed";
   }
 
   const [p2] = await sql`SELECT count(*)::int AS n FROM profiles`;
@@ -180,13 +184,13 @@ export async function POST() {
       guides: (g2 as { n: number }).n,
       brands: (b2 as { n: number }).n,
     },
-    next: "Sign in at /sign-in with admin@tappath.com / admin1234 then open /admin",
+    next: "Sign in with an account created through registration. Grant admin access through a trusted database/admin workflow.",
   });
 }
 
 export async function GET() {
   return NextResponse.json({
-    message: "POST to this endpoint to bootstrap Neon (demo admin + seed content).",
+    message: "Protected content bootstrap endpoint. Configure SETUP_SECRET and send it in x-setup-secret.",
     url: "/api/setup",
   });
 }
