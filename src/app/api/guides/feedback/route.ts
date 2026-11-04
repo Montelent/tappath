@@ -74,8 +74,24 @@ export async function GET(req: NextRequest) {
     try {
       const sql = getSql()!;
       const rows = guideSlug
-        ? await sql`SELECT * FROM guide_feedback WHERE guide_slug = ${guideSlug} ORDER BY created_at DESC`
-        : await sql`SELECT * FROM guide_feedback ORDER BY created_at DESC LIMIT 500`;
+        ? await sql`
+            SELECT guide_slug,
+              count(*) FILTER (WHERE correct)::int AS yes,
+              count(*) FILTER (WHERE NOT correct)::int AS no,
+              count(*)::int AS total
+            FROM guide_feedback
+            WHERE guide_slug = ${guideSlug}
+            GROUP BY guide_slug
+          `
+        : await sql`
+            SELECT guide_slug,
+              count(*) FILTER (WHERE correct)::int AS yes,
+              count(*) FILTER (WHERE NOT correct)::int AS no,
+              count(*)::int AS total
+            FROM guide_feedback
+            GROUP BY guide_slug
+            ORDER BY guide_slug
+          `;
       return NextResponse.json({ feedback: rows });
     } catch {
       /* fall through */
