@@ -19,9 +19,13 @@ export type SitePage = {
   updated_at: string;
 };
 
+let pagesSchemaReady: Promise<ReturnType<typeof getSql>> | null = null;
+
 async function ensurePagesTable() {
-  const sql = getSql();
-  if (!sql) return null;
+  if (!pagesSchemaReady) {
+    pagesSchemaReady = (async () => {
+      const sql = getSql();
+      if (!sql) return null;
   await sql`
     CREATE TABLE IF NOT EXISTS pages (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -49,8 +53,14 @@ async function ensurePagesTable() {
   await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS robots_follow boolean NOT NULL DEFAULT true`;
   await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS og_title text`;
   await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS og_description text`;
-  await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS og_image text`;
-  return sql;
+      await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS og_image text`;
+      return sql;
+    })().catch((error) => {
+      pagesSchemaReady = null;
+      throw error;
+    });
+  }
+  return pagesSchemaReady;
 }
 
 export async function getPublishedPage(slug: string): Promise<SitePage | null> {
