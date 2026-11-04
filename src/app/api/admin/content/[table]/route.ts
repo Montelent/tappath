@@ -411,8 +411,11 @@ async function updateGuide(sql: Sql, id: string, b: Record<string, unknown>) {
     const pathFor = (brand: unknown, line: unknown, slug: unknown) => {
       const brandPart = String(brand || "").trim().toLowerCase();
       const linePart = String(line || "guides").toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^a-z0-9-]/g, "");
+        .trim()
+        .replace(/['’]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 80);
       return `/${brandPart}/${linePart || "guides"}/${String(slug || "").trim()}`;
     };
     const oldPath = pathFor(previous.brand_slug, previous.product_line, previous.slug);
