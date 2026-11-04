@@ -98,7 +98,24 @@ async function selectAll(sql: Sql, table: string) {
         LIMIT 500
       `;
     case "topics":
-      return sql`SELECT * FROM topics ORDER BY sort_order ASC NULLS LAST, name ASC LIMIT 500`;
+      return sql`
+        SELECT t.*,
+          (
+            SELECT count(*)::int
+            FROM guides g
+            WHERE g.published = true
+              AND COALESCE(trim(g.category), '') <> ''
+              AND (
+                lower(trim(g.category)) = lower(trim(t.name))
+                OR lower(trim(g.category)) LIKE '%' || lower(trim(t.name)) || '%'
+                OR lower(trim(t.name)) LIKE '%' || lower(trim(g.category)) || '%'
+                OR lower(replace(trim(g.category), '&', 'and')) = lower(replace(trim(t.name), '&', 'and'))
+              )
+          ) AS guide_count
+        FROM topics t
+        ORDER BY t.sort_order ASC NULLS LAST, t.name ASC
+        LIMIT 500
+      `;
     case "glossary_terms":
       return sql`SELECT * FROM glossary_terms ORDER BY term ASC LIMIT 500`;
     case "guides":
@@ -204,6 +221,10 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       const rows = await sql`INSERT INTO pages (title, slug, content, excerpt, published, seo_title, seo_description, focus_keyword, canonical_url, robots_index, robots_follow, og_title, og_description, og_image) VALUES (${title}, ${slug}, ${String(body.content || "")}, ${String(body.excerpt || "")}, ${body.published === true}, ${String(body.seo_title || "") || null}, ${String(body.seo_description || "") || null}, ${String(body.focus_keyword || "") || null}, ${String(body.canonical_url || "") || null}, ${body.robots_index === false ? false : true}, ${body.robots_follow === false ? false : true}, ${String(body.og_title || "") || null}, ${String(body.og_description || "") || null}, ${String(body.og_image || "") || null}) RETURNING *`;
       return NextResponse.json({ row: rows[0] }, { status: 201 });
     }
+    if (table === "topics") {
+      const row = await insertTopic(sql, body);
+      return NextResponse.json({ row }, { status: 201 });
+    }
     if (table === "guides") {
       const row = await insertGuide(sql, body);
       return NextResponse.json({ row }, { status: 201 });
@@ -261,6 +282,10 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       if (!rows[0]) throw new Error("Page not found");
       return NextResponse.json({ row: rows[0] });
     }
+    if (table === "topics") {
+      const row = await updateTopic(sql, id, body);
+      return NextResponse.json({ row });
+    }
     if (table === "guides") {
       const row = await updateGuide(sql, id, body);
       return NextResponse.json({ row });
@@ -314,6 +339,46 @@ export async function DELETE(req: NextRequest, ctx: Ctx) {
       { status: 400 }
     );
   }
+}
+
+function slugifyTopicName(value: string) {
+  return value.normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase()
+    .trim().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+async function insertTopic(sql: Sql, body: Record<string, unknown>) {
+  const name = String(body.name || "").trim();
+  const slug = slugifyTopicName(name);
+  if (!name || !slug) throw new Error("A topic name is required");
+  const description = String(body.description || "").trim();
+  const icon = String(body.icon || "Settings").trim() || "Settings";
+  const published = body.published !== false;
+  const sortOrder = Number.isFinite(Number(body.sort_order)) ? Number(body.sort_order) : 0;
+  const rows = await sql`
+    INSERT INTO topics (slug, name, description, icon, guide_count, brands, published, sort_order)
+    VALUES (${slug}, ${name}, ${description}, ${icon}, 0, ARRAY[]::text[], ${published}, ${sortOrder})
+    RETURNING *
+  `;
+  return rows[0];
+}
+
+async function updateTopic(sql: Sql, id: string, body: Record<string, unknown>) {
+  const name = String(body.name || "").trim();
+  const slug = slugifyTopicName(name);
+  if (!name || !slug) throw new Error("A topic name is required");
+  const description = String(body.description || "").trim();
+  const icon = String(body.icon || "Settings").trim() || "Settings";
+  const published = body.published !== false;
+  const sortOrder = Number.isFinite(Number(body.sort_order)) ? Number(body.sort_order) : 0;
+  const rows = await sql`
+    UPDATE topics
+    SET slug = ${slug}, name = ${name}, description = ${description},
+        icon = ${icon}, published = ${published}, sort_order = ${sortOrder}
+    WHERE id::text = ${id}
+    RETURNING *
+  `;
+  if (!rows[0]) throw new Error("Topic not found");
+  return rows[0];
 }
 
 async function ensureGuideColumns(sql: Sql) {
