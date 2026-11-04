@@ -9,7 +9,7 @@ export async function GET() {
   try {
     const s = await getSiteSettings();
     const redirects = (s.seo_redirects || [])
-      .filter((r) => r && r.enabled !== false && r.from && r.to)
+      .filter((r) => r && r.enabled !== false && r.from && r.to && r.from.replace(/\\/+$/, "") !== r.to.replace(/\\/+$/, ""))
       .map((r) => ({
         from: r.from.startsWith("/") ? r.from : `/${r.from}`,
         to: r.to,
