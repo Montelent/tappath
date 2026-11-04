@@ -1,6 +1,6 @@
 # Neon setup for TapPath
 
-1. Apply the committed Neon schema/migration SQL in **Neon → SQL Editor** (see `neon/`).
+1. Run `neon/schema.sql` in **Neon → SQL Editor**. For an existing database, review and apply any needed additive changes before deployment.
 2. Vercel → Settings → Environment Variables:
    - `DATABASE_URL` = your pooled Neon connection string
    - `AUTH_SECRET` = cryptographically random string (at least 32 characters)
