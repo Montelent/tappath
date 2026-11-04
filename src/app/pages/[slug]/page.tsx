@@ -25,11 +25,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const ogTitle = page.og_title || title;
   const ogDescription = page.og_description || description;
   return {
-    title,
+    title: { absolute: title },
     description: description || undefined,
     alternates: { canonical },
     robots: { index: page.robots_index !== false, follow: page.robots_follow !== false },
-    openGraph: { type: "article", title: ogTitle, description: ogDescription, url: canonical, images: page.og_image ? [page.og_image] : undefined },
+    openGraph: { type: "article", title: ogTitle, description: ogDescription, url: canonical, images: [page.og_image || settings.og_image_url || "/og.png"] },
     twitter: { card: "summary_large_image", title: ogTitle, description: ogDescription, images: page.og_image ? [page.og_image] : undefined },
   };
 }
