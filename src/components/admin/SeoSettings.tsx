@@ -11,12 +11,13 @@ import { SEO_SHORTCODES, seoPreviewDescription, seoPreviewTitle } from "@/lib/se
 import { cn } from "@/lib/utils";
 
 type Settings = SiteSettings;
-type TabId = "global" | "homepage" | "guides" | "glossary" | "devices" | "brands" | "topics" | "webmaster" | "redirects";
+type TabId = "global" | "homepage" | "guides" | "pages" | "glossary" | "devices" | "brands" | "topics" | "webmaster" | "redirects";
 
 const TABS: { id: TabId; label: string; icon: typeof Globe }[] = [
   { id: "global", label: "Global Meta", icon: Globe },
   { id: "homepage", label: "Homepage", icon: Home },
   { id: "guides", label: "Guides", icon: FileText },
+  { id: "pages", label: "Pages", icon: FileText },
   { id: "glossary", label: "Glossary", icon: BookMarked },
   { id: "devices", label: "Devices", icon: Smartphone },
   { id: "brands", label: "Brands", icon: Tag },
@@ -27,6 +28,7 @@ const TABS: { id: TabId; label: string; icon: typeof Globe }[] = [
 
 const SAMPLE: Record<string, Record<string, string>> = {
   guides: { title: "Add a Fingerprint", brand: "Samsung", excerpt: "Set up fingerprint unlock on Galaxy phones.", product_line: "Galaxy" },
+  pages: { title: "About Us", excerpt: "Learn more about our website and editorial mission." },
   glossary: { title: "NFC", term: "NFC", excerpt: "Near Field Communication for short-range wireless data exchange.", category: "Network" },
   devices: { title: "Galaxy S24 Ultra", device: "Galaxy S24 Ultra", brand: "Samsung", excerpt: "Guides and specs for Galaxy S24 Ultra." },
   brands: { title: "Samsung", brand: "Samsung", excerpt: "Step-by-step guides for Samsung Galaxy." },
@@ -143,6 +145,7 @@ export default function SeoSettings() {
           )}
 
           {tab === "homepage" && <TemplatePanel title="Homepage" titleKey="seo_tpl_homepage_title" descKey="seo_tpl_homepage_description" settings={settings} set={set} sample={{ ...varsBase, ...SAMPLE.homepage }} shortcodes={["%sitename%", "%sep%", "%excerpt%"]} />}
+          {tab === "pages" && <TemplatePanel title="Single Page" titleKey="seo_tpl_page_title" descKey="seo_tpl_page_description" settings={settings} set={set} sample={{ ...varsBase, ...SAMPLE.pages }} shortcodes={["%title%", "%sep%", "%sitename%", "%excerpt%"]} />}
           {tab === "guides" && <TemplatePanel title="Single Guide" titleKey="seo_tpl_guide_title" descKey="seo_tpl_guide_description" settings={settings} set={set} sample={{ ...varsBase, ...SAMPLE.guides }} shortcodes={["%title%", "%sep%", "%brand%", "%sitename%", "%excerpt%", "%product_line%"]} />}
           {tab === "glossary" && <TemplatePanel title="Glossary Term" titleKey="seo_tpl_glossary_title" descKey="seo_tpl_glossary_description" settings={settings} set={set} sample={{ ...varsBase, ...SAMPLE.glossary }} shortcodes={["%term%", "%title%", "%sep%", "%sitename%", "%excerpt%", "%category%"]} />}
           {tab === "devices" && <TemplatePanel title="Single Device" titleKey="seo_tpl_device_title" descKey="seo_tpl_device_description" settings={settings} set={set} sample={{ ...varsBase, ...SAMPLE.devices }} shortcodes={["%device%", "%title%", "%brand%", "%sep%", "%sitename%", "%excerpt%"]} />}
