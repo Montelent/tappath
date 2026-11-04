@@ -2,7 +2,6 @@ import type { MetadataRoute } from "next";
 import {
   listGuides,
   listTopics,
-  listDevices,
   listGlossary,
   listBrands,
   isDatabaseConfigured,
@@ -10,6 +9,7 @@ import {
 import { guideHref } from "@/lib/guides/resolve";
 import { getSiteSettings } from "@/lib/site-settings";
 import { listPublishedPages } from "@/lib/db/pages";
+import { listDevicesPublic } from "@/lib/devices/resolve";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const s = await getSiteSettings();
@@ -52,7 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const [brands, topics, devices, glossary, guides] = await Promise.all([
       s.seo_sitemap_include_brands !== false ? listBrands() : Promise.resolve([]),
       s.seo_sitemap_include_topics !== false ? listTopics() : Promise.resolve([]),
-      s.seo_sitemap_include_devices !== false ? listDevices() : Promise.resolve([]),
+      s.seo_sitemap_include_devices !== false ? listDevicesPublic() : Promise.resolve([]),
       s.seo_sitemap_include_glossary !== false ? listGlossary() : Promise.resolve([]),
       s.seo_sitemap_include_guides !== false ? listGuides() : Promise.resolve([]),
     ]);
@@ -64,11 +64,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const slug = (t.slug || "").toLowerCase().replace(/-/g, " ");
       return !!category && (category === name || category.includes(name) || name.includes(category) || category.includes(slug) || slug.includes(category));
     }));
-    const devicesWithGuides = devices.filter((d) => guides.some((g) => g.brand_slug === d.brand_slug && (g.compatible_devices || []).some((item) => {
-      const normalize = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-      const slug = normalize(d.slug);
-      return normalize(item.name || "") === slug || normalize(item.href || "").endsWith(slug) || normalize(item.href || "").includes(slug);
-    })));
+    // listDevicesPublic includes only devices with at least one matching published guide.
+    const devicesWithGuides = devices;
 
     const brandRoutes = brandsWithGuides.map((b) => ({
       url: `${host}/${b.slug}`,
