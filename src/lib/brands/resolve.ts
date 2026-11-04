@@ -23,29 +23,12 @@ export async function resolveBrandPage(slug: string): Promise<Brand | null> {
           lineMap.set(line, (lineMap.get(line) || 0) + 1);
         }
 
-        // Prefer lines derived from live guides; fall back to stored product_lines
-        let productLines =
-          lineMap.size > 0
-            ? Array.from(lineMap.entries()).map(([name, count]) => ({
-                name,
-                count,
-                href: `/${key}/${name.toLowerCase().replace(/\s+/g, "-")}`,
-              }))
-            : (Array.isArray(db.product_lines) ? db.product_lines : []).map(
-                (pl: { name?: string; href?: string; count?: number }) => ({
-                  name: String(pl.name || "Guides"),
-                  count: Number(pl.count) || 0,
-                  href:
-                    pl.href ||
-                    `/${key}/${String(pl.name || "guides")
-                      .toLowerCase()
-                      .replace(/\s+/g, "-")}`,
-                })
-              );
-
-        if (productLines.length === 0 && brandGuides.length > 0) {
-          productLines = [{ name: "All", count: brandGuides.length, href: `/${key}` }];
-        }
+        // Public product lines come only from currently published guide rows.
+        const productLines = Array.from(lineMap.entries()).map(([name, count]) => ({
+          name,
+          count,
+          href: `/${key}/${name.toLowerCase().replace(/\\s+/g, "-")}`,
+        }));
 
         const topGuides = brandGuides.slice(0, 24).map((g) => ({
           title: g.title,
@@ -62,24 +45,14 @@ export async function resolveBrandPage(slug: string): Promise<Brand | null> {
         return {
           slug: db.slug,
           name: db.name,
-          guides: brandGuides.length || Number(db.guides_count) || 0,
-          devices: brandDevices.length || Number(db.devices_count) || 0,
+          guides: brandGuides.length,
+          devices: brandDevices.length,
           topicHubs: 0,
           color: db.color || "bg-slate-500",
           description: db.description || `${db.name} settings guides and help.`,
           productLines,
-          topGuides:
-            topGuides.length > 0
-              ? topGuides
-              : Array.isArray(db.top_guides)
-                ? (db.top_guides as Brand["topGuides"])
-                : [],
-          devicesList:
-            devicesList.length > 0
-              ? devicesList
-              : Array.isArray(db.devices_list)
-                ? (db.devices_list as Brand["devicesList"])
-                : [],
+          topGuides,
+          devicesList,
           forumTopics: [],
           seoText: {
             updates: db.seo_updates || "",
