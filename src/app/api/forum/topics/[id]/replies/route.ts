@@ -28,8 +28,8 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     try {
       const sql = getSql()!;
       const rows = await sql`
-        INSERT INTO forum_replies (topic_id, author_name, body)
-        SELECT id, ${user.name}, ${text}
+        INSERT INTO forum_replies (topic_id, author_id, author_name, body)
+        SELECT id, ${user.id}, ${user.name}, ${text}
         FROM forum_topics WHERE id::text = ${id}
         RETURNING *
       `;
