@@ -18,7 +18,10 @@ const ALLOWED = new Set([
 type Ctx = { params: Promise<{ table: string }> };
 type Sql = NonNullable<ReturnType<typeof getSql>>;
 
+let pagesSchemaReady = false;
+
 async function ensurePagesTable(sql: Sql) {
+  if (pagesSchemaReady) return;
   await sql`
     CREATE TABLE IF NOT EXISTS pages (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -47,6 +50,7 @@ async function ensurePagesTable(sql: Sql) {
   await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS og_title text`;
   await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS og_description text`;
   await sql`ALTER TABLE pages ADD COLUMN IF NOT EXISTS og_image text`;
+  pagesSchemaReady = true;
 }
 
 async function selectAll(sql: Sql, table: string) {
