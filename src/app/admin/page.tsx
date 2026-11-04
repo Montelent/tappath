@@ -36,8 +36,8 @@ export default async function AdminPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <h1 className="text-[23px] font-normal leading-tight text-[#1d2327]">Dashboard</h1>
-        <p className="mt-1 text-[13px] text-[#646970]">
+        <h1 className="text-[23px] font-normal leading-tight" style={{ color: "var(--a-fg)" }}>Dashboard</h1>
+        <p className="mt-1 text-[13px]" style={{ color: "var(--a-muted)" }}>
           Control what appears on the public site. Edits publish when rows are marked published.
         </p>
       </div>
@@ -55,10 +55,10 @@ export default async function AdminPage() {
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
         )}
         <div className="text-sm">
-          <p className="font-semibold text-[#1d2327]">
+          <p className="font-semibold" style={{ color: "var(--a-fg)" }}>
             {live ? "Neon database connected" : "Database not connected"}
           </p>
-          <p className="mt-1 text-[#646970]">
+          <p className="mt-1" style={{ color: "var(--a-muted)" }}>
             {live
               ? "Creates, edits, and deletes are saved to your database."
               : "Set DATABASE_URL (Neon) in your host environment, then redeploy."}
@@ -75,59 +75,59 @@ export default async function AdminPage() {
             <Link
               key={c.href}
               href={c.href}
-              className="group rounded border border-[#c3c4c7] bg-white p-5 transition hover:border-[#2271b1] hover:shadow-sm"
+              className="group rounded border p-5 transition hover:shadow-sm" style={{ borderColor: "var(--a-border)", background: "var(--a-card)", color: "var(--a-fg)" }}
             >
               <div className="flex items-start justify-between">
                 <div className="rounded bg-[#f0f6fc] p-2">
                   <Icon className="h-5 w-5 text-[#2271b1]" />
                 </div>
-                <span className="text-2xl font-bold tabular-nums text-[#1d2327]">{value}</span>
+                <span className="text-2xl font-bold tabular-nums" style={{ color: "var(--a-fg)" }}>{value}</span>
               </div>
               <div className="mt-3 flex items-center justify-between">
                 <div>
-                  <div className="font-semibold text-[#1d2327]">{c.label}</div>
-                  <div className="text-xs text-[#646970]">{c.desc}</div>
+                  <div className="font-semibold" style={{ color: "var(--a-fg)" }}>{c.label}</div>
+                  <div className="text-xs" style={{ color: "var(--a-muted)" }}>{c.desc}</div>
                 </div>
-                <ArrowRight className="h-4 w-4 text-[#646970] opacity-0 transition group-hover:opacity-100" />
+                <ArrowRight className="h-4 w-4 opacity-0 transition group-hover:opacity-100" style={{ color: "var(--a-muted)" }} />
               </div>
             </Link>
           );
         })}
       </div>
 
-      <section className="rounded border border-[#c3c4c7] bg-white p-6">
-        <h2 className="font-semibold text-[#1d2327]">Quick actions</h2>
+      <section className="rounded border p-6" style={{ borderColor: "var(--a-border)", background: "var(--a-card)", color: "var(--a-fg)" }}>
+        <h2 className="font-semibold" style={{ color: "var(--a-fg)" }}>Quick actions</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <Link
             href="/admin/guides"
-            className="rounded border border-[#c3c4c7] px-4 py-3 text-sm hover:bg-[#f6f7f7]"
+            className="rounded border px-4 py-3 text-sm hover:opacity-80" style={{ borderColor: "var(--a-border)", color: "var(--a-fg)" }}
           >
-            <span className="font-medium text-[#1d2327]">Edit guides</span>
-            <p className="mt-0.5 text-xs text-[#646970]">Titles, steps, FAQs, publish state</p>
+            <span className="font-medium" style={{ color: "var(--a-fg)" }}>Edit guides</span>
+            <p className="mt-0.5 text-xs" style={{ color: "var(--a-muted)" }}>Titles, steps, FAQs, publish state</p>
           </Link>
           <Link
             href="/admin/brands"
-            className="rounded border border-[#c3c4c7] px-4 py-3 text-sm hover:bg-[#f6f7f7]"
+            className="rounded border px-4 py-3 text-sm hover:opacity-80" style={{ borderColor: "var(--a-border)", color: "var(--a-fg)" }}
           >
-            <span className="font-medium text-[#1d2327]">Manage brands</span>
-            <p className="mt-0.5 text-xs text-[#646970]">Homepage brand grid and SEO blurbs</p>
+            <span className="font-medium" style={{ color: "var(--a-fg)" }}>Manage brands</span>
+            <p className="mt-0.5 text-xs" style={{ color: "var(--a-muted)" }}>Homepage brand grid and SEO blurbs</p>
           </Link>
           <Link
             href="/admin/forum"
-            className="rounded border border-[#c3c4c7] px-4 py-3 text-sm hover:bg-[#f6f7f7]"
+            className="rounded border px-4 py-3 text-sm hover:opacity-80" style={{ borderColor: "var(--a-border)", color: "var(--a-fg)" }}
           >
-            <span className="font-medium text-[#1d2327]">Moderate forum</span>
-            <p className="mt-0.5 text-xs text-[#646970]">Threads, solved status, delete spam</p>
+            <span className="font-medium" style={{ color: "var(--a-fg)" }}>Moderate forum</span>
+            <p className="mt-0.5 text-xs" style={{ color: "var(--a-muted)" }}>Threads, solved status, delete spam</p>
           </Link>
           <Link
             href="/admin/settings"
-            className="rounded border border-[#c3c4c7] px-4 py-3 text-sm hover:bg-[#f6f7f7]"
+            className="rounded border px-4 py-3 text-sm hover:opacity-80" style={{ borderColor: "var(--a-border)", color: "var(--a-fg)" }}
           >
-            <span className="font-medium text-[#1d2327]">Site settings</span>
-            <p className="mt-0.5 text-xs text-[#646970]">Logo, homepage text, verification codes</p>
+            <span className="font-medium" style={{ color: "var(--a-fg)" }}>Site settings</span>
+            <p className="mt-0.5 text-xs" style={{ color: "var(--a-muted)" }}>Logo, homepage text, verification codes</p>
           </Link>
         </div>
-        <p className="mt-4 text-xs text-[#646970]">Feedback votes stored: {stats.feedback}.</p>
+        <p className="mt-4 text-xs" style={{ color: "var(--a-muted)" }}>Feedback votes stored: {stats.feedback}.</p>
       </section>
     </div>
   );
