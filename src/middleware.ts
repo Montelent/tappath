@@ -52,7 +52,7 @@ export async function middleware(req: NextRequest) {
         const from = r.from.startsWith("/") ? r.from : `/${r.from}`;
         return from === pathname;
       });
-      if (hit) {
+      if (hit && hit.to !== pathname) {
         const code = hit.code === 302 ? 302 : 301;
         if (hit.to.startsWith("http")) {
           return NextResponse.redirect(hit.to, code);
