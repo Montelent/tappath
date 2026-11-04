@@ -92,17 +92,10 @@ export async function resolveBrandPage(slug: string): Promise<Brand | null> {
     }
   }
 
+  // In production, the database is the source of truth. Never expose a bundled
+  // placeholder brand when the requested brand is missing or the query failed.
+  if (isNeonConfigured() || process.env.NODE_ENV === "production") return null;
+
   const fallback = staticBrands[key as keyof typeof staticBrands];
-  if (!fallback) return null;
-  if (isNeonConfigured()) {
-    return {
-      ...fallback,
-      guides: 0,
-      devices: 0,
-      productLines: fallback.productLines.map((pl) => ({ ...pl, count: 0 })),
-      topGuides: [],
-      devicesList: [],
-    };
-  }
-  return fallback;
+  return fallback || null;
 }
