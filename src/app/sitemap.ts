@@ -9,6 +9,7 @@ import {
 } from "@/lib/db/content";
 import { guideHref } from "@/lib/guides/resolve";
 import { getSiteSettings } from "@/lib/site-settings";
+import { listPublishedPages } from "@/lib/db/pages";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const s = await getSiteSettings();
@@ -93,6 +94,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     return [
       ...staticRoutes,
+      ...((await listPublishedPages()).map((p) => ({ url: `${host}/pages/${p.slug}`, lastModified: p.updated_at ? new Date(p.updated_at) : now, changeFrequency: "monthly" as const, priority: 0.6 }))),
       ...brandRoutes,
       ...topicRoutes,
       ...glossaryRoutes,
