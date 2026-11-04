@@ -38,6 +38,8 @@ type BrandRow = {
   sort_order: number;
 };
 
+const slugifyBrand = (value: string) => value.normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
 const emptyBrand = (): BrandRow => ({
   slug: "",
   name: "",
@@ -151,8 +153,9 @@ export default function BrandEditor() {
 
   const save = async () => {
     if (!editing) return;
-    if (!editing.name.trim() || !editing.slug.trim()) {
-      setMessage("Name and slug are required.");
+    const generatedSlug = slugifyBrand(editing.name);
+    if (!editing.name.trim() || !generatedSlug) {
+      setMessage("Enter a valid brand name to generate its URL slug.");
       return;
     }
     setSaving(true);
@@ -161,6 +164,7 @@ export default function BrandEditor() {
       const isNew = !editing.id;
       const payload = {
         ...editing,
+        slug: generatedSlug,
         top_guides: autoGuides,
         guides_count: autoGuides.length,
       };
@@ -268,18 +272,12 @@ export default function BrandEditor() {
           <div className="grid gap-3 sm:grid-cols-2">
             <label>
               <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">Name</span>
-              <input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
+              <input value={editing.name} onChange={(e) => { const name = e.target.value; setEditing((prev) => prev ? { ...prev, name, slug: slugifyBrand(name) } : prev); }} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
             </label>
             <label>
               <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">Slug</span>
-              <input
-                value={editing.slug}
-                onChange={(e) => setEditing({ ...editing, slug: e.target.value })}
-                onBlur={() => {
-                  if (editing.slug) void loadAutoGuides(editing.slug);
-                }}
-                className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm"
-              />
+              <input value={editing.slug} readOnly aria-readonly="true" className="w-full cursor-not-allowed rounded-xl border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-sm" />
+              <span className="mt-1 block text-[11px] text-[var(--muted-foreground)]">Generated automatically from the brand name.</span>
             </label>
             <BrandColorPicker value={editing.color} onChange={(color) => setEditing({ ...editing, color })} />
             <div>
