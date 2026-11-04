@@ -263,6 +263,9 @@ function RedirectsPanel({ settings, set }: { settings: Settings; set: <K extends
   };
   return (
     <Panel title="Redirects">
+      <p className="text-xs leading-relaxed text-[var(--muted-foreground)]">
+        When you change a saved guide's URL slug, brand or product line in the Guide Editor, TapPath automatically adds a permanent 301 redirect from the old URL to the new URL. Those automatic redirects appear here too, and can be reviewed or removed. You can also add redirects manually.
+      </p>
       <label className="inline-flex items-center gap-2 text-sm">
         <input type="checkbox" checked={settings.seo_redirect_trailing_slash !== false} onChange={(e) => set("seo_redirect_trailing_slash", e.target.checked)} />
         Auto-strip trailing slashes (301)
