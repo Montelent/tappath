@@ -32,8 +32,7 @@ export default function AdminDevicesPage() {
         fields={[
           { key: "name", label: "Name" },
           { key: "slug", label: "Slug" },
-          { key: "brand_name", label: "Brand name" },
-          { key: "brand_slug", label: "Brand slug" },
+          { key: "brand_slug", label: "Brand" },
           { key: "os", label: "OS" },
           { key: "href", label: "Href" },
           { key: "year", label: "Year", type: "number" },
