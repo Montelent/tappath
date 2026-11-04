@@ -365,7 +365,8 @@ async function insertTopic(sql: Sql, body: Record<string, unknown>) {
 
 async function updateTopic(sql: Sql, id: string, body: Record<string, unknown>) {
   const name = String(body.name || "").trim();
-  const requestedSlug = String(body.slug || "").trim();
+  const existing = await sql`SELECT slug FROM topics WHERE id::text = ${id} LIMIT 1`;
+  const requestedSlug = String(body.slug || existing[0]?.slug || "").trim();
   const slug = slugifyTopicName(requestedSlug || name);
   if (!name || !slug) throw new Error("A topic name and valid slug are required");
   const description = String(body.description || "").trim();
@@ -418,10 +419,10 @@ async function ensureGlossaryColumns(sql: Sql) {
 }
 
 
-async function normalizeDeviceInput(sql: Sql, b: Record<string, unknown>) {
+async function normalizeDeviceInput(sql: Sql, b: Record<string, unknown>, existingSlug?: string) {
   await ensureDevicesColumns(sql);
   const name = String(b.name || "").trim();
-  const slug = String(b.slug || name).normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  const slug = String(b.slug || existingSlug || name).normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
   const brandSlug = String(b.brand_slug || "").trim().toLowerCase();
   if (!name || !slug || !brandSlug) throw new Error("Device name and brand are required");
   const brands = await sql`SELECT slug, name FROM brands WHERE slug = ${brandSlug} LIMIT 1`;
@@ -446,7 +447,8 @@ async function insertDevice(sql: Sql, b: Record<string, unknown>) {
 }
 
 async function updateDevice(sql: Sql, id: string, b: Record<string, unknown>) {
-  const d = await normalizeDeviceInput(sql, b);
+  const existing = await sql`SELECT slug FROM devices WHERE id::text = ${id} LIMIT 1`;
+  const d = await normalizeDeviceInput(sql, b, String(existing[0]?.slug || ""));
   const rows = await sql`
     UPDATE devices SET slug = ${d.slug}, name = ${d.name}, brand_slug = ${d.brandSlug},
       brand_name = ${d.brandName}, os = ${d.os}, href = ${d.href}, year = ${d.year},
