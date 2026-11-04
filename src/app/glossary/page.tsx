@@ -15,22 +15,20 @@ export const metadata: Metadata = {
 };
 
 export default async function GlossaryPage() {
-  let terms: GlossaryTerm[] = glossaryTerms;
+  let terms: GlossaryTerm[] = process.env.NODE_ENV === "production" ? [] : glossaryTerms;
 
   if (isDatabaseConfigured()) {
     try {
       const rows = await listGlossary();
-      if (rows.length > 0) {
-        terms = rows.map((r) => ({
+      terms = rows.map((r) => ({
           slug: r.slug,
           term: r.term,
           category: r.category || "General",
           short: r.short || "",
           definition: r.definition || "",
         }));
-      }
     } catch {
-      /* static fallback */
+      terms = [];
     }
   }
 
