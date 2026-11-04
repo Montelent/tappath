@@ -15,6 +15,7 @@ export default function AdminTopicsPage() {
         columns={[
           { key: "name", label: "Name" },
           { key: "slug", label: "Slug" },
+          { key: "guide_count", label: "Published guides" },
           { key: "published", label: "Published" },
         ]}
         emptyRow={{
