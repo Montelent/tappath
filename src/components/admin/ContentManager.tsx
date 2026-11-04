@@ -329,9 +329,9 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
               if (table === "topics" && f.key === "slug") {
                 return (
                   <label key={f.key} className="block">
-                    <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">{f.label} (auto-generated)</span>
-                    <input readOnly value={String(editing.slug || "")} className="w-full rounded-xl border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-sm" />
-                    <span className="mt-1 block text-[11px] text-[var(--muted-foreground)]">Generated automatically from the topic name.</span>
+                    <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">{f.label}</span>
+                    <input value={String(editing.slug || "")} onChange={(e) => setEditing({ ...editing, slug: e.target.value })} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
+                    <span className="mt-1 block text-[11px] text-[var(--muted-foreground)]">Auto-generated from the topic name. You can edit it manually.</span>
                   </label>
                 );
               }
