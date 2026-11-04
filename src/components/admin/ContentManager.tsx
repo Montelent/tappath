@@ -326,6 +326,15 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                 );
               }
               if (table === "devices" && f.key === "brand_name") return null;
+              if (table === "topics" && f.key === "slug") {
+                return (
+                  <label key={f.key} className="block">
+                    <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">{f.label} (auto-generated)</span>
+                    <input readOnly value={String(editing.slug || "")} className="w-full rounded-xl border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-sm" />
+                    <span className="mt-1 block text-[11px] text-[var(--muted-foreground)]">Generated automatically from the topic name.</span>
+                  </label>
+                );
+              }
               if (table === "devices" && f.key === "slug") {
                 return (
                   <label key={f.key} className="block">
@@ -404,10 +413,11 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                       f.key === "title" &&
                       (!String(editing.slug || "") || String(editing.slug) === previousAutoSlug);
                     const shouldUpdateDeviceSlug = table === "devices" && f.key === "name";
+                    const shouldUpdateTopicSlug = table === "topics" && f.key === "name";
                     setEditing({
                       ...editing,
                       [f.key]: value,
-                      ...(shouldUpdatePageSlug || shouldUpdateDeviceSlug ? { slug: nextSlug } : {}),
+                      ...(shouldUpdatePageSlug || shouldUpdateDeviceSlug || shouldUpdateTopicSlug ? { slug: nextSlug } : {}),
                     });
                   }} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
                   {f.help && <span className="mt-1 block text-[11px] text-[var(--muted-foreground)]">{f.help}</span>}
