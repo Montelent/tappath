@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Circle, AlertCircle, Search, Share2, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +22,7 @@ type Props = {
   defaultTitle: string;
   defaultDescription: string;
   pathPreview: string;
+  /** Optional override; when omitted the box detects the live browser host. */
   siteHost?: string;
   imageUrl?: string;
   className?: string;
@@ -56,11 +57,18 @@ export default function SeoMetaBox({
   defaultTitle,
   defaultDescription,
   pathPreview,
-  siteHost = "tappath.com",
+  siteHost,
   imageUrl,
   className,
 }: Props) {
   const [tab, setTab] = useState<Tab>("general");
+  // Auto-detect the real site host in the browser (WordPress-style — never hardcode a domain).
+  const [autoHost, setAutoHost] = useState("");
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location?.host) {
+      setAutoHost(window.location.host);
+    }
+  }, []);
 
   const set = <K extends keyof SeoMetaValue>(key: K, v: SeoMetaValue[K]) =>
     onChange({ ...value, [key]: v });
@@ -100,9 +108,12 @@ export default function SeoMetaBox({
   const overall =
     total === 0 ? "empty" : passed / total >= 0.8 ? "good" : passed / total >= 0.5 ? "ok" : "bad";
 
-  const host = siteHost.replace(/^https?:\/\//, "").replace(/\/$/, "") || "tappath.com";
+  const host = (siteHost || autoHost || "")
+    .replace(/^https?:\/\//, "")
+    .replace(/\/$/, "");
   const path = pathPreview.startsWith("/") ? pathPreview : `/${pathPreview}`;
   const crumbs = path.split("/").filter(Boolean).slice(0, 3);
+  const canonicalPlaceholder = host ? `https://${host}${path}` : path;
 
   const tabs: { id: Tab; label: string; icon: typeof Search }[] = [
     { id: "general", label: "General", icon: Search },
@@ -193,7 +204,7 @@ export default function SeoMetaBox({
                   {displayTitle || "Page title will appear here"}
                 </div>
                 <div className="mt-0.5 truncate text-[12px] text-[#006621] dark:text-[#bdc1c6]">
-                  {host}
+                  {host || "…"}
                   {crumbs.length > 0 && (
                     <span className="text-[#5f6368] dark:text-[#9aa0a6]"> › {crumbs.join(" › ")}</span>
                   )}
@@ -295,7 +306,7 @@ export default function SeoMetaBox({
                   </div>
                 )}
                 <div className="space-y-0.5 border-t border-[var(--border)] p-3">
-                  <div className="text-[11px] uppercase tracking-wide text-[var(--muted-foreground)]">{host}</div>
+                  <div className="text-[11px] uppercase tracking-wide text-[var(--muted-foreground)]">{host || "…"}</div>
                   <div className="line-clamp-2 text-sm font-semibold text-[var(--foreground)]">
                     {(value.og_title || displayTitle || "Title").trim()}
                   </div>
@@ -346,7 +357,7 @@ export default function SeoMetaBox({
                 type="url"
                 value={value.canonical_url || ""}
                 onChange={(e) => set("canonical_url", e.target.value)}
-                placeholder={`https://${host}${path}`}
+                placeholder={canonicalPlaceholder}
                 className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 font-mono text-sm"
               />
               <span className="mt-1 block text-[11px] text-[var(--muted-foreground)]">
