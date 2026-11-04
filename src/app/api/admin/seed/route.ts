@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSql, isNeonConfigured } from "@/lib/db/neon";
 import { requireAdmin } from "@/lib/session";
-import { ensureDemoUsers } from "@/lib/db/users";
 import { brands } from "@/data/brands";
 import { topics } from "@/data/topics";
 import { devices } from "@/data/devices";
@@ -23,13 +22,6 @@ export async function POST() {
 
   const sql = getSql()!;
   const results: Record<string, number | string> = {};
-
-  try {
-    await ensureDemoUsers();
-    results.demoUsers = "ok";
-  } catch (e) {
-    results.demoUsers = e instanceof Error ? e.message : "failed";
-  }
 
   try {
     let n = 0;
