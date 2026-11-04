@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const [page, settings] = await Promise.all([getPublishedPage(slug), getSiteSettings()]);
   if (!page) return { title: "Page not found" };
-  const plainExcerpt = (page.excerpt || "").replace(/<[^>]+>/g, " ").replace(/\\s+/g, " ").trim();
+  const plainExcerpt = (page.excerpt || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
   const title = page.seo_title || applySeoTemplate(
     settings.seo_tpl_page_title,
     { title: page.title, sitename: settings.site_name, sep: settings.seo_title_separator, excerpt: plainExcerpt },
