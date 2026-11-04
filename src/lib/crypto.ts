@@ -49,7 +49,12 @@ export function signSession(payload: Omit<SessionPayload, "exp">, ttlSec = 60 * 
 export function verifySession(token: string): SessionPayload | null {
   const [data, sig] = token.split(".");
   if (!data || !sig) return null;
-  const expected = createHmac("sha256", secret()).update(data).digest("base64url");
+  let expected: string;
+  try {
+    expected = createHmac("sha256", secret()).update(data).digest("base64url");
+  } catch {
+    return null;
+  }
   try {
     if (!timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
   } catch {
