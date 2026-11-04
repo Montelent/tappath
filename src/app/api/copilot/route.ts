@@ -204,7 +204,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const message = typeof body.message === "string" ? body.message.trim() : "";
+  const message = body && typeof body.message === "string" ? body.message.trim() : "";
   if (!message) {
     return NextResponse.json({ error: "Empty message" }, { status: 400 });
   }
