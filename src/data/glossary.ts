@@ -10,8 +10,16 @@ export type GlossaryTerm = {
   definition: string;
   faqs?: GlossaryFaq[];
   relatedGuides?: { title: string; href: string; brand?: string }[];
+  /** Rank Math-style per-term SEO overrides */
   seoTitle?: string;
   seoDescription?: string;
+  focusKeyword?: string;
+  canonicalUrl?: string;
+  robotsIndex?: boolean;
+  robotsFollow?: boolean;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
 };
 
 export const glossaryCategories = [
@@ -421,32 +429,18 @@ export const glossaryTerms: GlossaryTerm[] = [
   {
     slug: "ip-rating",
     term: "IP Rating",
-    category: "Display",
-    short: "Dust and water resistance rating (e.g. IP68).",
+    category: "System",
+    short: "Ingress Protection rating for dust and water resistance.",
     definition:
-      "An IP rating (Ingress Protection) indicates how well a device is sealed against dust and water. For example, IP68 means dust-tight and protected against prolonged immersion under specified conditions.",
+      "An IP rating (Ingress Protection) indicates how well a device is sealed against dust and water. For example, IP68 means dust-tight and protected against prolonged immersion in water under specified conditions.",
   },
 ];
-
-export const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 export function getTerm(slug: string): GlossaryTerm | undefined {
   return glossaryTerms.find((t) => t.slug === slug);
 }
 
 export function getTermsByCategory(category: string): GlossaryTerm[] {
-  if (category === "All") return [...glossaryTerms];
+  if (!category || category === "All") return glossaryTerms;
   return glossaryTerms.filter((t) => t.category === category);
-}
-
-export function getTermsGroupedByLetter(): Record<string, GlossaryTerm[]> {
-  const groups: Record<string, GlossaryTerm[]> = {};
-  for (const t of [...glossaryTerms].sort((a, b) =>
-    a.term.localeCompare(b.term, undefined, { sensitivity: "base" })
-  )) {
-    const letter = t.term.charAt(0).toUpperCase();
-    if (!groups[letter]) groups[letter] = [];
-    groups[letter].push(t);
-  }
-  return groups;
 }
