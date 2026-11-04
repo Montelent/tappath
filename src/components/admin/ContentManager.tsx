@@ -33,6 +33,8 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
   const [seoTpl, setSeoTpl] = useState({
     guideTitle: "%title% %sep% %brand% %sep% %sitename%",
     guideDescription: "%excerpt%",
+    pageTitle: "%title% %sep% %sitename%",
+    pageDescription: "%excerpt%",
     glossaryTitle: "What is %term%? %sep% %sitename%",
     glossaryDescription: "%excerpt%",
     sep: "·",
@@ -75,6 +77,8 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
         setSeoTpl({
           guideTitle: String(s.seo_tpl_guide_title || "%title% %sep% %brand% %sep% %sitename%"),
           guideDescription: String(s.seo_tpl_guide_description || "%excerpt%"),
+          pageTitle: String(s.seo_tpl_page_title || "%title% %sep% %sitename%"),
+          pageDescription: String(s.seo_tpl_page_description || "%excerpt%"),
           glossaryTitle: String(s.seo_tpl_glossary_title || "What is %term%? %sep% %sitename%"),
           glossaryDescription: String(s.seo_tpl_glossary_description || "%excerpt%"),
           sep: String(s.seo_title_separator || "·").trim() || "·",
@@ -237,7 +241,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                       onChange={(seo) => setEditing({ ...editing, ...seo })}
                       defaultTitle={
                         table === "pages"
-                          ? applySeoTemplate("%title% %sep% %sitename%", { title: String(editing.title || ""), sitename: seoTpl.siteName, sep: seoTpl.sep }, String(editing.title || "Title"))
+                          ? applySeoTemplate(seoTpl.pageTitle, { title: String(editing.title || ""), sitename: seoTpl.siteName, sep: seoTpl.sep, excerpt: String(editing.excerpt || "") }, String(editing.title || "Title"))
                           : table === "glossary_terms"
                           ? applySeoTemplate(seoTpl.glossaryTitle, { title: String(editing.term || ""), term: String(editing.term || ""), sitename: seoTpl.siteName, sep: seoTpl.sep, excerpt: String(editing.short || ""), category: String(editing.category || "") }, String(editing.term || "Title"))
                           : applySeoTemplate(seoTpl.guideTitle, { title: String(editing.title || ""), brand: String(editing.brand || ""), sitename: seoTpl.siteName, sep: seoTpl.sep, excerpt: String(editing.short_description || "") }, String(editing.title || "Title"))
@@ -348,11 +352,23 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                   <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">{f.label}</span>
                   <input value={String(editing[f.key] ?? "")} onChange={(e) => {
                     const value = e.target.value;
-                    const slug = value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+                    const slugify = (input: string) => input
+                      .normalize("NFKD")
+                      .replace(/[\\u0300-\\u036f]/g, "")
+                      .toLowerCase()
+                      .trim()
+                      .replace(/[^a-z0-9]+/g, "-")
+                      .replace(/^-+|-+$/g, "");
+                    const previousAutoSlug = slugify(String(editing.title || ""));
+                    const nextSlug = slugify(value);
+                    const shouldUpdatePageSlug =
+                      table === "pages" &&
+                      f.key === "title" &&
+                      (!String(editing.slug || "") || String(editing.slug) === previousAutoSlug);
                     setEditing({
                       ...editing,
                       [f.key]: value,
-                      ...(table === "pages" && f.key === "title" && !editing.slug ? { slug } : {}),
+                      ...(shouldUpdatePageSlug ? { slug: nextSlug } : {}),
                     });
                   }} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
                   {f.help && <span className="mt-1 block text-[11px] text-[var(--muted-foreground)]">{f.help}</span>}
