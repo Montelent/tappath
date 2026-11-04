@@ -57,7 +57,7 @@ function dbTopicToTopic(t: DbTopic, guides: DbGuide[]): Topic {
     name: t.name,
     description: t.description || "",
     icon: t.icon || "Settings",
-    guideCount: Number(t.guide_count) || matched.length,
+    guideCount: matched.length,
     faqs: [],
     guidesByBrand: Array.from(byBrand.values()),
   };
@@ -72,7 +72,8 @@ export async function resolveTopic(slug: string): Promise<Topic | null> {
       const hit = topics.find((t) => t.slug === key);
       if (!hit) return null;
       const guides = await listGuides();
-      return dbTopicToTopic(hit, guides);
+      const topic = dbTopicToTopic(hit, guides);
+      return topic.guideCount > 0 ? topic : null;
     } catch (e) {
       console.error("[resolveTopic]", e);
       return null;
@@ -88,13 +89,14 @@ export async function listTopicsForIndex(): Promise<
 > {
   if (isDatabaseConfigured()) {
     const topics = await listTopics();
+    const guides = await listGuides();
     return topics.map((t) => ({
       slug: t.slug,
       name: t.name,
       description: t.description || "",
       icon: t.icon || "Settings",
-      guideCount: Number(t.guide_count) || 0,
-    }));
+      guideCount: guides.filter((g) => categoryMatches(g.category || "", t.name, t.slug)).length,
+    })).filter((t) => t.guideCount > 0);
   }
   if (isNeonConfigured()) return [];
   const { topics } = await import("@/data/topics");
