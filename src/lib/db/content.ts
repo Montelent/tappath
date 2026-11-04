@@ -100,6 +100,7 @@ export async function listTopics(): Promise<DbTopic[]> {
       return [];
     }
   }
+  if (process.env.NODE_ENV === "production") return [];
   return staticTopics.map((t, i) => ({
     id: t.slug,
     slug: t.slug,
