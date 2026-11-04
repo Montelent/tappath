@@ -37,6 +37,7 @@ export async function listBrands(): Promise<DbBrand[]> {
           ) AS devices_count
         FROM brands b
         WHERE b.published = true
+          AND EXISTS (SELECT 1 FROM guides g WHERE g.brand_slug = b.slug AND g.published = true)
         ORDER BY b.sort_order ASC NULLS LAST, b.name ASC
       `;
       return rows as DbBrand[];
@@ -82,6 +83,15 @@ export async function listTopics(): Promise<DbTopic[]> {
           ) AS guide_count
         FROM topics t
         WHERE t.published = true
+          AND EXISTS (
+            SELECT 1 FROM guides g
+            WHERE g.published = true
+              AND (
+                lower(g.category) = lower(t.name)
+                OR lower(g.category) LIKE '%' || lower(t.name) || '%'
+                OR lower(t.name) LIKE '%' || lower(g.category) || '%'
+              )
+          )
         ORDER BY t.sort_order ASC NULLS LAST, t.name ASC
       `;
       return rows as DbTopic[];
