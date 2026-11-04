@@ -623,15 +623,22 @@ async function refreshBrandCounts(sql: Sql, slug: string) {
   return rows[0] || null;
 }
 
+function slugifyBrandValue(value: string) {
+  return value.normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
 async function insertBrand(sql: Sql, b: Record<string, unknown>) {
+  const name = String(b.name || "").trim();
+  const slug = slugifyBrandValue(name);
+  if (!name || !slug) throw new Error("Enter a valid brand name");
   const rows = await sql`
     INSERT INTO brands (
       slug, name, color, description, guides_count, devices_count,
       product_lines, top_guides, devices_list, seo_updates, seo_help,
       published, sort_order
     ) VALUES (
-      ${String(b.slug || "")},
-      ${String(b.name || "")},
+      ${slug},
+      ${name},
       ${String(b.color || "bg-blue-500")},
       ${String(b.description || "")},
       ${Number(b.guides_count) || 0},
@@ -646,15 +653,17 @@ async function insertBrand(sql: Sql, b: Record<string, unknown>) {
     )
     RETURNING *
   `;
-  const slug = String(rows[0]?.slug || b.slug || "");
   return (await refreshBrandCounts(sql, slug)) || rows[0];
 }
 
 async function updateBrand(sql: Sql, id: string, b: Record<string, unknown>) {
+  const name = String(b.name || "").trim();
+  const slug = slugifyBrandValue(name);
+  if (!name || !slug) throw new Error("Enter a valid brand name");
   const rows = await sql`
     UPDATE brands SET
-      slug = ${String(b.slug || "")},
-      name = ${String(b.name || "")},
+      slug = ${slug},
+      name = ${name},
       color = ${String(b.color || "bg-blue-500")},
       description = ${String(b.description || "")},
       guides_count = ${Number(b.guides_count) || 0},
@@ -670,7 +679,6 @@ async function updateBrand(sql: Sql, id: string, b: Record<string, unknown>) {
     RETURNING *
   `;
   if (!rows[0]) throw new Error("Brand not found");
-  const slug = String(rows[0].slug || "");
   return (await refreshBrandCounts(sql, slug)) || rows[0];
 }
 
