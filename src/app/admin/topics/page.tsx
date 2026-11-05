@@ -30,8 +30,8 @@ export default function AdminTopicsPage() {
           { key: "name", label: "Name" },
           { key: "slug", label: "Slug" },
           { key: "description", label: "Description", type: "textarea" },
-          { key: "icon", label: "Icon (Lucide name)" },
-          { key: "sort_order", label: "Sort order", type: "number" },
+          { key: "icon", label: "SVG Icon" },
+          { key: "sort_order", label: "Sort order" },
           { key: "published", label: "Published", type: "boolean" },
         ]}
       />
