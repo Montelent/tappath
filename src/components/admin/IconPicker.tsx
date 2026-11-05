@@ -18,7 +18,7 @@ export default function IconPicker({ value, onChange }: Props) {
     const matches = q
       ? iconEntries.filter(([name]) => name.toLowerCase().replace(/[\s_-]+/g, "").includes(q))
       : iconEntries;
-    return matches.slice(0, showAll ? 240 : 72);
+    return showAll ? matches : matches.slice(0, 72);
   }, [query, showAll]);
 
   const selected = iconEntries.find(([name]) => name.toLowerCase() === value.trim().toLowerCase());
@@ -68,9 +68,9 @@ export default function IconPicker({ value, onChange }: Props) {
           <p className="col-span-full p-4 text-center text-xs text-[var(--muted-foreground)]">No matching icons. You can still enter any icon name above.</p>
         )}
       </div>
-      {!query && !showAll && iconEntries.length > filtered.length && (
+      {!showAll && filtered.length < (query.trim() ? iconEntries.filter(([name]) => name.toLowerCase().replace(/[\\s_-]+/g, "").includes(query.trim().toLowerCase().replace(/[\\s_-]+/g, ""))).length : iconEntries.length) && (
         <button type="button" onClick={() => setShowAll(true)} className="text-xs font-medium text-brand-600 hover:underline">
-          Show more icons ({iconEntries.length.toLocaleString()} available)
+          Show all {iconEntries.length.toLocaleString()} icons
         </button>
       )}
       <p className="text-[11px] text-[var(--muted-foreground)]">Choose an icon to store its Lucide name, or type a name manually. Icons are rendered as inline SVGs.</p>
