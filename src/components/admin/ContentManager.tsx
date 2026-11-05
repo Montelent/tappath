@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Loader2, Plus, Trash2, Save, RefreshCw, Database } from "lucide-react";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import SortOrderField, { nextSortOrder } from "@/components/admin/SortOrderField";
+import IconPicker from "@/components/admin/IconPicker";
 import SeoMetaBox from "@/components/admin/SeoMetaBox";
 import { applySeoTemplate } from "@/lib/seo/templates";
 
@@ -326,6 +327,13 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                 );
               }
               if (table === "devices" && f.key === "brand_name") return null;
+              if (table === "topics" && f.key === "icon") {
+                return (
+                  <div key={f.key}>
+                    <IconPicker value={String(editing.icon || "")} onChange={(icon) => setEditing({ ...editing, icon })} />
+                  </div>
+                );
+              }
               if (table === "topics" && f.key === "slug") {
                 return (
                   <label key={f.key} className="block">
@@ -390,7 +398,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
               if (f.key === "sort_order") {
                 return (
                   <div key={f.key}>
-                    <SortOrderField value={Number(editing.sort_order) || 0} onChange={(v) => setEditing({ ...editing, sort_order: v })} autoValue={nextSortOrder(rows, editing.id != null ? String(editing.id) : undefined)} />
+                    <SortOrderField key={String(editing.id || "new-topic")} value={Number(editing.sort_order) || 0} onChange={(v) => setEditing({ ...editing, sort_order: v })} autoValue={nextSortOrder(rows, editing.id != null ? String(editing.id) : undefined)} defaultMode={editing.id ? "manual" : "auto"} />
                   </div>
                 );
               }
