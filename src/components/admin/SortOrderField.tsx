@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
+
 type Props = {
   value: number;
   onChange: (n: number) => void;
   autoValue: number;
+  defaultMode?: "auto" | "manual";
   label?: string;
   help?: string;
 };
@@ -12,44 +15,48 @@ export default function SortOrderField({
   value,
   onChange,
   autoValue,
+  defaultMode = "manual",
   label = "Sort order",
-  help = "Lower numbers appear first. Use Auto for the next free slot, or type a number to place it exactly.",
+  help = "Choose automatic placement or set an exact manual position. Lower numbers appear first.",
 }: Props) {
+  const [mode, setMode] = useState<"auto" | "manual">(defaultMode);
   const n = Number.isFinite(value) ? value : 0;
-  const isAutoLike = n === autoValue || n === 0;
 
   return (
     <div>
-      <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">
-        {label}
-      </span>
-      {help && (
-        <p className="mb-2 text-[11px] text-[var(--muted-foreground)]">{help}</p>
-      )}
-      <div className="flex flex-wrap items-center gap-2">
+      <span className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">{label}</span>
+      {help && <p className="mb-2 text-[11px] text-[var(--muted-foreground)]">{help}</p>}
+      <div className="mb-2 inline-flex rounded-xl border border-[var(--border)] p-1">
+        <button
+          type="button"
+          onClick={() => { setMode("auto"); onChange(autoValue); }}
+          aria-pressed={mode === "auto"}
+          className={`rounded-lg px-3 py-1.5 text-xs font-medium ${mode === "auto" ? "bg-brand-600 text-white" : "text-[var(--muted-foreground)] hover:bg-[var(--muted)]"}`}
+        >
+          Auto
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("manual")}
+          aria-pressed={mode === "manual"}
+          className={`rounded-lg px-3 py-1.5 text-xs font-medium ${mode === "manual" ? "bg-brand-600 text-white" : "text-[var(--muted-foreground)] hover:bg-[var(--muted)]"}`}
+        >
+          Manual
+        </button>
+      </div>
+      {mode === "auto" ? (
+        <p className="text-xs text-emerald-600 dark:text-emerald-400">Automatically placed at position {autoValue}. New items follow the current highest sort position.</p>
+      ) : (
         <input
           type="number"
           min={0}
           step={1}
           value={n}
-          onChange={(e) => onChange(Number(e.target.value) || 0)}
-          className="w-28 rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm tabular-nums"
+          onChange={(e) => { setMode("manual"); onChange(Number(e.target.value) || 0); }}
+          className="block w-32 rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm tabular-nums"
           aria-label={label}
         />
-        <button
-          type="button"
-          onClick={() => onChange(autoValue)}
-          className="rounded-full border border-[var(--border)] px-3 py-1.5 text-xs font-medium hover:bg-[var(--muted)]"
-          title={`Set to ${autoValue}`}
-        >
-          Auto → {autoValue}
-        </button>
-        {isAutoLike && (
-          <span className="text-[11px] text-emerald-600 dark:text-emerald-400">
-            Using next available
-          </span>
-        )}
-      </div>
+      )}
     </div>
   );
 }
