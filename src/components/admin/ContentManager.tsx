@@ -200,7 +200,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
             onClick={() => {
               setEditing({
                 ...emptyRow,
-                ...(typeof emptyRow.sort_order === "number" ? { sort_order: nextSortOrder(rows) } : {}),
+                ...(typeof emptyRow.sort_order === "number" ? { sort_order: nextSortOrder(rows), sort_order_mode: "auto" } : {}),
               });
               setTimeout(() => document.getElementById("content-edit-form")?.scrollIntoView({ behavior: "smooth", block: "start" }), 40);
             }}
@@ -398,7 +398,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
               if (f.key === "sort_order") {
                 return (
                   <div key={f.key}>
-                    <SortOrderField key={String(editing.id || "new-topic")} value={Number(editing.sort_order) || 0} onChange={(v) => setEditing({ ...editing, sort_order: v })} autoValue={nextSortOrder(rows, editing.id != null ? String(editing.id) : undefined)} defaultMode={editing.id ? "manual" : "auto"} />
+                    <SortOrderField key={String(editing.id || "new-topic")} value={Number(editing.sort_order) || 0} onChange={(v) => setEditing({ ...editing, sort_order: v })} autoValue={nextSortOrder(rows, editing.id != null ? String(editing.id) : undefined)} defaultMode={editing.sort_order_mode === "auto" && !editing.id ? "auto" : "manual"} onModeChange={(mode) => setEditing({ ...editing, sort_order_mode: mode })} />
                   </div>
                 );
               }
