@@ -7,6 +7,7 @@ type Props = {
   onChange: (n: number) => void;
   autoValue: number;
   defaultMode?: "auto" | "manual";
+  onModeChange?: (mode: "auto" | "manual") => void;
   label?: string;
   help?: string;
 };
@@ -16,6 +17,7 @@ export default function SortOrderField({
   onChange,
   autoValue,
   defaultMode = "manual",
+  onModeChange,
   label = "Sort order",
   help = "Choose automatic placement or set an exact manual position. Lower numbers appear first.",
 }: Props) {
@@ -29,7 +31,7 @@ export default function SortOrderField({
       <div className="mb-2 inline-flex rounded-xl border border-[var(--border)] p-1">
         <button
           type="button"
-          onClick={() => { setMode("auto"); onChange(autoValue); }}
+          onClick={() => { setMode("auto"); onModeChange?.("auto"); onChange(autoValue); }}
           aria-pressed={mode === "auto"}
           className={`rounded-lg px-3 py-1.5 text-xs font-medium ${mode === "auto" ? "bg-brand-600 text-white" : "text-[var(--muted-foreground)] hover:bg-[var(--muted)]"}`}
         >
@@ -37,7 +39,7 @@ export default function SortOrderField({
         </button>
         <button
           type="button"
-          onClick={() => setMode("manual")}
+          onClick={() => { setMode("manual"); onModeChange?.("manual"); }}
           aria-pressed={mode === "manual"}
           className={`rounded-lg px-3 py-1.5 text-xs font-medium ${mode === "manual" ? "bg-brand-600 text-white" : "text-[var(--muted-foreground)] hover:bg-[var(--muted)]"}`}
         >
@@ -52,7 +54,7 @@ export default function SortOrderField({
           min={0}
           step={1}
           value={n}
-          onChange={(e) => { setMode("manual"); onChange(Number(e.target.value) || 0); }}
+          onChange={(e) => { setMode("manual"); onModeChange?.("manual"); onChange(Number(e.target.value) || 0); }}
           className="block w-32 rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm tabular-nums"
           aria-label={label}
         />
