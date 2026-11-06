@@ -354,7 +354,9 @@ async function insertTopic(sql: Sql, body: Record<string, unknown>) {
   const description = String(body.description || "").trim();
   const icon = String(body.icon || "Settings").trim() || "Settings";
   const published = body.published !== false;
-  const sortOrder = Number.isFinite(Number(body.sort_order)) ? Number(body.sort_order) : 0;
+  const sortOrder = body.sort_order_mode === "auto"
+    ? Number((await sql`SELECT COALESCE(MAX(sort_order), 0) + 1 AS next_order FROM topics`)[0]?.next_order || 1)
+    : (Number.isFinite(Number(body.sort_order)) ? Number(body.sort_order) : 0);
   const rows = await sql`
     INSERT INTO topics (slug, name, description, icon, guide_count, brands, published, sort_order)
     VALUES (${slug}, ${name}, ${description}, ${icon}, 0, ARRAY[]::text[], ${published}, ${sortOrder})
@@ -372,7 +374,9 @@ async function updateTopic(sql: Sql, id: string, body: Record<string, unknown>) 
   const description = String(body.description || "").trim();
   const icon = String(body.icon || "Settings").trim() || "Settings";
   const published = body.published !== false;
-  const sortOrder = Number.isFinite(Number(body.sort_order)) ? Number(body.sort_order) : 0;
+  const sortOrder = body.sort_order_mode === "auto"
+    ? Number((await sql`SELECT COALESCE(MAX(sort_order), 0) + 1 AS next_order FROM topics WHERE id::text <> ${id}`)[0]?.next_order || 1)
+    : (Number.isFinite(Number(body.sort_order)) ? Number(body.sort_order) : 0);
   const rows = await sql`
     UPDATE topics
     SET slug = ${slug}, name = ${name}, description = ${description},
