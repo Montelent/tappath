@@ -7,6 +7,8 @@ import AuthorBox from "./AuthorBox";
 import AdSlot from "@/components/ads/AdSlot";
 import ShareButtons from "@/components/share/ShareButtons";
 import { sanitizeRichHtml } from "@/lib/sanitize-html";
+import { listGlossary, listGuides } from "@/lib/db/content";
+import { createGuideAutoLinker } from "@/lib/seo/auto-link-content";
 
 type Props = {
   guide: Guide;
@@ -34,7 +36,10 @@ function plainText(html: string, max = 200): string {
     .slice(0, max);
 }
 
-export default function GuidePage({ guide }: Props) {
+export default async function GuidePage({ guide }: Props) {
+  const [glossary, allGuides] = await Promise.all([listGlossary(), listGuides()]);
+  const currentDbGuide = allGuides.find((item) => item.slug === guide.slug && item.brand_slug === guide.brandSlug);
+  const autoLink = currentDbGuide ? createGuideAutoLinker(glossary, allGuides, currentDbGuide) : (html: string) => html;
   const steps = guide.versions[0]?.steps?.length ?? 0;
   const versionLabel = guide.versions[0]?.label;
   const deviceModel = guide.compatibleDevices[0]?.name || `${guide.brand} ${guide.productLine}`;
@@ -74,7 +79,7 @@ export default function GuidePage({ guide }: Props) {
               {guide.shortDescription && (
                 <div
                   className="mt-4 text-[var(--muted-foreground)] leading-relaxed prose-a:text-[var(--accent)]"
-                  dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(guide.shortDescription) }}
+                  dangerouslySetInnerHTML={{ __html: autoLink(sanitizeRichHtml(guide.shortDescription)) }}
                 />
               )}
               <p className="mt-4 text-sm text-[var(--muted-foreground)]">
@@ -138,7 +143,7 @@ export default function GuidePage({ guide }: Props) {
                   <h2 className="font-display text-xl mb-4">Notes</h2>
                   <div className="space-y-3 text-[var(--muted-foreground)] leading-relaxed">
                     {guide.article.map((p, i) => (
-                      <p key={i} dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(p) }} />
+                      <p key={i} dangerouslySetInnerHTML={{ __html: autoLink(sanitizeRichHtml(p)) }} />
                     ))}
                   </div>
                 </section>
@@ -147,7 +152,7 @@ export default function GuidePage({ guide }: Props) {
               {guide.faqs?.length > 0 && (
                 <section>
                   <h2 className="font-display text-xl mb-4">FAQ</h2>
-                  <GuideFAQ key={guide.slug} faqs={guide.faqs.map((faq) => ({ q: faq.q, a: sanitizeRichHtml(faq.a) }))} />
+                  <GuideFAQ key={guide.slug} faqs={guide.faqs.map((faq) => ({ q: faq.q, a: autoLink(sanitizeRichHtml(faq.a)) }))} />
                 </section>
               )}
 
