@@ -2,8 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { setSessionCookie } from "@/lib/session";
 import { createUser, findUserByEmail, publicUser } from "@/lib/db/users";
 import { getSiteSettings } from "@/lib/site-settings";
+import { isNeonConfigured } from "@/lib/db/neon";
 
 export async function POST(req: NextRequest) {
+  if (!isNeonConfigured() && process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Authentication database is not configured." }, { status: 503 });
+  }
+
   let body: { name?: string; email?: string; password?: string };
   try {
     body = await req.json();
