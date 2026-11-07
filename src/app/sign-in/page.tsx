@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AuthForm from "@/components/auth/AuthForm";
+import { getSiteSettings } from "@/lib/site-settings";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -8,7 +9,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/sign-in" },
 };
 
-export default function SignInPage() {
+export default async function SignInPage() {
+  const settings = await getSiteSettings();
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-12 sm:px-6">
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm sm:p-8">
@@ -24,15 +26,17 @@ export default function SignInPage() {
 
         <AuthForm mode="sign-in" />
 
-        <p className="mt-6 text-center text-sm text-[var(--muted-foreground)]">
-          Don&apos;t have an account?{" "}
-          <Link
-            href="/sign-up"
-            className="font-medium text-brand-600 hover:underline dark:text-brand-400"
-          >
-            Sign up
-          </Link>
-        </p>
+        {settings.allow_signups && (
+          <p className="mt-6 text-center text-sm text-[var(--muted-foreground)]">
+            Don&apos;t have an account?{" "}
+            <Link
+              href="/sign-up"
+              className="font-medium text-brand-600 hover:underline dark:text-brand-400"
+            >
+              Sign up
+            </Link>
+          </p>
+        )}
       </div>
 
       <p className="mt-6 text-center text-xs text-[var(--muted-foreground)]">
