@@ -178,7 +178,7 @@ export async function resolveRelatedGuides(
   try {
     if (isDatabaseConfigured()) {
       all = await listGuides();
-    } else {
+    } else if (process.env.NODE_ENV !== "production") {
       all = Object.values(guides).map((g) => ({
         id: `${g.brandSlug}-${g.slug}`,
         slug: g.slug,
@@ -321,6 +321,8 @@ export async function resolveGuide(
     }
     return null;
   }
+
+  if (process.env.NODE_ENV === "production") return null;
 
   for (const g of Object.values(guides)) {
     if (
