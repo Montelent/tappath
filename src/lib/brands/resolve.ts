@@ -40,7 +40,7 @@ export async function resolveBrandPage(slug: string): Promise<Brand | null> {
         const devicesList = brandDevices.slice(0, 24).map((d) => ({
           name: d.name,
           os: d.os || "",
-          href: d.href || `/devices/${d.slug}`,
+          href: d.href || `/${d.brand_slug}/${d.slug}`,
         }));
 
         return {
