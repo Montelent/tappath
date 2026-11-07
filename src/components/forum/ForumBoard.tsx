@@ -26,6 +26,7 @@ export default function ForumBoard({ brand }: { brand?: string }) {
     : "General";
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -34,13 +35,20 @@ export default function ForumBoard({ brand }: { brand?: string }) {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError("");
     try {
       const q = brand ? `?brand=${encodeURIComponent(brand)}` : "";
       const res = await fetch(`/api/forum/topics${q}`);
       const data = await res.json();
-      setTopics(data.topics || []);
+      if (!res.ok) {
+        setTopics([]);
+        setLoadError(data.error || "Could not load forum topics. Please try again.");
+        return;
+      }
+      setTopics(Array.isArray(data.topics) ? data.topics : []);
     } catch {
       setTopics([]);
+      setLoadError("A network error prevented the forum from loading.");
     } finally {
       setLoading(false);
     }
@@ -151,6 +159,14 @@ export default function ForumBoard({ brand }: { brand?: string }) {
         </form>
       )}
 
+      {loadError ? (
+        <div role="alert" className="rounded-2xl border border-red-300/60 bg-red-50 p-5 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200">
+          <p>{loadError}</p>
+          <button type="button" onClick={() => void load()} className="mt-3 font-semibold underline underline-offset-2">
+            Try again
+          </button>
+        </div>
+      ) : (
       <ul className="divide-y divide-[var(--border)] rounded-2xl border border-[var(--border)] bg-[var(--card)]">
         {topics.map((t) => (
           <li key={t.id}>
@@ -185,6 +201,7 @@ export default function ForumBoard({ brand }: { brand?: string }) {
           </li>
         )}
       </ul>
+      )}
     </div>
   );
 }
