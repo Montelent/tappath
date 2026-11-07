@@ -7,12 +7,11 @@ export async function GET() {
   const configured = isNeonConfigured();
   if (!configured) {
     return NextResponse.json({
-      ok: true,
-      backend: "mock",
+      ok: false,
+      backend: "unconfigured",
       database: false,
-      message:
-        "DATABASE_URL is NOT set on Vercel. Admin and auth use in-memory mock only. Add DATABASE_URL (Neon pooler) → Redeploy → open /admin/guides → Seed DB.",
-    });
+      message: "DATABASE_URL is not configured. Production content, authentication, and community features require Neon.",
+    }, { status: 503 });
   }
 
   try {
@@ -29,7 +28,7 @@ export async function GET() {
         brands: (b as { n: number }).n,
         profiles: (p as { n: number }).n,
       },
-      message: "Neon is connected. Use admin@tappath.com after Seed if profiles is 0.",
+      message: "Neon is connected. Create an account through registration; grant admin access through a trusted database workflow.",
     });
   } catch (e) {
     return NextResponse.json({
@@ -39,7 +38,7 @@ export async function GET() {
       connected: false,
       error: e instanceof Error ? e.message : "Query failed",
       message:
-        "DATABASE_URL is set but SQL failed. Run neon-schema.sql in Neon SQL Editor (tables missing).",
+        "DATABASE_URL is set but SQL failed. Run neon/schema.sql in the Neon SQL Editor and verify the connection.",
     });
   }
 }
