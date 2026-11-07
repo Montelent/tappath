@@ -3,9 +3,13 @@ import { Inter, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import CustomCode from "@/components/CustomCode";
 import SiteChrome from "@/components/SiteChrome";
+import Footer from "@/components/Footer";
+import MaintenanceBanner from "@/components/MaintenanceBanner";
+import AdSlot from "@/components/ads/AdSlot";
 import OrganizationJsonLd from "@/components/seo/OrganizationJsonLd";
 import { LanguageProvider } from "@/i18n/LanguageProvider";
 import { AuthProvider } from "@/context/AuthContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { getSiteSettings } from "@/lib/site-settings";
 
 const inter = Inter({
@@ -27,7 +31,7 @@ async function resolveSiteOrigin(canonicalHost?: string): Promise<string> {
     (canonicalHost || "").trim(),
     (process.env.NEXT_PUBLIC_SITE_URL || "").trim(),
     (process.env.VERCEL_URL || "").trim()
-      ? `https://${(process.env.VERCEL_URL || "").trim().replace(/^https?:\/\//, "")}`
+      ? `https://${(process.env.VERCEL_URL || "").trim().replace(/^https?:\\/\\//, "")}`
       : "",
   ];
   for (const c of candidates) {
@@ -132,14 +136,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${inter.variable} ${plexMono.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        <CustomCode slot="head" />
+      </head>
       <body className="min-h-screen flex flex-col font-sans">
         <CustomCode slot="body_start" />
-        <AuthProvider>
-          <LanguageProvider>
-            <OrganizationJsonLd />
-            <SiteChrome>{children}</SiteChrome>
-          </LanguageProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <LanguageProvider>
+              <OrganizationJsonLd />
+              <SiteChrome
+                maintenanceBanner={<MaintenanceBanner />}
+                headerAd={<AdSlot placement="header" />}
+                beforeFooterAd={<AdSlot placement="before_footer" />}
+                footer={<Footer />}
+                footerCode={<CustomCode slot="footer" />}
+              >
+                {children}
+              </SiteChrome>
+            </LanguageProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
