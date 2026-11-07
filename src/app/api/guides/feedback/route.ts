@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getStore, saveStore } from "@/lib/store";
 import { getSql, isNeonConfigured } from "@/lib/db/neon";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   let body: { guideSlug?: string; correct?: boolean };
@@ -14,6 +15,13 @@ export async function POST(req: NextRequest) {
   const guideSlug = typeof body.guideSlug === "string" ? body.guideSlug.trim() : "";
   if (!guideSlug || guideSlug.length > 160 || !/^[a-z0-9-]+$/i.test(guideSlug) || typeof body.correct !== "boolean") {
     return NextResponse.json({ error: "guideSlug and correct are required." }, { status: 400 });
+  }
+  const rate = await enforceRateLimit(req, "guide-feedback", 30, 900);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: rate.unavailable ? "Service temporarily unavailable." : "Too many requests. Try again shortly." },
+      { status: rate.unavailable ? 503 : 429, headers: { "Retry-After": String(rate.retryAfter) } }
+    );
   }
 
   const session = await getSession();
