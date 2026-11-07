@@ -15,6 +15,10 @@ type Props = { terms?: GlossaryTerm[] };
 
 export default function GlossaryIndex({ terms }: Props) {
   const source = terms !== undefined ? terms : staticTerms;
+  const categories = useMemo(
+    () => ["All", ...new Set([...glossaryCategories, ...source.map((term) => term.category).filter(Boolean)])],
+    [source]
+  );
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
 
@@ -53,6 +57,7 @@ export default function GlossaryIndex({ terms }: Props) {
     if (b === "#") return -1;
     return a.localeCompare(b);
   });
+  const alphabetNav = lettersPresent.includes("#") ? [...alphabet, "#"] : alphabet;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -85,11 +90,12 @@ export default function GlossaryIndex({ terms }: Props) {
       </div>
 
       <div className="mb-6 flex flex-wrap gap-2">
-        {glossaryCategories.map((c) => (
+        {categories.map((c) => (
           <button
             key={c}
             type="button"
             onClick={() => setCategory(c)}
+            aria-pressed={category === c}
             className={cn(
               "rounded-full px-3.5 py-1.5 text-sm font-medium transition",
               category === c
@@ -103,7 +109,7 @@ export default function GlossaryIndex({ terms }: Props) {
       </div>
 
       <div className="mb-8 flex flex-wrap gap-1">
-        {alphabet.map((letter) => {
+        {alphabetNav.map((letter) => {
           const has = lettersPresent.includes(letter);
           return has ? (
             <a
