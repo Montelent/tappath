@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/lib/session";
 import { getSql, isNeonConfigured } from "@/lib/db/neon";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { getStore, saveStore } from "@/lib/store";
 
 export async function GET(req: NextRequest) {
@@ -97,6 +98,13 @@ export async function POST(req: NextRequest) {
   }
   if (title.length > 200 || content.length > 10000) {
     return NextResponse.json({ error: "Title must be 200 characters or fewer and content 10,000 characters or fewer." }, { status: 400 });
+  }
+  const rate = await enforceRateLimit(req, "forum-create", 10, 900);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: rate.unavailable ? "Service temporarily unavailable." : "Too many requests. Try again shortly." },
+      { status: rate.unavailable ? 503 : 429, headers: { "Retry-After": String(rate.retryAfter) } }
+    );
   }
 
   if (isNeonConfigured()) {
