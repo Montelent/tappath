@@ -69,7 +69,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       s.seo_sitemap_include_guides !== false ? listGuides() : Promise.resolve([]),
     ]);
 
-    const brandsWithGuides = brands.filter((b) => guides.some((g) => g.brand_slug === b.slug));
+    // listBrands already excludes brands without published guides. Keep this
+    // independent from the guide-sitemap toggle so the two settings compose.
+    const brandsWithGuides = brands;
     // listTopicsForIndex applies the same category matching as public topic pages
     // and excludes topics without at least one published guide.
     // listDevicesPublic includes only devices with at least one matching published guide.
