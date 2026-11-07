@@ -206,6 +206,7 @@ export async function listGuides(): Promise<DbGuide[]> {
       return [];
     }
   }
+  if (process.env.NODE_ENV === "production") return [];
   return Object.values(staticGuides).map((g) => ({
     id: `${g.brandSlug}-${g.slug}`,
     slug: g.slug,
@@ -293,6 +294,9 @@ export async function getAdminStats(): Promise<AdminStats> {
     } catch {
       /* fall through */
     }
+  }
+  if (process.env.NODE_ENV === "production") {
+    return { guides: 0, pages: 0, brands: 0, topics: 0, devices: 0, glossary: 0, forumTopics: 0, feedback: 0, usingSupabase: false };
   }
   return {
     guides: Object.keys(staticGuides).length,
