@@ -25,6 +25,10 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
     }
   }
 
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Forum database is not configured" }, { status: 503 });
+  }
+
   const store = getStore();
   const topic = store.topics.find((t) => t.id === id);
   if (!topic) {
