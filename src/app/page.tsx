@@ -58,7 +58,7 @@ export default async function HomePage() {
     getSiteSettings(),
   ]);
 
-  const live = isDatabaseConfigured();
+  const live = isDatabaseConfigured() && guides.length > 0;
   const brandsWithGuides = brands
     .map((b) => ({
       name: b.name,
