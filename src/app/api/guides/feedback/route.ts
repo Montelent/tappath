@@ -21,6 +21,8 @@ export async function POST(req: NextRequest) {
   if (isNeonConfigured()) {
     try {
       const sql = getSql()!;
+      const guide = await sql`SELECT 1 FROM guides WHERE slug = ${guideSlug} AND published = true LIMIT 1`;
+      if (!guide[0]) return NextResponse.json({ error: "Published guide not found." }, { status: 404 });
       try {
         await sql`
           INSERT INTO guide_feedback (guide_slug, user_id, correct)
@@ -43,10 +45,8 @@ export async function POST(req: NextRequest) {
       const c = counts[0] as { yes: number; no: number; total: number };
       return NextResponse.json({ ok: true, yes: c.yes, no: c.no, total: c.total });
     } catch (e) {
-      return NextResponse.json(
-        { error: e instanceof Error ? e.message : "Feedback save failed" },
-        { status: 500 }
-      );
+      console.error("[guide-feedback]", e);
+      return NextResponse.json({ error: "Feedback could not be saved." }, { status: 503 });
     }
   }
 
