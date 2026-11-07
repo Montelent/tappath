@@ -174,6 +174,7 @@ export default function ShareButtons({
 }: Props) {
   const [pageUrl, setPageUrl] = useState(url || "");
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState("");
   const [open, setOpen] = useState(false);
   const [canNative, setCanNative] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -233,12 +234,26 @@ export default function ShareButtons({
   };
 
   const copyLink = async () => {
+    setCopyError("");
     try {
-      await navigator.clipboard.writeText(pageUrl);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(pageUrl);
+      } else {
+        const field = document.createElement("textarea");
+        field.value = pageUrl;
+        field.setAttribute("readonly", "");
+        field.style.position = "fixed";
+        field.style.opacity = "0";
+        document.body.appendChild(field);
+        field.select();
+        const ok = document.execCommand("copy");
+        field.remove();
+        if (!ok) throw new Error("Clipboard unavailable");
+      }
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      /* ignore */
+      setCopyError("Could not copy automatically. Select and copy the page URL from your browser.");
     }
   };
 
@@ -316,6 +331,7 @@ export default function ShareButtons({
               </span>
               <span className="font-medium">{copied ? "Link copied!" : "Copy link"}</span>
             </button>
+            {copyError && <p role="alert" className="px-3 py-2 text-xs text-red-600 dark:text-red-400">{copyError}</p>}
           </div>
         </div>
       )}
