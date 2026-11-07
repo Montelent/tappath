@@ -8,9 +8,10 @@ import { cn } from "@/lib/utils";
 
 type Props = {
   topic: Topic;
+  otherTopics?: { name: string; slug: string }[];
 };
 
-export default function TopicHub({ topic }: Props) {
+export default function TopicHub({ topic, otherTopics = [] }: Props) {
   const brands = topic.guidesByBrand.map((g) => g.brand);
   const [filter, setFilter] = useState<string>("all");
 
@@ -147,25 +148,26 @@ export default function TopicHub({ topic }: Props) {
           <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
             <h3 className="text-sm font-semibold">Other topics</h3>
             <ul className="mt-3 space-y-1.5 text-sm">
-              {[
-                { name: "Network & Connectivity", href: "/topics/network" },
-                { name: "Display & Home Screen", href: "/topics/display" },
-                { name: "Battery & Power", href: "/topics/battery" },
-                { name: "Security & Privacy", href: "/topics/security" },
-                { name: "System & Settings", href: "/topics/system" },
-                { name: "All topics", href: "/topics" },
-              ]
-                .filter((t) => !t.href.endsWith(`/${topic.slug}`))
-                .map((t) => (
-                  <li key={t.href}>
+              {otherTopics
+                .filter((item) => item.slug !== topic.slug)
+                .map((item) => (
+                  <li key={item.slug}>
                     <Link
-                      href={t.href}
+                      href={`/topics/${item.slug}`}
                       className="text-[var(--muted-foreground)] transition hover:text-brand-600 dark:hover:text-brand-400"
                     >
-                      {t.name}
+                      {item.name}
                     </Link>
                   </li>
                 ))}
+              <li>
+                <Link
+                  href="/topics"
+                  className="text-[var(--muted-foreground)] transition hover:text-brand-600 dark:hover:text-brand-400"
+                >
+                  All topics
+                </Link>
+              </li>
             </ul>
           </section>
         </aside>
