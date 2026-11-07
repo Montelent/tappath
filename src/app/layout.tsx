@@ -116,7 +116,6 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     verification: Object.keys(verification).length ? verification : undefined,
     other: Object.keys(other).length ? other : undefined,
-    alternates: { canonical: "/" },
   };
 }
 
