@@ -66,7 +66,7 @@ export default async function TopicSlugPage({ params }: Props) {
         description={topic.description || `Settings guides for ${topic.name}.`}
         guides={guides}
       />
-      <TopicHub topic={topic} otherTopics={otherTopics} />
+      <TopicHub key={topic.slug} topic={topic} otherTopics={otherTopics} />
     </>
   );
 }
