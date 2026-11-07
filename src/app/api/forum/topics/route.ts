@@ -119,10 +119,8 @@ export async function POST(req: NextRequest) {
       `;
       return NextResponse.json({ topic: rows[0] }, { status: 201 });
     } catch (e) {
-      return NextResponse.json(
-        { error: e instanceof Error ? e.message : "Insert failed" },
-        { status: 500 }
-      );
+      console.error("[forum:create]", e);
+      return NextResponse.json({ error: "Forum post could not be saved." }, { status: 503 });
     }
   }
 
