@@ -11,7 +11,7 @@ function escapeRegExp(value: string): string {
 }
 
 function escapeAttribute(value: string): string {
-  return value.split("").map((character) => ".*+?^${}()|[]\\\\".includes(character) ? `\\${character}` : character).join("");
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function linkTextNodes(html: string, matcher: RegExp, render: (matched: string) => string): string {
