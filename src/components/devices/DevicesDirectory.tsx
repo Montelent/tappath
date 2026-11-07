@@ -102,7 +102,7 @@ export default function DevicesDirectory({ devices, brandFilters = [] }: Props) 
 
       {filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[var(--border)] p-10 text-center text-[var(--muted-foreground)]">
-          No devices yet. Publish devices in Admin, or clear your search.
+          No devices match these filters. Try another brand or clear your search.
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
