@@ -63,7 +63,6 @@ export default function BrandEditor() {
   const [usingDb, setUsingDb] = useState(false);
   const [editing, setEditing] = useState<BrandRow | null>(null);
   const [saving, setSaving] = useState(false);
-  const [seeding, setSeeding] = useState(false);
   const [message, setMessage] = useState("");
   const [autoGuides, setAutoGuides] = useState<TopGuide[]>([]);
   const [loadingGuides, setLoadingGuides] = useState(false);
@@ -201,23 +200,7 @@ export default function BrandEditor() {
     }
   };
 
-  const seed = async () => {
-    setSeeding(true);
-    setMessage("");
-    try {
-      const res = await fetch("/api/admin/seed", { method: "POST", credentials: "include" });
-      const data = await res.json();
-      if (!res.ok) setMessage(data.error || "Seed failed");
-      else {
-        setMessage(`Seeded: ${JSON.stringify(data.results)}`);
-        await load();
-      }
-    } catch {
-      setMessage("Seed network error");
-    } finally {
-      setSeeding(false);
-    }
-  };
+
 
   return (
     <div className="space-y-6">
@@ -228,17 +211,13 @@ export default function BrandEditor() {
             {usingDb ? (
               <span className="text-emerald-600">Neon connected — edits persist</span>
             ) : (
-              <span className="text-amber-600">DATABASE_URL missing — set on Vercel & seed</span>
+              <span className="text-amber-600">DATABASE_URL missing — connect Neon</span>
             )}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={() => load()} className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1.5 text-sm">
             <RefreshCw className="h-3.5 w-3.5" /> Refresh
-          </button>
-          <button type="button" onClick={seed} disabled={seeding} className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1.5 text-sm">
-            {seeding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Database className="h-3.5 w-3.5" />}
-            Seed DB
           </button>
           <button
             type="button"
