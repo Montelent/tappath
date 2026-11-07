@@ -19,7 +19,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const text = (body.body || "").trim();
+  const text = typeof body.body === "string" ? body.body.trim() : "";
   if (!text || text.length > 10000) {
     return NextResponse.json({ error: "Reply body must be between 1 and 10000 characters." }, { status: 400 });
   }
