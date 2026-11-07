@@ -249,7 +249,7 @@ export default async function HomePage() {
             </div>
             <ul className="grid-cards">
               {homeTopics.map((t) => (
-                <li key={t.slug || t.id}>
+                <li key={t.slug}>
                   <Link href={`/topics/${t.slug}`} className="surface-card block h-full px-4 py-3.5 text-sm font-medium link-quiet">
                     {t.name}
                   </Link>
