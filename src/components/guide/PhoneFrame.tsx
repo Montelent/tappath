@@ -125,16 +125,21 @@ export function ScreenshotLayer({
 
   useEffect(() => {
     setBox(null);
-    const id = requestAnimationFrame(() => {
+    const timeoutIds: number[] = [];
+    const id = window.requestAnimationFrame(() => {
       recalc();
-      window.setTimeout(recalc, 50);
-      window.setTimeout(recalc, 250);
+      timeoutIds.push(window.setTimeout(recalc, 50));
+      timeoutIds.push(window.setTimeout(recalc, 250));
     });
     const container = containerRef.current;
-    const ro = container ? new ResizeObserver(() => recalc()) : null;
+    const ro =
+      container && typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => recalc())
+        : null;
     if (container && ro) ro.observe(container);
     return () => {
-      cancelAnimationFrame(id);
+      window.cancelAnimationFrame(id);
+      timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
       ro?.disconnect();
     };
   }, [recalc, imageUrl]);
