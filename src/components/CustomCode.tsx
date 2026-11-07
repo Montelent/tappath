@@ -1,4 +1,5 @@
 import { getSiteSettings } from "@/lib/site-settings";
+import CustomCodeClient from "@/components/CustomCodeClient";
 
 type Slot = "head" | "body_start" | "footer";
 
@@ -13,11 +14,5 @@ export default async function CustomCode({ slot }: { slot: Slot }) {
   const trimmed = (html || "").trim();
   if (!trimmed) return null;
 
-  return (
-    <div
-      suppressHydrationWarning
-      dangerouslySetInnerHTML={{ __html: trimmed }}
-      data-custom-code={slot}
-    />
-  );
+  return <CustomCodeClient slot={slot} html={trimmed} />;
 }
