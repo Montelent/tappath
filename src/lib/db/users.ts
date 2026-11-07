@@ -42,6 +42,7 @@ export async function findUserByEmail(email: string): Promise<DbUser | undefined
     `) as ProfileRow[];
     return rows[0] ? mapRow(rows[0]) : undefined;
   }
+  if (process.env.NODE_ENV === "production") return undefined;
   return storeFindByEmail(normalized);
 }
 
@@ -54,6 +55,7 @@ export async function findUserById(id: string): Promise<DbUser | undefined> {
     `) as ProfileRow[];
     return rows[0] ? mapRow(rows[0]) : undefined;
   }
+  if (process.env.NODE_ENV === "production") return undefined;
   return storeFindById(id);
 }
 
@@ -75,6 +77,10 @@ export async function createUser(input: {
       RETURNING id, email, name, password_hash, role, created_at::text
     `) as ProfileRow[];
     return mapRow(rows[0]);
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("DATABASE_URL is required for production authentication.");
   }
 
   const id = `user-${Date.now()}`;
