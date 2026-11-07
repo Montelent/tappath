@@ -1,3 +1,4 @@
+import { isIP } from "node:net";
 import { getSql, isNeonConfigured } from "@/lib/db/neon";
 
 export type ProviderId = "openai" | "openrouter" | "agentrouter";
@@ -28,10 +29,27 @@ type CopilotDb = {
 function normalizeOpenAiBase(raw: string, fallback: string): string {
   let base = (raw || fallback).trim().replace(/\/$/, "");
   if (!base) base = fallback;
-  if (!/\/v1$/i.test(base) && !/\/v1\//i.test(base)) {
-    base = `${base}/v1`;
-  }
+  if (!/\/v1$/i.test(base) && !/\/v1\//i.test(base)) base = `${base}/v1`;
   return base.replace(/\/$/, "");
+}
+
+function safeProviderBase(raw: string, fallback: string): string | null {
+  try {
+    const base = normalizeOpenAiBase(raw, fallback);
+    const url = new URL(base);
+    const host = url.hostname.toLowerCase();
+    if (
+      url.protocol !== "https:" ||
+      url.username || url.password ||
+      isIP(host) !== 0 ||
+      host === "localhost" || host.endsWith(".localhost") ||
+      host.endsWith(".local") || host.endsWith(".internal") ||
+      host.endsWith(".test")
+    ) return null;
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return null;
+  }
 }
 
 async function loadCopilotDb(): Promise<CopilotDb> {
@@ -70,11 +88,11 @@ export async function listProviders(): Promise<ProviderConfig[]> {
       process.env.AGENTROUTER_BASE_URL ||
       process.env.AGENTIC_API_BASE_URL ||
       "https://agentrouter.org/v1";
-    const isLocal = /localhost|127\.0\.0\.1/.test(rawBase);
-    if (!isLocal || process.env.NODE_ENV === "development") {
+    const baseUrl = safeProviderBase(rawBase, "https://agentrouter.org/v1");
+    if (baseUrl) {
       candidates.push({
         id: "agentrouter",
-        baseUrl: normalizeOpenAiBase(rawBase, "https://agentrouter.org/v1"),
+        baseUrl,
         apiKey: agentKey,
         model:
           db.agentrouter_model ||
@@ -89,12 +107,13 @@ export async function listProviders(): Promise<ProviderConfig[]> {
 
   const openaiKey = db.openai_api_key || process.env.OPENAI_API_KEY || "";
   if (openaiKey) {
-    candidates.push({
+    const baseUrl = safeProviderBase(
+      db.openai_base_url || process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
+      "https://api.openai.com/v1"
+    );
+    if (baseUrl) candidates.push({
       id: "openai",
-      baseUrl: normalizeOpenAiBase(
-        db.openai_base_url || process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
-        "https://api.openai.com/v1"
-      ),
+      baseUrl,
       apiKey: openaiKey,
       model: db.openai_model || process.env.OPENAI_MODEL || "gpt-4o-mini",
       jsonMode: true,
@@ -103,12 +122,13 @@ export async function listProviders(): Promise<ProviderConfig[]> {
 
   const orKey = db.openrouter_api_key || process.env.OPENROUTER_API_KEY || "";
   if (orKey) {
-    candidates.push({
+    const baseUrl = safeProviderBase(
+      process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1",
+      "https://openrouter.ai/api/v1"
+    );
+    if (baseUrl) candidates.push({
       id: "openrouter",
-      baseUrl: normalizeOpenAiBase(
-        process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1",
-        "https://openrouter.ai/api/v1"
-      ),
+      baseUrl,
       apiKey: orKey,
       model: db.openrouter_model || process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini",
       extraHeaders: {
