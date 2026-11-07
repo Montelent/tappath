@@ -114,7 +114,7 @@ export default function GuidePage({ guide }: Props) {
               <LiveSimulator
                 versions={guide.versions}
                 brandName={guide.brand}
-                deviceModel="Galaxy S23+"
+                deviceModel={`${guide.brand} ${guide.compatibleDevices[0]?.name || guide.productLine}`}
               />
             </section>
 
