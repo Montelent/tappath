@@ -21,10 +21,13 @@ function flatten(obj: unknown, prefix = ""): Record<string, string> {
 
 function setPath(obj: Record<string, unknown>, path: string, value: string) {
   const parts = path.split(".");
+  if (!parts.length || parts.length > 12 || parts.some((part) => !part || ["__proto__", "prototype", "constructor"].includes(part))) {
+    throw new Error("Invalid translation key path.");
+  }
   let cur: Record<string, unknown> = obj;
   for (let i = 0; i < parts.length - 1; i++) {
     const p = parts[i];
-    if (!(p in cur) || typeof cur[p] !== "object" || cur[p] == null) {
+    if (!Object.prototype.hasOwnProperty.call(cur, p) || typeof cur[p] !== "object" || cur[p] == null || Array.isArray(cur[p])) {
       cur[p] = {};
     }
     cur = cur[p] as Record<string, unknown>;
@@ -84,10 +87,20 @@ export async function PUT(req: NextRequest) {
 
   const locale = (body.locale === "de" ? "de" : "en") as Locale;
   const overrides = body.overrides || {};
+  if (Object.keys(overrides).length > 1000) {
+    return NextResponse.json({ error: "Too many translation values." }, { status: 400 });
+  }
   const nested: Record<string, unknown> = {};
-  for (const [path, value] of Object.entries(overrides)) {
-    if (!path || value == null) continue;
-    setPath(nested, path, String(value));
+  try {
+    for (const [path, value] of Object.entries(overrides)) {
+      if (!path || value == null) continue;
+      if (path.length > 200 || String(value).length > 5000) {
+        return NextResponse.json({ error: "Translation key or value is too long." }, { status: 400 });
+      }
+      setPath(nested, path, String(value));
+    }
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Invalid translation path." }, { status: 400 });
   }
 
   const sql = getSql()!;
