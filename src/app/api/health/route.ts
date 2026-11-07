@@ -31,14 +31,14 @@ export async function GET() {
       message: "Neon is connected. Create an account through registration; grant admin access through a trusted database workflow.",
     });
   } catch (e) {
+    console.error("[health]", e);
     return NextResponse.json({
       ok: false,
       backend: "neon",
       database: true,
       connected: false,
-      error: e instanceof Error ? e.message : "Query failed",
-      message:
-        "DATABASE_URL is set but SQL failed. Run neon/schema.sql in the Neon SQL Editor and verify the connection.",
-    });
+      error: "Database check failed.",
+      message: "DATABASE_URL is set but the database check failed. Verify the connection and schema.",
+    }, { status: 503 });
   }
 }
