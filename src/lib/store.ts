@@ -1,6 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-import { hashPassword } from "./crypto";
 
 export type Role = "user" | "admin";
 
@@ -54,81 +53,9 @@ export type StoreData = {
 };
 
 const SEED: StoreData = {
-  users: [
-    {
-      id: "admin-1",
-      email: "admin@tappath.com",
-      name: "Admin",
-      passwordHash: hashPassword("admin1234"),
-      role: "admin",
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "user-1",
-      email: "user@tappath.com",
-      name: "Demo User",
-      passwordHash: hashPassword("user1234"),
-      role: "user",
-      createdAt: new Date().toISOString(),
-    },
-  ],
-  topics: [
-    {
-      id: "t1",
-      title: "Google search bar keeps coming back after reboot",
-      brand: "Samsung",
-      brandSlug: "samsung",
-      category: "Display",
-      authorId: "user-1",
-      authorName: "mira_k",
-      excerpt: "Removed the widget but after restart it's back on the home screen…",
-      body: "I removed the Google search bar widget but after every reboot it returns. One UI 7, S24 Ultra. Any permanent fix?",
-      solved: true,
-      views: 840,
-      createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-      updatedAt: new Date(Date.now() - 7200000).toISOString(),
-    },
-    {
-      id: "t2",
-      title: "Private DNS won't stick on One UI 7",
-      brand: "Samsung",
-      brandSlug: "samsung",
-      category: "Network",
-      authorId: "user-1",
-      authorName: "dev_nile",
-      excerpt: "Set dns.google but after airplane mode it resets to Automatic.",
-      body: "Private DNS keeps resetting to Automatic after toggling airplane mode.",
-      solved: false,
-      views: 312,
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-      updatedAt: new Date(Date.now() - 18000000).toISOString(),
-    },
-    {
-      id: "t3",
-      title: "HyperOS battery drain after latest update",
-      brand: "Xiaomi",
-      brandSlug: "xiaomi",
-      category: "Battery",
-      authorId: "user-1",
-      authorName: "redmi_user",
-      excerpt: "Screen-on time dropped from 7h to 4h. Any Adaptive Battery tips?",
-      body: "After the latest HyperOS update battery life got worse. Looking for Adaptive Battery or restricted apps tips.",
-      solved: true,
-      views: 2104,
-      createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-      updatedAt: new Date(Date.now() - 86400000).toISOString(),
-    },
-  ],
-  replies: [
-    {
-      id: "r1",
-      topicId: "t1",
-      authorId: "admin-1",
-      authorName: "Admin",
-      body: "Long-press → Remove is correct. If it returns after reboot, check if a third-party launcher or Good Lock is restoring the default layout.",
-      createdAt: new Date(Date.now() - 7000000).toISOString(),
-    },
-  ],
+  users: [],
+  topics: [],
+  replies: [],
   feedback: [],
 };
 
