@@ -74,12 +74,10 @@ export async function POST(req: NextRequest) {
       backend: isNeonConfigured() ? "neon" : "mock",
     });
   } catch (e) {
+    console.error("[login]", e);
     return NextResponse.json(
-      {
-        error: e instanceof Error ? e.message : "Login failed",
-        backend: isNeonConfigured() ? "neon" : "mock",
-      },
-      { status: 500 }
+      { error: "Login service unavailable.", backend: isNeonConfigured() ? "neon" : "unconfigured" },
+      { status: 503 }
     );
   }
 }
