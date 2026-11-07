@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, Plus, Trash2, Save, RefreshCw } from "lucide-react";
+import { Loader2, Plus, Save, RefreshCw } from "lucide-react";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import SortOrderField, { nextSortOrder } from "@/components/admin/SortOrderField";
 import IconPicker from "@/components/admin/IconPicker";
