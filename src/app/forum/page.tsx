@@ -10,7 +10,9 @@ export const metadata: Metadata = {
   description: "Discuss smartphone settings, report paths, and help others — by brand.",
 };
 
-export default function ForumPage() {
+export default async function ForumPage({ searchParams }: { searchParams: Promise<{ brand?: string }> }) {
+  const { brand: requestedBrand } = await searchParams;
+  const brand = typeof requestedBrand === "string" ? requestedBrand.toLowerCase().trim() : "";
   return (
     <>
       <ForumJsonLd
@@ -41,7 +43,7 @@ export default function ForumPage() {
             <Link
               key={c.slug}
               href={
-                c.slug === "general" || c.slug === "guides" ? "/forum" : `/forum/${c.slug}`
+                c.slug === "general" || c.slug === "guides" ? "/forum" : `/forum?brand=${encodeURIComponent(c.slug)}`
               }
               className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 transition hover:border-brand-300 dark:hover:border-brand-700"
             >
@@ -54,7 +56,7 @@ export default function ForumPage() {
           ))}
         </div>
 
-        <ForumBoard />
+        <ForumBoard brand={brand || undefined} />
       </div>
     </>
   );
