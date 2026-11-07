@@ -8,6 +8,7 @@ import ForumJsonLd from "@/components/seo/ForumJsonLd";
 export const metadata: Metadata = {
   title: "Community Forum",
   description: "Discuss smartphone settings, report paths, and help others — by brand.",
+  alternates: { canonical: "/forum" },
 };
 
 export default async function ForumPage({ searchParams }: { searchParams: Promise<{ brand?: string; category?: string }> }) {
