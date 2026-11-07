@@ -5,6 +5,7 @@ import AuthForm from "@/components/auth/AuthForm";
 export const metadata: Metadata = {
   title: "Sign in",
   description: "Sign in to TapPath to confirm guides, save progress, and join discussions.",
+  alternates: { canonical: "/sign-in" },
 };
 
 export default function SignInPage() {
