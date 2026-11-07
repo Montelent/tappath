@@ -3,6 +3,7 @@ import { brands as staticBrands } from "@/data/brands";
 import { getBrandBySlug, listGuides, listDevices, isDatabaseConfigured } from "@/lib/db/content";
 import { guideHref } from "@/lib/guides/resolve";
 import { isNeonConfigured } from "@/lib/db/neon";
+import { deviceHasPublishedGuide } from "@/lib/devices/resolve";
 
 /** Public brand page model with live guide/device/product-line counts from Neon. */
 export async function resolveBrandPage(slug: string): Promise<Brand | null> {
@@ -15,7 +16,7 @@ export async function resolveBrandPage(slug: string): Promise<Brand | null> {
         const guides = await listGuides();
         const brandGuides = guides.filter((g) => g.brand_slug === key);
         const devices = await listDevices();
-        const brandDevices = devices.filter((d) => d.brand_slug === key);
+        const brandDevices = devices.filter((d) => d.brand_slug === key && deviceHasPublishedGuide(d, guides));
 
         const lineMap = new Map<string, number>();
         for (const g of brandGuides) {
