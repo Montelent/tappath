@@ -38,7 +38,7 @@ type BrandRow = {
   sort_order: number;
 };
 
-const slugifyBrand = (value: string) => value.normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+const slugifyBrand = (value: string) => value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
 const emptyBrand = (): BrandRow => ({
   slug: "",
