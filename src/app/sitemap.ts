@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import {
   listGuides,
-   listGlossary,
+  listGlossary,
   listBrands,
   isDatabaseConfigured,
 } from "@/lib/db/content";
