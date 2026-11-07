@@ -8,9 +8,14 @@ import {
   Send,
   Sparkles,
   Minimize2,
-  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+function createMessageId() {
+  return typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? createMessageId()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
 
 type Message = {
   id: string;
@@ -32,13 +37,13 @@ function replyTo(input: string): Message {
 
   if (q.includes("google search") || q.includes("search bar") || q.includes("widget")) {
     return {
-      id: crypto.randomUUID(),
+      id: createMessageId(),
       role: "assistant",
       text: "The Google search bar is a home-screen widget. Long-press it and tap Remove. The Google app stays installed.",
       links: [
         {
           label: "Samsung: Remove Google Search Bar",
-          href: "/samsung/galaxy/remove-google-search-bar",
+          href: "/search?q=remove%20google%20search%20bar",
         },
       ],
     };
@@ -46,80 +51,80 @@ function replyTo(input: string): Message {
 
   if (q.includes("private dns") || q.includes("dns")) {
     return {
-      id: crypto.randomUUID(),
+      id: createMessageId(),
       role: "assistant",
       text: "Private DNS is usually under Settings → Connections → More connection settings → Private DNS. Set it to a provider hostname (e.g. dns.google).",
       links: [
-        { label: "Network & Connectivity topic", href: "/topics/network" },
-        { label: "Samsung hub", href: "/samsung" },
+        { label: "Browse network topics", href: "/topics" },
+        { label: "Search guides", href: "/search?q=private%20dns" },
       ],
     };
   }
 
   if (q.includes("volte") || q.includes("4g call")) {
     return {
-      id: crypto.randomUUID(),
+      id: createMessageId(),
       role: "assistant",
       text: "VoLTE (Voice over LTE) carries calls over 4G instead of 2G/3G. Enable it under mobile network / SIM settings — the exact path depends on your brand.",
       links: [
-        { label: "What is VoLTE? (Glossary)", href: "/glossary/volte" },
-        { label: "Network topic", href: "/topics/network" },
+        { label: "Browse glossary", href: "/glossary" },
+        { label: "Search guides", href: "/search?q=VoLTE" },
       ],
     };
   }
 
   if (q.includes("battery") && (q.includes("percent") || q.includes("%") || q.includes("show"))) {
     return {
-      id: crypto.randomUUID(),
+      id: createMessageId(),
       role: "assistant",
       text: "On Samsung: Settings → Battery and device care → Battery → show battery percentage (or via notification panel quick settings on some One UI versions).",
       links: [
-        { label: "Battery & Power topic", href: "/topics/battery" },
-        { label: "Samsung hub", href: "/samsung" },
+        { label: "Browse topics", href: "/topics" },
+        { label: "Search guides", href: "/search?q=battery%20percentage" },
       ],
     };
   }
 
   if (q.includes("always on") || q.includes("aod")) {
     return {
-      id: crypto.randomUUID(),
+      id: createMessageId(),
       role: "assistant",
       text: "Always On Display is usually under Settings → Lock screen → Always On Display. Paths vary by One UI / HyperOS version.",
       links: [
-        { label: "Display topic", href: "/topics/display" },
-        { label: "AOD glossary", href: "/glossary/always-on-display" },
+        { label: "Browse topics", href: "/topics" },
+        { label: "Browse glossary", href: "/glossary" },
       ],
     };
   }
 
   if (q.includes("fingerprint") || q.includes("biometric")) {
     return {
-      id: crypto.randomUUID(),
+      id: createMessageId(),
       role: "assistant",
       text: "Add a fingerprint under Settings → Security / Biometrics → Fingerprints. Follow on-screen enrollment.",
       links: [
-        { label: "Security topic", href: "/topics/security" },
-        { label: "Biometrics glossary", href: "/glossary/biometrics" },
+        { label: "Browse topics", href: "/topics" },
+        { label: "Browse glossary", href: "/glossary" },
       ],
     };
   }
 
   if (q.includes("esim") || q.includes("e-sim")) {
     return {
-      id: crypto.randomUUID(),
+      id: createMessageId(),
       role: "assistant",
       text: "An eSIM is a digital SIM built into the phone. Plans are activated via QR code or carrier app — no physical SIM needed.",
-      links: [{ label: "eSIM glossary", href: "/glossary/esim" }],
+      links: [{ label: "Browse glossary", href: "/glossary" }],
     };
   }
 
   if (/^(hi|hello|hey|hola|hallo)\b/i.test(input.trim())) {
     return {
-      id: crypto.randomUUID(),
+      id: createMessageId(),
       role: "assistant",
       text: "Hi! Ask me how to change a setting (e.g. “remove Google search bar on Samsung”) or what a term means (e.g. “what is VoLTE”). I’ll point you to the right guide.",
       links: [
-        { label: "Browse brands", href: "/samsung" },
+        { label: "Browse devices", href: "/devices" },
         { label: "Topics", href: "/topics" },
         { label: "Glossary", href: "/glossary" },
       ],
@@ -127,7 +132,7 @@ function replyTo(input: string): Message {
   }
 
   return {
-    id: crypto.randomUUID(),
+    id: createMessageId(),
     role: "assistant",
     text: "I can help with settings paths, glossary terms, and finding guides. Try asking about a specific feature (e.g. “remove Google search bar” or “what is VoLTE”), or browse by brand and topic.",
     links: [
@@ -165,7 +170,7 @@ export default function CopilotWidget() {
     if (!trimmed || typing) return;
 
     const userMsg: Message = {
-      id: crypto.randomUUID(),
+      id: createMessageId(),
       role: "user",
       text: trimmed,
     };
@@ -184,7 +189,7 @@ export default function CopilotWidget() {
         setMessages((m) => [
           ...m,
           {
-            id: crypto.randomUUID(),
+            id: createMessageId(),
             role: "assistant",
             text: data.text || "No response.",
             links: data.links,
@@ -282,7 +287,6 @@ export default function CopilotWidget() {
                             className="inline-flex items-center gap-1 text-xs font-medium text-brand-700 underline-offset-2 hover:underline dark:text-brand-300"
                           >
                             {l.label}
-                            <ExternalLink className="h-3 w-3" />
                           </Link>
                         </li>
                       ))}
