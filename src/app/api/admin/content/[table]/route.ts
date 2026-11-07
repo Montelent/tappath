@@ -797,7 +797,7 @@ async function updateBrand(sql: Sql, id: string, b: Record<string, unknown>) {
     const seenLines = new Set<string>();
     for (const guide of guideRows as { id: string; slug: string; product_line: string }[]) {
       const line = String(guide.product_line || "guides").toLowerCase()
-        .replace(/\\s+/g, "-").replace(/[^a-z0-9-]/g, "") || "guides";
+        .replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") || "guides";
       const oldLinePath = `/${oldSlug}/${line}`;
       if (!seenLines.has(oldLinePath)) {
         pairs.push({ id: `brand-line-${oldSlug}-${line}`, from: oldLinePath, to: `/${slug}/${line}` });
