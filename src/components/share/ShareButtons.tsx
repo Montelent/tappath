@@ -184,7 +184,7 @@ export default function ShareButtons({
 
   useEffect(() => {
     if (url) {
-      setPageUrl(url.startsWith("http") ? url : `${window.location.origin}${url}`);
+      setPageUrl(new URL(url, window.location.origin).toString());
     } else {
       setPageUrl(window.location.href.split("#")[0]);
     }
