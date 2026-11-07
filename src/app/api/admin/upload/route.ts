@@ -42,11 +42,7 @@ export async function POST(req: NextRequest) {
   }
 
   const blob = file as File;
-  const mime = blob.type || "image/jpeg";
-  if (!mime.startsWith("image/")) {
-    return NextResponse.json({ error: "Only image files are allowed" }, { status: 400 });
-  }
-  if (blob.size > MAX_BYTES) {
+  if (blob.size <= 0 || blob.size > MAX_BYTES) {
     return NextResponse.json(
       { error: `Image too large (max ${Math.round(MAX_BYTES / 1000)} KB). Compress the screenshot.` },
       { status: 400 }
@@ -54,6 +50,14 @@ export async function POST(req: NextRequest) {
   }
 
   const buf = Buffer.from(await blob.arrayBuffer());
+  const isJpeg = buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff;
+  const isPng = buf.length >= 8 && buf.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+  const isGif = buf.length >= 6 && (buf.subarray(0, 6).toString("ascii") === "GIF87a" || buf.subarray(0, 6).toString("ascii") === "GIF89a");
+  const isWebp = buf.length >= 12 && buf.subarray(0, 4).toString("ascii") === "RIFF" && buf.subarray(8, 12).toString("ascii") === "WEBP";
+  const mime = isJpeg ? "image/jpeg" : isPng ? "image/png" : isGif ? "image/gif" : isWebp ? "image/webp" : "";
+  if (!mime || (blob.type && blob.type.toLowerCase() !== mime)) {
+    return NextResponse.json({ error: "Upload a valid JPEG, PNG, GIF, or WebP image." }, { status: 400 });
+  }
   const dataUrl = `data:${mime};base64,${buf.toString("base64")}`;
   const filename = blob.name || `screenshot-${Date.now()}.jpg`;
 
