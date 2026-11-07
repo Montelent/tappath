@@ -31,6 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
     s.meta_description;
   return {
     title: { absolute: title },
+    alternates: { canonical: "/" },
     description,
     keywords: s.meta_keywords
       .split(",")
