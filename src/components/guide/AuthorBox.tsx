@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getSiteSettings } from "@/lib/site-settings";
 import { authorProfilePath, authorSocialLinks } from "@/lib/author";
-import { siteBase } from "@/components/seo/JsonLd";
+import { requestOrigin } from "@/components/seo/JsonLd";
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
@@ -19,7 +19,7 @@ export default async function AuthorBox() {
   const credentials = (s.author_credentials || "").trim();
   const avatar = (s.author_avatar_url || "").trim();
   const profileHref = authorProfilePath(s);
-  const profileAbs = `${siteBase()}${profileHref}`;
+  const profileAbs = `${await requestOrigin()}${profileHref}`;
   const social = authorSocialLinks(s).slice(0, 5);
 
   return (
