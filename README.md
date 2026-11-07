@@ -16,8 +16,8 @@ Env (optional):
 
 ## Implemented
 
-- Homepage, brands (8), guides + Live Simulator
-- Topics (14), devices, glossary (50+)
+- Homepage, database-managed brands, guides + Live Simulator
+- Database-managed topics, devices, and glossary
 - Auth sessions (account registration; requires AUTH_SECRET)
 - AI Copilot + `/api/copilot`
 - SEO (sitemap, robots, HowTo JSON-LD)
@@ -29,10 +29,10 @@ Env (optional):
 
 Set `AUTH_SECRET` to a cryptographically random value of at least 32 characters.
 Do not rely on demo credentials or mock storage for production deployments.
-For Neon deployments, configure `DATABASE_URL`; the protected content bootstrap
-also requires a one-time `SETUP_SECRET` of at least 32 characters, sent as the
-`x-setup-secret` header. The bootstrap seeds content only and never creates or
-resets user accounts.
+For Neon deployments, configure `DATABASE_URL`. The protected `/api/setup` endpoint
+requires a separate `SETUP_SECRET` of at least 32 characters and only checks database
+connectivity and table counts; it does not seed bundled demo content. Create and publish
+all live editorial content through the Admin area. Static starter files are development-only.
 
 ### Key routes
 
