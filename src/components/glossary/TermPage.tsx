@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { GlossaryTerm } from "@/data/glossary";
 import ShareButtons from "@/components/share/ShareButtons";
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
 
 export type GuideHit = {
   title: string;
@@ -84,7 +85,7 @@ export default function TermPage({ term, relatedTerms, guideHits }: Props) {
           {isHtml(term.definition) ? (
             <div
               className="prose prose-slate dark:prose-invert max-w-none leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: term.definition }}
+              dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(term.definition) }}
             />
           ) : (
             <div className="space-y-4 text-[var(--muted-foreground)] leading-relaxed">
@@ -112,7 +113,7 @@ export default function TermPage({ term, relatedTerms, guideHits }: Props) {
                   </summary>
                   <div className="border-t border-[var(--border)] px-4 py-3 text-sm text-[var(--muted-foreground)]">
                     {isHtml(f.a) ? (
-                      <div dangerouslySetInnerHTML={{ __html: f.a }} />
+                      <div dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(f.a) }} />
                     ) : (
                       <p>{f.a}</p>
                     )}
