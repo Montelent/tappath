@@ -17,18 +17,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return [];
   }
 
+  const vercelHost = (process.env.VERCEL_URL || "")
+    .replace("https://", "")
+    .replace("http://", "");
   const configuredOrigin =
     s.seo_canonical_host ||
     process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL.replace(/^https?:\\/\\//i, "")}` : "") ||
+    (vercelHost ? `https://${vercelHost}` : "") ||
     "https://tappath.com";
   let host: string;
   try {
-    host = new URL(
-      /^https?:\\/\\//i.test(configuredOrigin)
-        ? configuredOrigin
-        : `https://${configuredOrigin}`
-    ).origin;
+    const hasProtocol =
+      configuredOrigin.startsWith("https://") ||
+      configuredOrigin.startsWith("http://");
+    host = new URL(hasProtocol ? configuredOrigin : `https://${configuredOrigin}`).origin;
   } catch {
     host = "https://tappath.com";
   }
