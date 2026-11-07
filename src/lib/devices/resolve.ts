@@ -16,7 +16,7 @@ function guideMatchesDevice(g: DbGuide, d: DbDevice): boolean {
   return (g.compatible_devices || []).some((item) => {
     const itemName = normalize(item.name || "");
     const itemHref = normalize(item.href || "");
-    return itemName === slug || itemName === name || itemHref.endsWith(slug) || itemHref.includes(slug);
+    return itemName === slug || itemName === name || (!!slug && itemHref.endsWith(slug));
   });
 }
 
