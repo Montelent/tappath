@@ -16,7 +16,7 @@ type Props = { terms?: GlossaryTerm[] };
 export default function GlossaryIndex({ terms }: Props) {
   const source = terms !== undefined ? terms : staticTerms;
   const categories = useMemo(
-    () => ["All", ...new Set([...glossaryCategories, ...source.map((term) => term.category).filter(Boolean)])],
+    () => [...new Set([...glossaryCategories, ...source.map((term) => term.category).filter(Boolean)])],
     [source]
   );
   const [query, setQuery] = useState("");
