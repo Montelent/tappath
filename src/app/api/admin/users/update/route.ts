@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (email !== undefined && (email.length > 254 || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email))) {
+  if (email !== undefined && (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
     return NextResponse.json({ error: "Enter a valid email address (max 254 characters)." }, { status: 400 });
   }
   if (name !== undefined && name.length > 80) {
