@@ -20,6 +20,10 @@ function guideMatchesDevice(g: DbGuide, d: DbDevice): boolean {
   });
 }
 
+export function deviceHasPublishedGuide(d: DbDevice, guides: DbGuide[]): boolean {
+  return guides.some((g) => g.brand_slug === d.brand_slug && guideMatchesDevice(g, d));
+}
+
 function dbDeviceToDevice(d: DbDevice, guides: DbGuide[]): Device {
   const deviceGuides = guides.filter((g) => g.brand_slug === d.brand_slug && guideMatchesDevice(g, d));
   const brandGuides = deviceGuides
@@ -59,7 +63,7 @@ export async function listDevicesPublic(): Promise<Device[]> {
   if (isDatabaseConfigured()) {
     try {
       const [devices, guides] = await Promise.all([listDevices(), listGuides()]);
-      return devices.filter((d) => guides.some((g) => g.brand_slug === d.brand_slug && guideMatchesDevice(g, d))).map((d) => dbDeviceToDevice(d, guides));
+      return devices.filter((d) => deviceHasPublishedGuide(d, guides)).map((d) => dbDeviceToDevice(d, guides));
     } catch (e) {
       console.error("[listDevicesPublic]", e);
       return [];
@@ -75,7 +79,7 @@ export async function resolveDevice(slug: string): Promise<Device | null> {
   if (isDatabaseConfigured()) {
     try {
       const [devices, guides] = await Promise.all([listDevices(), listGuides()]);
-      const hit = devices.find((d) => d.slug === key && guides.some((g) => g.brand_slug === d.brand_slug && guideMatchesDevice(g, d)));
+      const hit = devices.find((d) => d.slug === key && deviceHasPublishedGuide(d, guides));
       if (!hit) return null;
       return dbDeviceToDevice(hit, guides);
     } catch (e) {
