@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Brand } from "@/data/brands";
 import BrandJsonLd from "@/components/seo/BrandJsonLd";
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
 import { brandColorCss, brandColorTint } from "@/lib/brand-color";
 
 type Props = { brand: Brand };
@@ -43,7 +44,7 @@ export default function BrandPage({ brand }: Props) {
             </div>
             <h1 className="font-display text-3xl sm:text-4xl">{brand.name} settings guides</h1>
             {brand.description && (
-              <div className="mt-4 text-[var(--muted-foreground)] leading-relaxed" dangerouslySetInnerHTML={{ __html: brand.description }} />
+              <div className="mt-4 text-[var(--muted-foreground)] leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(brand.description) }} />
             )}
             <p className="mt-4 font-path text-sm text-[var(--muted-foreground)]">
               {brand.guides} {brand.guides === 1 ? "guide" : "guides"}
