@@ -56,9 +56,7 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
 
     return NextResponse.json({ error: "Unsupported media format" }, { status: 500 });
   } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Media error" },
-      { status: 500 }
-    );
+    console.error("[media]", e);
+    return NextResponse.json({ error: "Media service unavailable." }, { status: 503 });
   }
 }
