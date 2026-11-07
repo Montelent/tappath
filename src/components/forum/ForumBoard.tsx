@@ -19,10 +19,13 @@ type Topic = {
   lastActivity: string;
 };
 
-export default function ForumBoard({ brand }: { brand?: string }) {
+export default function ForumBoard({ brand, category }: { brand?: string; category?: string }) {
   const auth = useAuthOptional();
   const brandLabel = brand
     ? brand.replace(/[-_]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase())
+    : "General";
+  const categoryLabel = category
+    ? category.replace(/[-_]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase())
     : "General";
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,8 +40,11 @@ export default function ForumBoard({ brand }: { brand?: string }) {
     setLoading(true);
     setLoadError("");
     try {
-      const q = brand ? `?brand=${encodeURIComponent(brand)}` : "";
-      const res = await fetch(`/api/forum/topics${q}`);
+      const params = new URLSearchParams();
+      if (brand) params.set("brand", brand);
+      if (category) params.set("category", category);
+      const query = params.toString();
+      const res = await fetch(query ? `/api/forum/topics?${query}` : "/api/forum/topics");
       const data = await res.json();
       if (!res.ok) {
         setTopics([]);
@@ -52,7 +58,7 @@ export default function ForumBoard({ brand }: { brand?: string }) {
     } finally {
       setLoading(false);
     }
-  }, [brand]);
+  }, [brand, category]);
 
   useEffect(() => {
     void load();
@@ -76,7 +82,7 @@ export default function ForumBoard({ brand }: { brand?: string }) {
           content,
           brand: brandLabel,
           brandSlug: brand || "general",
-          category: "General",
+          category: category ? categoryLabel : "General",
         }),
       });
       const data = await res.json();
@@ -107,7 +113,7 @@ export default function ForumBoard({ brand }: { brand?: string }) {
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-bold tracking-tight">
-          {brand ? `${brand} topics` : "Recent topics"}
+          {category ? `${categoryLabel} discussions` : brand ? `${brandLabel} topics` : "Recent topics"}
         </h2>
         <button
           type="button"
