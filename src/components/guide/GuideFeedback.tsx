@@ -17,20 +17,31 @@ export default function GuideFeedback({
 }: Props) {
   const [voted, setVoted] = useState<"yes" | "no" | null>(null);
   const [count, setCount] = useState(initialConfirmations);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   const vote = async (v: "yes" | "no") => {
-    if (voted) return;
-    setVoted(v);
-    if (v === "yes") setCount((c) => c + 1);
+    if (voted || submitting) return;
+    setSubmitting(true);
+    setError("");
     try {
-      await fetch("/api/guides/feedback", {
+      const res = await fetch("/api/guides/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ guideSlug, correct: v === "yes" }),
       });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Your feedback could not be saved. Please try again.");
+        return;
+      }
+      setVoted(v);
+      if (v === "yes") setCount((c) => c + 1);
     } catch {
-      /* ignore */
+      setError("Network error. Your feedback was not saved. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -44,7 +55,7 @@ export default function GuideFeedback({
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <button
           onClick={() => vote("yes")}
-          disabled={!!voted}
+          disabled={!!voted || submitting}
           className={cn(
             "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition",
             voted === "yes"
@@ -57,7 +68,7 @@ export default function GuideFeedback({
         </button>
         <button
           onClick={() => vote("no")}
-          disabled={!!voted}
+          disabled={!!voted || submitting}
           className={cn(
             "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition",
             voted === "no"
@@ -80,8 +91,9 @@ export default function GuideFeedback({
         )}
       </div>
 
+      {error && <p role="alert" className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p>}
       {voted && (
-        <p className="mt-3 text-sm text-emerald-600 dark:text-emerald-400">
+        <p role="status" className="mt-3 text-sm text-emerald-600 dark:text-emerald-400">
           Thanks for your feedback!
         </p>
       )}
