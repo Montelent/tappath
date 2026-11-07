@@ -7,6 +7,7 @@ import CopilotWidget from "@/components/copilot/CopilotWidget";
 
 type Props = {
   children: ReactNode;
+  headCode?: ReactNode;
   maintenanceBanner?: ReactNode;
   headerAd?: ReactNode;
   beforeFooterAd?: ReactNode;
@@ -20,6 +21,7 @@ type Props = {
  */
 export default function SiteChrome({
   children,
+  headCode,
   maintenanceBanner,
   headerAd,
   beforeFooterAd,
@@ -33,6 +35,7 @@ export default function SiteChrome({
 
   return (
     <>
+      {headCode}
       {maintenanceBanner}
       {headerAd}
       <Header />
