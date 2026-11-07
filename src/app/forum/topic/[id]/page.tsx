@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ChevronRight, Loader2 } from "lucide-react";
@@ -37,7 +37,7 @@ export default function ForumTopicPage() {
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState("");
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/forum/topics/${id}`);
@@ -53,11 +53,11 @@ export default function ForumTopicPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
-    load();
-  }, [id]);
+    void load();
+  }, [load]);
 
   const submitReply = async (e: React.FormEvent) => {
     e.preventDefault();
