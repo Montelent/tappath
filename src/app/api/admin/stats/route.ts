@@ -58,7 +58,7 @@ export async function GET() {
         community: { users: 0, forumTopics: 0, forumReplies: 0, feedback: 0 },
         recentFeedback: [],
         recentTopics: [],
-      });
+      }, { status: 503 });
     }
   }
 
