@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/session";
 import { getSql, isNeonConfigured } from "@/lib/db/neon";
-import { getStore } from "@/lib/store";
-import { guides } from "@/data/guides";
-import { topics } from "@/data/topics";
-import { getAllDevices } from "@/data/devices";
-import { glossaryTerms } from "@/data/glossary";
 
 export const dynamic = "force-dynamic";
 
@@ -67,24 +62,8 @@ export async function GET() {
     }
   }
 
-  const store = getStore();
   return NextResponse.json({
-    backend: "mock",
-    message: "DATABASE_URL not set — these numbers are from mock files only.",
-    content: {
-      guides: Object.keys(guides).length,
-      topics: topics.length,
-      devices: getAllDevices().length,
-      glossaryTerms: glossaryTerms.length,
-      brands: 8,
-    },
-    community: {
-      users: store.users.length,
-      forumTopics: store.topics.length,
-      forumReplies: store.replies.length,
-      feedback: store.feedback.length,
-    },
-    recentFeedback: store.feedback.slice(-20).reverse(),
-    recentTopics: store.topics.slice(0, 10),
-  });
+    backend: "unconfigured",
+    error: "DATABASE_URL is not configured. Live statistics are unavailable; no mock counts are shown.",
+  }, { status: 503 });
 }
