@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, Plus, Trash2, Save, RefreshCw, Database } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, RefreshCw } from "lucide-react";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import SortOrderField, { nextSortOrder } from "@/components/admin/SortOrderField";
 import IconPicker from "@/components/admin/IconPicker";
@@ -29,7 +29,6 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
   const [usingDb, setUsingDb] = useState(false);
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
   const [saving, setSaving] = useState(false);
-  const [seeding, setSeeding] = useState(false);
   const [message, setMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [seoTpl, setSeoTpl] = useState({
@@ -142,23 +141,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
     if (res.ok) await load();
   };
 
-  const seed = async () => {
-    setSeeding(true);
-    setMessage("");
-    try {
-      const res = await fetch("/api/admin/seed", { method: "POST", credentials: "include" });
-      const data = await res.json();
-      if (!res.ok) setMessage(data.error || "Seed failed");
-      else {
-        setMessage(`Seeded: ${JSON.stringify(data.results)}`);
-        await load();
-      }
-    } catch {
-      setMessage("Seed network error");
-    } finally {
-      setSeeding(false);
-    }
-  };
+
 
   const filtered = rows.filter((r) => {
     if (!searchQuery.trim()) return true;
@@ -190,10 +173,6 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={() => load()} className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1.5 text-sm">
             <RefreshCw className="h-3.5 w-3.5" /> Refresh
-          </button>
-          <button type="button" onClick={seed} disabled={seeding} className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1.5 text-sm">
-            {seeding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Database className="h-3.5 w-3.5" />}
-            Seed DB
           </button>
           <button
             type="button"
