@@ -27,7 +27,7 @@ export async function resolveBrandPage(slug: string): Promise<Brand | null> {
         const productLines = Array.from(lineMap.entries()).map(([name, count]) => ({
           name,
           count,
-          href: `/${key}/${name.toLowerCase().replace(/\\s+/g, "-")}`,
+          href: `/${key}/${name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}`,
         }));
 
         const topGuides = brandGuides.slice(0, 24).map((g) => ({
