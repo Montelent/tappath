@@ -1,6 +1,5 @@
 import { guides, type Guide, type GuideVersion } from "@/data/guides";
 import { getGuideByPath, listGuides, isDatabaseConfigured } from "@/lib/db/content";
-import { isNeonConfigured } from "@/lib/db/neon";
 import type { DbGuide } from "@/lib/db/types";
 
 function parseJsonField(raw: unknown): unknown {
