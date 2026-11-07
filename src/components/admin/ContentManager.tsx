@@ -391,6 +391,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                       .replace(/[\u0300-\u036f]/g, "")
                       .toLowerCase()
                       .trim()
+                      .replace(/&/g, " and ")
                       .replace(/[^a-z0-9]+/g, "-")
                       .replace(/^-+|-+$/g, "");
                     const previousAutoSlug = slugify(String(editing.title || ""));
