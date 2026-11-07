@@ -739,31 +739,107 @@ async function updateBrand(sql: Sql, id: string, b: Record<string, unknown>) {
   const name = String(b.name || "").trim();
   const currentRows = await sql`SELECT slug FROM brands WHERE id::text = ${id} LIMIT 1`;
   if (!currentRows[0]) throw new Error("Brand not found");
+  const oldSlug = String(currentRows[0].slug || "");
   const requestedSlug = String(b.slug || "").trim();
-  const slug = slugifyBrandValue(requestedSlug || String(currentRows[0].slug || ""));
+  const slug = slugifyBrandValue(requestedSlug || oldSlug);
   if (!name || !slug) throw new Error("Enter a valid brand name and slug");
-  const rows = await sql`
-    UPDATE brands SET
-      slug = ${slug},
-      name = ${name},
-      color = ${String(b.color || "bg-blue-500")},
-      description = ${String(b.description || "")},
-      guides_count = ${Number(b.guides_count) || 0},
-      devices_count = ${Number(b.devices_count) || 0},
-      product_lines = ${JSON.stringify(b.product_lines || [])}::jsonb,
-      top_guides = ${JSON.stringify(b.top_guides || [])}::jsonb,
-      devices_list = ${JSON.stringify(b.devices_list || [])}::jsonb,
-      seo_updates = ${String(b.seo_updates || "")},
-      seo_help = ${String(b.seo_help || "")},
-      published = ${b.published === false ? false : true},
-      sort_order = ${Number(b.sort_order) || 0}
-    WHERE id::text = ${id}
-    RETURNING *
-  `;
-  if (!rows[0]) throw new Error("Brand not found");
-  return (await refreshBrandCounts(sql, slug)) || rows[0];
-}
 
+  if (slug !== oldSlug) {
+    const clash = await sql`SELECT id FROM brands WHERE slug = ${slug} AND id::text <> ${id} LIMIT 1`;
+    if (clash[0]) throw new Error("That brand slug is already in use.");
+
+    const [guideRows, deviceRows, settingRows] = await Promise.all([
+      sql`SELECT id, slug, product_line FROM guides WHERE brand_slug = ${oldSlug}`,
+      sql`SELECT id, slug, href FROM devices WHERE brand_slug = ${oldSlug}`,
+      sql`SELECT value FROM site_settings WHERE key = 'seo_redirects' LIMIT 1`,
+    ]);
+
+    const pairs: { id: string; from: string; to: string }[] = [
+      { id: `brand-${id}`, from: `/${oldSlug}`, to: `/${slug}` },
+    ];
+    const seenLines = new Set<string>();
+    for (const guide of guideRows as { id: string; slug: string; product_line: string }[]) {
+      const line = String(guide.product_line || "guides").toLowerCase()
+        .replace(/\\s+/g, "-").replace(/[^a-z0-9-]/g, "") || "guides";
+      const oldLinePath = `/${oldSlug}/${line}`;
+      if (!seenLines.has(oldLinePath)) {
+        pairs.push({ id: `brand-line-${oldSlug}-${line}`, from: oldLinePath, to: `/${slug}/${line}` });
+        seenLines.add(oldLinePath);
+      }
+      pairs.push({
+        id: `brand-guide-${guide.id}`,
+        from: `/${oldSlug}/${line}/${guide.slug}`,
+        to: `/${slug}/${line}/${guide.slug}`,
+      });
+    }
+    for (const device of deviceRows as { id: string; slug: string; href: string | null }[]) {
+      const oldPath = String(device.href || `/${oldSlug}/${device.slug}`);
+      if (oldPath.startsWith("/")) {
+        pairs.push({ id: `brand-device-${device.id}`, from: oldPath, to: `/${slug}/${device.slug}` });
+      }
+    }
+
+    let redirects: { id?: string; from?: string; to?: string; code?: number; enabled?: boolean }[] = [];
+    const raw = settingRows[0]?.value;
+    if (Array.isArray(raw)) redirects = raw;
+    else if (typeof raw === "string") {
+      try { const parsed = JSON.parse(raw); if (Array.isArray(parsed)) redirects = parsed; } catch { /* use empty list */ }
+    } else if (raw && typeof raw === "object") {
+      const value = (raw as { value?: unknown }).value;
+      if (Array.isArray(value)) redirects = value as typeof redirects;
+    }
+
+    for (const pair of pairs) {
+      if (pair.from === pair.to) continue;
+      redirects = redirects.map((item) =>
+        item && item.to === pair.from ? { ...item, to: pair.to } : item
+      );
+      const index = redirects.findIndex((item) => item?.from === pair.from);
+      const entry = { id: pair.id, from: pair.from, to: pair.to, code: 301, enabled: true };
+      if (index >= 0) redirects[index] = entry;
+      else redirects.push(entry);
+    }
+
+    await sql.transaction([
+      sql`UPDATE guides SET brand_slug = ${slug}, brand = ${name} WHERE brand_slug = ${oldSlug}`,
+      sql`UPDATE devices SET brand_slug = ${slug}, brand_name = ${name}, href = '/' || ${slug} || '/' || slug WHERE brand_slug = ${oldSlug}`,
+      sql`UPDATE brands SET
+        slug = ${slug}, name = ${name}, color = ${String(b.color || "bg-blue-500")},
+        description = ${String(b.description || "")}, guides_count = ${Number(b.guides_count) || 0},
+        devices_count = ${Number(b.devices_count) || 0},
+        product_lines = ${JSON.stringify(b.product_lines || [])}::jsonb,
+        top_guides = ${JSON.stringify(b.top_guides || [])}::jsonb,
+        devices_list = ${JSON.stringify(b.devices_list || [])}::jsonb,
+        seo_updates = ${String(b.seo_updates || "")}, seo_help = ${String(b.seo_help || "")},
+        published = ${b.published === false ? false : true}, sort_order = ${Number(b.sort_order) || 0}
+        WHERE id::text = ${id}`,
+      sql`INSERT INTO site_settings (key, value, updated_at)
+        VALUES ('seo_redirects', ${JSON.stringify(redirects)}::jsonb, now())
+        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`,
+    ]);
+  } else {
+    const rows = await sql`
+      UPDATE brands SET
+        name = ${name},
+        color = ${String(b.color || "bg-blue-500")},
+        description = ${String(b.description || "")},
+        guides_count = ${Number(b.guides_count) || 0},
+        devices_count = ${Number(b.devices_count) || 0},
+        product_lines = ${JSON.stringify(b.product_lines || [])}::jsonb,
+        top_guides = ${JSON.stringify(b.top_guides || [])}::jsonb,
+        devices_list = ${JSON.stringify(b.devices_list || [])}::jsonb,
+        seo_updates = ${String(b.seo_updates || "")},
+        seo_help = ${String(b.seo_help || "")},
+        published = ${b.published === false ? false : true},
+        sort_order = ${Number(b.sort_order) || 0}
+      WHERE id::text = ${id}
+      RETURNING *
+    `;
+    if (!rows[0]) throw new Error("Brand not found");
+  }
+
+  return (await refreshBrandCounts(sql, slug)) || null;
+}
 async function updateForumTopic(sql: Sql, id: string, b: Record<string, unknown>) {
   const rows = await sql`
     UPDATE forum_topics SET
