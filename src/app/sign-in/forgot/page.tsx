@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Forgot password",
-  description: "Reset your TapPath password.",
+  description: "Account recovery options for TapPath.",
   alternates: { canonical: "/sign-in/forgot" },
 };
 
