@@ -12,7 +12,6 @@ export const metadata: Metadata = {
   description:
     "Smartphone and technology terms explained simply — Network, System, Battery, Security, Display, Camera, Messaging and more.",
   alternates: { canonical: "/glossary" },
-  alternates: { canonical: "/glossary" },
 };
 
 export default async function GlossaryPage() {
