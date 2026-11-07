@@ -148,18 +148,24 @@ export default function ForumTopicPage() {
       </ul>
 
       <form onSubmit={submitReply} className="mt-8 space-y-3">
+        {!auth?.user && (
+          <p className="text-sm text-[var(--muted-foreground)]">
+            <Link href="/sign-in" className="font-medium text-brand-600 underline dark:text-brand-400">Sign in</Link> to reply to this discussion.
+          </p>
+        )}
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder="Write a reply…"
           rows={3}
-          className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3.5 py-2.5 text-sm"
+          disabled={!auth?.user || posting}
+          className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3.5 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
           required
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"
-          disabled={posting}
+          disabled={posting || !auth?.user}
           className="rounded-full bg-brand-600 px-5 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
         >
           {posting ? "Posting…" : "Post reply"}
