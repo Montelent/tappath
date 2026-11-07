@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { listTopicsForIndex } from "@/lib/topics/resolve";
 import CollectionJsonLd from "@/components/seo/CollectionJsonLd";
+import { requestOrigin } from "@/components/seo/JsonLd";
 
 export const metadata: Metadata = {
   title: "Topics — Settings guides by category",
@@ -16,7 +17,7 @@ export default async function TopicsIndexPage() {
   const topics = await listTopicsForIndex();
   const withGuides = topics.filter((t) => t.guideCount > 0);
 
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://tappath.com";
+  const base = await requestOrigin();
   const items = topics.map((tp) => ({
     name: tp.name,
     url: `${base}/topics/${tp.slug}`,
