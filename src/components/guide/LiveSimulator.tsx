@@ -37,6 +37,14 @@ function guessIcon(label: string): MenuItem["icon"] {
 
 function plain(s: string) { return s.replace(/\*\*/g, "").trim(); }
 
+function renderInstruction(value: string) {
+  return value.split(/(\*\*.*?\*\*)/g).map((part, index) =>
+    part.startsWith("**") && part.endsWith("**") && part.length >= 4
+      ? <strong key={index}>{part.slice(2, -2)}</strong>
+      : part
+  );
+}
+
 function buildMenuFromSteps(steps: GuideVersion["steps"]): MenuItem[] {
   const seen = new Set<string>();
   const items: MenuItem[] = [];
@@ -197,7 +205,7 @@ export default function LiveSimulator({ versions, brandName, deviceModel = "Gala
                       {i < stepIndex ? "✓" : i + 1}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium" dangerouslySetInnerHTML={{ __html: s.instruction.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") }} />
+                      <div className="text-sm font-medium">{renderInstruction(s.instruction)}</div>
                       {i === stepIndex && s.detail && <p className="mt-1 text-xs text-[var(--muted-foreground)]">{s.detail}</p>}
                       {s.imageUrl && <p className="mt-1 text-[10px] text-brand-600 dark:text-brand-400">Has screenshot</p>}
                     </div>
