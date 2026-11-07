@@ -41,6 +41,10 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     }
   }
 
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Forum database is not configured" }, { status: 503 });
+  }
+
   const store = getStore();
   if (!store.topics.find((t) => t.id === id)) {
     return NextResponse.json({ error: "Topic not found" }, { status: 404 });
