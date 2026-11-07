@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import Link from "next/link";
 import { CheckCircle2, Loader2, MessageSquarePlus } from "lucide-react";
@@ -30,7 +30,7 @@ export default function ForumBoard({ brand }: { brand?: string }) {
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState("");
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const q = brand ? `?brand=${encodeURIComponent(brand)}` : "";
@@ -42,11 +42,11 @@ export default function ForumBoard({ brand }: { brand?: string }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [brand]);
 
   useEffect(() => {
-    load();
-  }, [brand]);
+    void load();
+  }, [load]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
