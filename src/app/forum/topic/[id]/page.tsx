@@ -41,6 +41,8 @@ export default function ForumTopicPage() {
   const load = useCallback(async () => {
     setLoading(true);
     setLoadError("");
+    setBody("");
+    setError("");
     try {
       const res = await fetch(`/api/forum/topics/${id}`);
       const data = await res.json();
