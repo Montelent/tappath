@@ -33,23 +33,27 @@ export default function ForumTopicPage() {
   const [topic, setTopic] = useState<Topic | null>(null);
   const [replies, setReplies] = useState<Reply[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [body, setBody] = useState("");
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError("");
     try {
       const res = await fetch(`/api/forum/topics/${id}`);
+      const data = await res.json();
       if (!res.ok) {
         setTopic(null);
+        setLoadError(data.error || (res.status === 404 ? "Topic not found." : "Could not load this topic."));
         return;
       }
-      const data = await res.json();
-      setTopic(data.topic);
-      setReplies(data.replies || []);
+      setTopic(data.topic || null);
+      setReplies(Array.isArray(data.replies) ? data.replies : []);
     } catch {
       setTopic(null);
+      setLoadError("A network error prevented this topic from loading.");
     } finally {
       setLoading(false);
     }
@@ -98,7 +102,8 @@ export default function ForumTopicPage() {
   if (!topic) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <p>Topic not found.</p>
+        <p>{loadError || "Topic not found."}</p>
+        {loadError && <button type="button" onClick={() => void load()} className="mt-3 text-sm font-medium underline">Try again</button>}
         <Link href="/forum" className="mt-4 inline-block text-brand-600">
           ← Forum
         </Link>
