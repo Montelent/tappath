@@ -37,6 +37,7 @@ function plainText(html: string, max = 200): string {
 export default function GuidePage({ guide }: Props) {
   const steps = guide.versions[0]?.steps?.length ?? 0;
   const versionLabel = guide.versions[0]?.label;
+  const deviceModel = guide.compatibleDevices[0]?.name || `${guide.brand} ${guide.productLine}`;
   const verified = formatVerified(guide.updated);
   const excerpt =
     plainText(guide.shortDescription || "") ||
@@ -114,7 +115,7 @@ export default function GuidePage({ guide }: Props) {
               <LiveSimulator
                 versions={guide.versions}
                 brandName={guide.brand}
-                deviceModel={`${guide.brand} ${guide.compatibleDevices[0]?.name || guide.productLine}`}
+                deviceModel={deviceModel}
               />
             </section>
 
