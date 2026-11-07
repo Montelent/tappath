@@ -17,11 +17,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return [];
   }
 
-  const host = (
+  const configuredOrigin =
     s.seo_canonical_host ||
     process.env.NEXT_PUBLIC_SITE_URL ||
-    "https://tappath.com"
-  ).replace(/\/$/, "");
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL.replace(/^https?:\\/\\//i, "")}` : "") ||
+    "https://tappath.com";
+  let host: string;
+  try {
+    host = new URL(
+      /^https?:\\/\\//i.test(configuredOrigin)
+        ? configuredOrigin
+        : `https://${configuredOrigin}`
+    ).origin;
+  } catch {
+    host = "https://tappath.com";
+  }
 
   const now = new Date();
   const defFreq = (s.seo_sitemap_changefreq_default || "weekly") as
