@@ -56,19 +56,13 @@ export default function AuthForm({ mode }: Props) {
       return;
     }
     setSuccess(true);
-    setTimeout(async () => {
-      try {
-        const me = await fetch("/api/auth/me", { credentials: "include" });
-        const data = await me.json();
-        if (data?.user?.role === "admin") {
-          router.push("/admin");
-          return;
-        }
-      } catch {
-        /* fall through */
-      }
-      router.push("/");
-    }, 400);
+    try {
+      const me = await fetch("/api/auth/me", { credentials: "include" });
+      const data = await me.json();
+      router.replace(data?.user?.role === "admin" ? "/admin" : "/");
+    } catch {
+      router.replace("/");
+    }
   };
 
   if (success) {
