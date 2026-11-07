@@ -426,7 +426,7 @@ async function ensureGlossaryColumns(sql: Sql) {
 async function normalizeDeviceInput(sql: Sql, b: Record<string, unknown>, existingSlug?: string) {
   await ensureDevicesColumns(sql);
   const name = String(b.name || "").trim();
-  const slug = String(b.slug || existingSlug || name).normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  const slug = String(b.slug || existingSlug || name).normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
   const brandSlug = String(b.brand_slug || "").trim().toLowerCase();
   if (!name || !slug || !brandSlug) throw new Error("Device name and brand are required");
   const brands = await sql`SELECT slug, name FROM brands WHERE slug = ${brandSlug} LIMIT 1`;
@@ -702,7 +702,7 @@ async function refreshBrandCounts(sql: Sql, slug: string) {
 }
 
 function slugifyBrandValue(value: string) {
-  return value.normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
 async function insertBrand(sql: Sql, b: Record<string, unknown>) {
