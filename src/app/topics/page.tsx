@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: "Topics — Settings guides by category",
   description:
     "Cross-brand guides grouped by topic: battery, display, network, security and more.",
+  alternates: { canonical: "/topics" },
 };
 
 export default async function TopicsIndexPage() {
