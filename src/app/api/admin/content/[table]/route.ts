@@ -624,7 +624,7 @@ async function updateGuide(sql: Sql, id: string, b: Record<string, unknown>) {
 }
 
 function slugifyGlossaryTerm(value: string) {
-  return value.normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase()
+  return value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
     .trim().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
@@ -642,8 +642,8 @@ async function insertGlossary(sql: Sql, b: Record<string, unknown>) {
       seo_title, seo_description, focus_keyword, canonical_url,
       robots_index, robots_follow, og_title, og_description, og_image
     ) VALUES (
-      ${String(b.slug || "")},
-      ${String(b.term || "")},
+      ${slug},
+      ${term},
       ${String(b.category || "General")},
       ${String(b.short || "")},
       ${String(b.definition || "")},
@@ -677,8 +677,8 @@ async function updateGlossary(sql: Sql, id: string, b: Record<string, unknown>) 
   }
   const rows = await sql`
     UPDATE glossary_terms SET
-      slug = ${String(b.slug || "")},
-      term = ${String(b.term || "")},
+      slug = ${slug},
+      term = ${term},
       category = ${String(b.category || "General")},
       short = ${String(b.short || "")},
       definition = ${String(b.definition || "")},
@@ -698,8 +698,8 @@ async function updateGlossary(sql: Sql, id: string, b: Record<string, unknown>) 
     RETURNING *
   `;
   if (!rows[0]) throw new Error("Glossary term not found");
-  if (existing[0]?.slug && String(existing[0].slug) !== String(b.slug || "")) {
-    await addSeoRedirect(sql, `glossary-${id}`, `/glossary/${String(existing[0].slug)}`, `/glossary/${String(b.slug || "")}`);
+  if (existing[0]?.slug && String(existing[0].slug) !== slug) {
+    await addSeoRedirect(sql, `glossary-${id}`, `/glossary/${String(existing[0].slug)}`, `/glossary/${slug}`);
   }
   return rows[0];
 }
