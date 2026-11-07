@@ -7,11 +7,11 @@ type LinkState = {
 };
 
 function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^\${}()|[\]\\]/g, "\\$&");
+  return value.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
 }
 
 function escapeAttribute(value: string): string {
-  return value.replace(/[.*+?^\${}()|[\]\\]/g, "\\$&");
+  return value.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
 }
 
 function linkTextNodes(html: string, matcher: RegExp, render: (matched: string) => string): string {
