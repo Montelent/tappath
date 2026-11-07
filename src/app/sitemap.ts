@@ -1,8 +1,7 @@
 import type { MetadataRoute } from "next";
 import {
   listGuides,
-  listTopics,
-  listGlossary,
+   listGlossary,
   listBrands,
   isDatabaseConfigured,
 } from "@/lib/db/content";
@@ -10,6 +9,7 @@ import { guideHref } from "@/lib/guides/resolve";
 import { getSiteSettings } from "@/lib/site-settings";
 import { listPublishedPages } from "@/lib/db/pages";
 import { listDevicesPublic } from "@/lib/devices/resolve";
+import { listTopicsForIndex } from "@/lib/topics/resolve";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const s = await getSiteSettings();
@@ -51,19 +51,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const [brands, topics, devices, glossary, guides] = await Promise.all([
       s.seo_sitemap_include_brands !== false ? listBrands() : Promise.resolve([]),
-      s.seo_sitemap_include_topics !== false ? listTopics() : Promise.resolve([]),
+      s.seo_sitemap_include_topics !== false ? listTopicsForIndex() : Promise.resolve([]),
       s.seo_sitemap_include_devices !== false ? listDevicesPublic() : Promise.resolve([]),
       s.seo_sitemap_include_glossary !== false ? listGlossary() : Promise.resolve([]),
       s.seo_sitemap_include_guides !== false ? listGuides() : Promise.resolve([]),
     ]);
 
     const brandsWithGuides = brands.filter((b) => guides.some((g) => g.brand_slug === b.slug));
-    const topicsWithGuides = topics.filter((t) => guides.some((g) => {
-      const category = (g.category || "").toLowerCase();
-      const name = (t.name || "").toLowerCase();
-      const slug = (t.slug || "").toLowerCase().replace(/-/g, " ");
-      return !!category && (category === name || category.includes(name) || name.includes(category) || category.includes(slug) || slug.includes(category));
-    }));
+    // listTopicsForIndex applies the same category matching as public topic pages
+    // and excludes topics without at least one published guide.
     // listDevicesPublic includes only devices with at least one matching published guide.
     const devicesWithGuides = devices;
 
@@ -74,7 +70,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.85,
     }));
 
-    const topicRoutes = topicsWithGuides.map((t) => ({
+    const topicRoutes = topics.map((t) => ({
       url: `${host}/topics/${t.slug}`,
       lastModified: now,
       changeFrequency: defFreq,
