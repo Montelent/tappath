@@ -47,7 +47,9 @@ export default function TopicHub({ topic, otherTopics = [] }: Props) {
       {brands.length > 0 && (
         <div className="mb-8 flex flex-wrap gap-2">
           <button
+            type="button"
             onClick={() => setFilter("all")}
+            aria-pressed={filter === "all"}
             className={cn(
               "rounded-full px-4 py-1.5 text-sm font-medium transition",
               filter === "all"
@@ -60,7 +62,9 @@ export default function TopicHub({ topic, otherTopics = [] }: Props) {
           {brands.map((b) => (
             <button
               key={b}
+              type="button"
               onClick={() => setFilter(b)}
+              aria-pressed={filter === b}
               className={cn(
                 "rounded-full px-4 py-1.5 text-sm font-medium transition",
                 filter === b
