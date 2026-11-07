@@ -113,6 +113,7 @@ export default function GuidePage({ guide }: Props) {
 
             <section className="mb-12" aria-label="Interactive steps">
               <LiveSimulator
+                key={guide.slug}
                 versions={guide.versions}
                 brandName={guide.brand}
                 deviceModel={deviceModel}
@@ -124,6 +125,7 @@ export default function GuidePage({ guide }: Props) {
             <div className="max-w-2xl space-y-12">
               <section className="max-w-xl">
                 <GuideFeedback
+                  key={guide.slug}
                   guideSlug={guide.slug}
                   initialConfirmations={guide.confirmations}
                   forumVerified={guide.forumVerified}
@@ -144,7 +146,7 @@ export default function GuidePage({ guide }: Props) {
               {guide.faqs?.length > 0 && (
                 <section>
                   <h2 className="font-display text-xl mb-4">FAQ</h2>
-                  <GuideFAQ faqs={guide.faqs.map((faq) => ({ q: faq.q, a: sanitizeRichHtml(faq.a) }))} />
+                  <GuideFAQ key={guide.slug} faqs={guide.faqs.map((faq) => ({ q: faq.q, a: sanitizeRichHtml(faq.a) }))} />
                 </section>
               )}
 
