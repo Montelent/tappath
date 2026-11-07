@@ -28,8 +28,14 @@ export async function POST(req: NextRequest) {
   if (!email || !password) {
     return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
   }
-  if (password.length < 8) {
-    return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
+  if (password.length < 8 || password.length > 128) {
+    return NextResponse.json({ error: "Password must be between 8 and 128 characters." }, { status: 400 });
+  }
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return NextResponse.json({ error: "Enter a valid email address (max 254 characters)." }, { status: 400 });
+  }
+  if (name.length > 80) {
+    return NextResponse.json({ error: "Name must be 80 characters or fewer." }, { status: 400 });
   }
 
   const existing = await findUserByEmail(email);
