@@ -164,7 +164,7 @@ export default function DevicePage({ device }: Props) {
               </li>
               <li>
                 <Link
-                  href={`/forum/${device.brandSlug}`}
+                  href={`/forum?brand=${encodeURIComponent(device.brandSlug)}`}
                   className="text-[var(--muted-foreground)] transition hover:text-brand-600 dark:hover:text-brand-400"
                 >
                   {device.brand} forum
