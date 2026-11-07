@@ -3,10 +3,10 @@ import type { Metadata } from "next";
 import {
   listBrands,
   listGuides,
-  listTopics,
   isDatabaseConfigured,
 } from "@/lib/db/content";
 import { guideHref } from "@/lib/guides/resolve";
+import { listTopicsForIndex } from "@/lib/topics/resolve";
 import { getSiteSettings } from "@/lib/site-settings";
 import { applySeoTemplate } from "@/lib/seo/templates";
 import { brandColorCss, brandColorTint } from "@/lib/brand-color";
@@ -53,7 +53,7 @@ export default async function HomePage() {
   const [brands, guides, topics, settings] = await Promise.all([
     listBrands(),
     listGuides(),
-    listTopics(),
+    listTopicsForIndex(),
     getSiteSettings(),
   ]);
 
@@ -86,16 +86,7 @@ export default async function HomePage() {
   const guideCount = guides.length;
   const brandCount = brandsWithGuides.length;
   const topicCount = topics.length;
-  const homeTopics = topics
-    .filter((topic) => {
-      const inferredCount = guides.filter((guide) => {
-        const category = (guide.category || "").toLowerCase();
-        const name = topic.name.toLowerCase();
-        return category.includes(name) || name.includes(category);
-      }).length;
-      return (Number(topic.guide_count) || inferredCount) > 0;
-    })
-    .slice(0, 12);
+  const homeTopics = topics.slice(0, 12);
 
   return (
     <div>
