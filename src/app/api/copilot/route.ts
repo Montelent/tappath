@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listProviders, type ProviderConfig } from "@/lib/copilot/providers";
-import { listGuides, listTopics, listGlossary } from "@/lib/db/content";
+import { listGuides, listTopics, listGlossary, listBrands } from "@/lib/db/content";
+import { listDevicesPublic } from "@/lib/devices/resolve";
 import { guideHref } from "@/lib/guides/resolve";
 
 type Body = { message: string };
@@ -215,7 +216,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Message must be 2000 characters or fewer." }, { status: 413 });
   }
 
-  const providers = await listProviders();
+  const [providers, publishedGuides, publishedTopics, publishedGlossary, publishedBrands, publishedDevices] = await Promise.all([
+    listProviders(), listGuides(), listTopics(), listGlossary(), listBrands(), listDevicesPublic(),
+  ]);
+  const allowedLinkPaths = new Set<string>(["/", "/topics", "/devices", "/glossary", "/forum"]);
+  for (const guide of publishedGuides) allowedLinkPaths.add(guideHref(guide));
+  for (const topic of publishedTopics) {
+    const name = (topic.name || "").toLowerCase();
+    const slug = (topic.slug || "").toLowerCase().replace(/-/g, " ");
+    const hasGuide = publishedGuides.some((guide) => {
+      const category = (guide.category || "").toLowerCase();
+      return !!category && (category === name || category.includes(name) || name.includes(category) || category.includes(slug) || slug.includes(category));
+    });
+    if (hasGuide) allowedLinkPaths.add(`/topics/${topic.slug}`);
+  }
+  for (const term of publishedGlossary) allowedLinkPaths.add(`/glossary/${term.slug}`);
+  for (const brand of publishedBrands) allowedLinkPaths.add(`/${brand.slug}`);
+  for (const device of publishedDevices) allowedLinkPaths.add(String(device.href || `/${device.brandSlug}/${device.slug}`));
   const errors: string[] = [];
 
   for (const provider of providers) {
@@ -224,6 +241,7 @@ export async function POST(req: NextRequest) {
       const safeLinks = result.links
         .filter((link) => link && typeof link.label === "string" && typeof link.href === "string")
         .filter((link) => link.href.startsWith("/") && !link.href.startsWith("//"))
+        .filter((link) => allowedLinkPaths.has(link.href.split(/[?#]/)[0]))
         .slice(0, 8);
       return NextResponse.json({ ...result, links: safeLinks });
     }
@@ -316,7 +334,7 @@ async function fallback(input: string) {
       links: glossaryLink("volte"),
     };
   }
-  if (/^(hi|hello|hey|hola|hallo)\\b/i.test(input.trim()) || input.trim().length < 3) {
+  if (/^(hi|hello|hey|hola|hallo)\b/i.test(input.trim()) || input.trim().length < 3) {
     return {
       text: "Hi! Ask me how to change a setting or what a smartphone term means. I’ll point you to matching published TapPath content when available.",
       links: [
