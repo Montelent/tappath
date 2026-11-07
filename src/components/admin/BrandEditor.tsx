@@ -8,7 +8,6 @@ import {
   Trash2,
   Save,
   RefreshCw,
-  Database,
   ExternalLink,
   Eye,
   EyeOff,
