@@ -11,8 +11,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const guideSlug = (body.guideSlug || "").trim();
-  if (!guideSlug || typeof body.correct !== "boolean") {
+  const guideSlug = typeof body.guideSlug === "string" ? body.guideSlug.trim() : "";
+  if (!guideSlug || guideSlug.length > 160 || !/^[a-z0-9-]+$/i.test(guideSlug) || typeof body.correct !== "boolean") {
     return NextResponse.json({ error: "guideSlug and correct are required." }, { status: 400 });
   }
 
