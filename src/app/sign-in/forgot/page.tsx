@@ -4,6 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Forgot password",
   description: "Reset your TapPath password.",
+  alternates: { canonical: "/sign-in/forgot" },
 };
 
 export default function ForgotPasswordPage() {
