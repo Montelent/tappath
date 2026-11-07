@@ -5,26 +5,43 @@ import { enforceRateLimit } from "@/lib/rate-limit";
 import { getStore, saveStore } from "@/lib/store";
 
 export async function GET(req: NextRequest) {
-  const brand = req.nextUrl.searchParams.get("brand");
+  const brand = (req.nextUrl.searchParams.get("brand") || "").trim().toLowerCase().slice(0, 80);
+  const category = (req.nextUrl.searchParams.get("category") || "").trim().toLowerCase().slice(0, 80);
 
   if (isNeonConfigured()) {
     try {
       const sql = getSql()!;
-      const rows = brand
+      const rows = brand && category
         ? await sql`
             SELECT t.*,
               (SELECT count(*)::int FROM forum_replies r WHERE r.topic_id = t.id) AS replies
             FROM forum_topics t
-            WHERE t.brand_slug = ${brand}
+            WHERE t.brand_slug = ${brand} AND lower(t.category) = ${category}
             ORDER BY t.updated_at DESC
           `
-        : await sql`
-            SELECT t.*,
+        : brand
+          ? await sql`
+              SELECT t.*,
               (SELECT count(*)::int FROM forum_replies r WHERE r.topic_id = t.id) AS replies
             FROM forum_topics t
-            ORDER BY t.updated_at DESC
-            LIMIT 100
-          `;
+              WHERE t.brand_slug = ${brand}
+              ORDER BY t.updated_at DESC
+            `
+          : category
+            ? await sql`
+                SELECT t.*,
+              (SELECT count(*)::int FROM forum_replies r WHERE r.topic_id = t.id) AS replies
+            FROM forum_topics t
+                WHERE lower(t.category) = ${category}
+                ORDER BY t.updated_at DESC
+              `
+            : await sql`
+                SELECT t.*,
+              (SELECT count(*)::int FROM forum_replies r WHERE r.topic_id = t.id) AS replies
+            FROM forum_topics t
+                ORDER BY t.updated_at DESC
+                LIMIT 100
+              `;
       return NextResponse.json({
         topics: (rows as Record<string, unknown>[]).map((t) => ({
           id: t.id,
@@ -50,7 +67,8 @@ export async function GET(req: NextRequest) {
   }
 
   let topics = getStore().topics;
-  if (brand) topics = topics.filter((t) => t.brandSlug === brand);
+  if (brand) topics = topics.filter((t) => t.brandSlug.toLowerCase() === brand);
+  if (category) topics = topics.filter((t) => t.category.toLowerCase() === category);
   topics = [...topics].sort(
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   );
