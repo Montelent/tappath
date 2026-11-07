@@ -42,7 +42,7 @@ function replyTo(input: string): Message {
       text: "The Google search bar is a home-screen widget. Long-press it and tap Remove. The Google app stays installed.",
       links: [
         {
-          label: "Samsung: Remove Google Search Bar",
+          label: "Search for this guide",
           href: "/search?q=remove%20google%20search%20bar",
         },
       ],
@@ -136,7 +136,7 @@ function replyTo(input: string): Message {
     role: "assistant",
     text: "I can help with settings paths, glossary terms, and finding guides. Try asking about a specific feature (e.g. “remove Google search bar” or “what is VoLTE”), or browse by brand and topic.",
     links: [
-      { label: "Browse brands", href: "/samsung" },
+      { label: "Browse devices", href: "/devices" },
       { label: "Topic hubs", href: "/topics" },
       { label: "Glossary", href: "/glossary" },
       { label: "All devices", href: "/devices" },
