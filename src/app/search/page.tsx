@@ -33,7 +33,7 @@ export default async function SearchPage({ searchParams }: Props) {
   }).slice(0, 50);
 
   return (
-    <main className="page-pad">
+    <div className="page-pad">
       <div className="max-wide py-10 sm:py-14">
         <header className="mb-8 max-w-2xl">
           <p className="label-caps mb-2">TapPath search</p>
@@ -76,6 +76,6 @@ export default async function SearchPage({ searchParams }: Props) {
           <p className="text-sm text-[var(--muted-foreground)]">No published guides matched “{query}”. Try a shorter or different search.</p>
         )}
       </div>
-    </main>
+    </div>
   );
 }
