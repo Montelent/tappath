@@ -401,10 +401,16 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
                       (!String(editing.slug || "") || String(editing.slug) === previousAutoSlug);
                     const shouldUpdateDeviceSlug = !editing.id && table === "devices" && f.key === "name";
                     const shouldUpdateTopicSlug = !editing.id && table === "topics" && f.key === "name";
+                    const previousAutoGlossarySlug = slugify(String(editing.term || ""));
+                    const shouldUpdateGlossarySlug =
+                      !editing.id &&
+                      table === "glossary_terms" &&
+                      f.key === "term" &&
+                      (!String(editing.slug || "") || String(editing.slug) === previousAutoGlossarySlug);
                     setEditing({
                       ...editing,
                       [f.key]: value,
-                      ...(shouldUpdatePageSlug || shouldUpdateDeviceSlug || shouldUpdateTopicSlug ? { slug: nextSlug } : {}),
+                      ...(shouldUpdatePageSlug || shouldUpdateDeviceSlug || shouldUpdateTopicSlug || shouldUpdateGlossarySlug ? { slug: nextSlug } : {}),
                     });
                   }} className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm" />
                   {f.help && <span className="mt-1 block text-[11px] text-[var(--muted-foreground)]">{f.help}</span>}
