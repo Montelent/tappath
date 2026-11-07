@@ -16,11 +16,11 @@ export default function ForgotPasswordPage() {
           </Link>
           <h1 className="mt-4 text-2xl font-bold tracking-tight">Forgot password</h1>
           <p className="mt-1.5 text-sm text-[var(--muted-foreground)]">
-            Enter your email and we&apos;ll send a reset link when auth is connected.
+            Password reset is not configured yet. Please contact the site administrator for help accessing your account.
           </p>
         </div>
 
-        <form className="space-y-5">
+        <div className="space-y-5">
           <div>
             <label htmlFor="email" className="mb-1.5 block text-sm font-medium">
               Email
@@ -34,11 +34,12 @@ export default function ForgotPasswordPage() {
           </div>
           <button
             type="button"
-            className="flex w-full items-center justify-center rounded-full bg-brand-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-700"
+            disabled
+            className="flex w-full cursor-not-allowed items-center justify-center rounded-full bg-brand-600 px-5 py-2.5 text-sm font-medium text-white opacity-50"
           >
-            Send reset link
+            Password reset unavailable
           </button>
-        </form>
+        </div>
 
         <p className="mt-6 text-center text-sm text-[var(--muted-foreground)]">
           <Link
