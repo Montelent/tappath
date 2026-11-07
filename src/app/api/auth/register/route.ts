@@ -3,12 +3,20 @@ import { setSessionCookie } from "@/lib/session";
 import { createUser, findUserByEmail, publicUser } from "@/lib/db/users";
 import { getSiteSettings } from "@/lib/site-settings";
 import { isNeonConfigured } from "@/lib/db/neon";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   if (!isNeonConfigured() && process.env.NODE_ENV === "production") {
     return NextResponse.json({ error: "Authentication database is not configured." }, { status: 503 });
   }
 
+  const rate = await enforceRateLimit(req, "register", 5, 3600);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: rate.unavailable ? "Service temporarily unavailable." : "Too many requests. Try again shortly." },
+      { status: rate.unavailable ? 503 : 429, headers: { "Retry-After": String(rate.retryAfter) } }
+    );
+  }
   let body: { name?: string; email?: string; password?: string };
   try {
     body = await req.json();
