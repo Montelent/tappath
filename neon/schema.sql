@@ -110,3 +110,11 @@ CREATE INDEX IF NOT EXISTS devices_brand_idx ON devices (brand_slug);
 CREATE INDEX IF NOT EXISTS forum_topics_updated_idx ON forum_topics (updated_at DESC);
 CREATE INDEX IF NOT EXISTS forum_replies_topic_idx ON forum_replies (topic_id, created_at);
 CREATE INDEX IF NOT EXISTS guide_feedback_slug_idx ON guide_feedback (guide_slug);
+
+-- Persistent API rate limiting for public authentication, Copilot, feedback, and forum routes.
+CREATE TABLE IF NOT EXISTS api_rate_limits (
+  bucket text NOT NULL,
+  window_start timestamptz NOT NULL,
+  hits integer NOT NULL DEFAULT 0,
+  PRIMARY KEY (bucket, window_start)
+);
