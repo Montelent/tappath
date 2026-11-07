@@ -136,9 +136,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${inter.variable} ${plexMono.variable}`}
       suppressHydrationWarning
     >
-      <head>
-        <CustomCode slot="head" />
-      </head>
       <body className="min-h-screen flex flex-col font-sans">
         <CustomCode slot="body_start" />
         <ThemeProvider>
@@ -146,6 +143,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <LanguageProvider>
               <OrganizationJsonLd />
               <SiteChrome
+                headCode={<CustomCode slot="head" />}
                 maintenanceBanner={<MaintenanceBanner />}
                 headerAd={<AdSlot placement="header" />}
                 beforeFooterAd={<AdSlot placement="before_footer" />}
