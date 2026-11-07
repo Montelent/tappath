@@ -188,6 +188,8 @@ export default function ShareButtons({
     } else {
       setPageUrl(window.location.href.split("#")[0]);
     }
+    setCopied(false);
+    setCopyError("");
     setCanNative(typeof navigator !== "undefined" && typeof navigator.share === "function");
   }, [url, pathname]);
 
