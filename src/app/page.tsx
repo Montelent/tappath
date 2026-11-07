@@ -86,6 +86,16 @@ export default async function HomePage() {
   const guideCount = guides.length;
   const brandCount = brandsWithGuides.length;
   const topicCount = topics.length;
+  const homeTopics = topics
+    .filter((topic) => {
+      const inferredCount = guides.filter((guide) => {
+        const category = (guide.category || "").toLowerCase();
+        const name = topic.name.toLowerCase();
+        return category.includes(name) || name.includes(category);
+      }).length;
+      return (Number(topic.guide_count) || inferredCount) > 0;
+    })
+    .slice(0, 12);
 
   return (
     <div>
@@ -237,7 +247,7 @@ export default async function HomePage() {
           </section>
         )}
 
-        {topics.filter((t) => (Number(t.guide_count) || guides.filter((g) => (g.category || "").toLowerCase().includes(t.name.toLowerCase()) || t.name.toLowerCase().includes((g.category || "").toLowerCase())).length) > 0).length > 0 && (
+        {homeTopics.length > 0 && (
           <section className="max-wide border-t border-[var(--border)] section-y" aria-labelledby="home-topics">
             <div className="mb-6 flex items-baseline justify-between gap-4">
               <h2 id="home-topics" className="font-display text-xl sm:text-2xl">{settings.homepage_topics_heading}</h2>
@@ -246,7 +256,7 @@ export default async function HomePage() {
               </Link>
             </div>
             <ul className="grid-cards">
-              {topics.filter((t) => guides.some((g) => (g.category || "").toLowerCase().includes(t.name.toLowerCase()) || t.name.toLowerCase().includes((g.category || "").toLowerCase()))).slice(0, 12).map((t) => (
+              {homeTopics.map((t) => (
                 <li key={t.slug || t.id}>
                   <Link href={`/topics/${t.slug}`} className="surface-card block h-full px-4 py-3.5 text-sm font-medium link-quiet">
                     {t.name}
