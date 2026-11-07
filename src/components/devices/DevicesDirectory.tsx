@@ -14,6 +14,9 @@ type Props = {
 export default function DevicesDirectory({ devices, brandFilters = [] }: Props) {
   const [query, setQuery] = useState("");
   const [brand, setBrand] = useState("all");
+  const filters = brandFilters.some((item) => item.slug === "all")
+    ? brandFilters
+    : [{ slug: "all", name: "All brands" }, ...brandFilters];
 
   const filtered = useMemo(() => {
     let list = devices;
@@ -64,24 +67,12 @@ export default function DevicesDirectory({ devices, brandFilters = [] }: Props) 
       </div>
 
       <div className="mb-8 flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => setBrand("all")}
-          aria-pressed={brand === "all"}
-          className={cn(
-            "rounded-full px-4 py-1.5 text-sm font-medium transition",
-            brand === "all"
-              ? "bg-brand-600 text-white"
-              : "border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--muted)]"
-          )}
-        >
-          All brands
-        </button>
-        {brandFilters.map((b) => (
+        {filters.map((b) => (
           <button
             key={b.slug}
             type="button"
             onClick={() => setBrand(b.slug)}
+            aria-pressed={brand === b.slug}
             className={cn(
               "rounded-full px-4 py-1.5 text-sm font-medium transition",
               brand === b.slug
@@ -96,7 +87,7 @@ export default function DevicesDirectory({ devices, brandFilters = [] }: Props) 
 
       <p className="mb-4 text-sm text-[var(--muted-foreground)]">
         {filtered.length} device{filtered.length !== 1 ? "s" : ""}
-        {brand !== "all" ? ` · ${brandFilters.find((b) => b.slug === brand)?.name}` : ""}
+        {brand !== "all" ? ` · ${filters.find((b) => b.slug === brand)?.name}` : ""}
         {query ? ` · matching “${query}”` : ""}
       </p>
 
