@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 
 function createMessageId() {
   return typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-    ? createMessageId()
+    ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
