@@ -134,11 +134,22 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
 
   const remove = async (id: string) => {
     if (!confirm("Move this item to trash? This cannot be undone.")) return;
-    const res = await fetch(`/api/admin/content/${table}?id=${encodeURIComponent(id)}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
-    if (res.ok) await load();
+    setMessage("");
+    try {
+      const res = await fetch(`/api/admin/content/${table}?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setMessage(data.error || "Delete failed. Please try again.");
+        return;
+      }
+      setMessage("Item deleted.");
+      await load();
+    } catch {
+      setMessage("Network error. The item was not deleted.");
+    }
   };
 
 
