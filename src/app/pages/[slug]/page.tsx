@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getPublishedPage } from "@/lib/db/pages";
 import { getSiteSettings } from "@/lib/site-settings";
 import { applySeoTemplate } from "@/lib/seo/templates";
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -44,7 +45,7 @@ export default async function PublicPage({ params }: Props) {
       <article>
         <h1 className="mb-6 text-3xl font-bold tracking-tight sm:text-4xl">{page.title}</h1>
         {page.excerpt ? <p className="mb-8 text-lg text-muted-foreground">{page.excerpt}</p> : null}
-        <div className="prose prose-lg max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: page.content }} />
+        <div className="prose prose-lg max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(page.content) }} />
       </article>
     </main>
   );
