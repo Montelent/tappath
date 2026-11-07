@@ -3,16 +3,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  Loader2, Plus, Trash2, Save, RefreshCw, Database, ExternalLink, Eye, EyeOff, Image as ImageIcon,
+  Loader2, Plus, Save, RefreshCw, ExternalLink,
 } from "lucide-react";
 import SearchableSelect from "@/components/admin/SearchableSelect";
 import GuideVersionsEditor from "@/components/admin/GuideVersionsEditor";
 import RichTextEditor from "@/components/admin/RichTextEditor";
-import GuideMetaFields from "@/components/admin/GuideMetaFields";
 import SeoMetaBox from "@/components/admin/SeoMetaBox";
 import { applySeoTemplate } from "@/lib/seo/templates";
 import {
-  slugify, formatUpdatedLabel, formatModifiedDate, estimateReadTime, GUIDE_CATEGORIES,
+  slugify, formatUpdatedLabel, estimateReadTime, GUIDE_CATEGORIES,
 } from "@/lib/admin/guideHelpers";
 
 type Faq = { q: string; a: string };
@@ -137,11 +136,9 @@ export default function GuideEditor() {
   const [editing, setEditing] = useState<GuideRow | null>(null);
   const [slugLocked, setSlugLocked] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [seeding, setSeeding] = useState(false);
   const [message, setMessage] = useState("");
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
   const [listSearch, setListSearch] = useState("");
-  const [uploading, setUploading] = useState(false);
   const [seoTpl, setSeoTpl] = useState({
     title: "%title% %sep% %brand% %sep% %sitename%",
     description: "%excerpt%",
