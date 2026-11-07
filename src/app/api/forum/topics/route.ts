@@ -90,8 +90,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const title = (body.title || "").trim();
-  const content = (body.content || "").trim();
+  const title = typeof body.title === "string" ? body.title.trim() : "";
+  const content = typeof body.content === "string" ? body.content.trim() : "";
   if (!title || !content) {
     return NextResponse.json({ error: "Title and content are required." }, { status: 400 });
   }
