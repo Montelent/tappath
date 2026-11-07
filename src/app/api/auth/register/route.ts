@@ -38,7 +38,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Name must be 80 characters or fewer." }, { status: 400 });
   }
 
-  const existing = await findUserByEmail(email);
+  let existing;
+  try {
+    existing = await findUserByEmail(email);
+  } catch (e) {
+    console.error("[register:lookup]", e);
+    return NextResponse.json({ error: "Registration service unavailable." }, { status: 503 });
+  }
   if (existing) {
     return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
   }
@@ -60,7 +66,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ user: publicUser(user) });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Registration failed";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error("[register:create]", e);
+    return NextResponse.json({ error: "Registration service unavailable." }, { status: 503 });
   }
 }
