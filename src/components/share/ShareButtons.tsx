@@ -236,9 +236,16 @@ export default function ShareButtons({
   const copyLink = async () => {
     setCopyError("");
     try {
+      let copiedToClipboard = false;
       if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(pageUrl);
-      } else {
+        try {
+          await navigator.clipboard.writeText(pageUrl);
+          copiedToClipboard = true;
+        } catch {
+          // Try the legacy copy path if clipboard permissions are unavailable.
+        }
+      }
+      if (!copiedToClipboard) {
         const field = document.createElement("textarea");
         field.value = pageUrl;
         field.setAttribute("readonly", "");
@@ -246,10 +253,10 @@ export default function ShareButtons({
         field.style.opacity = "0";
         document.body.appendChild(field);
         field.select();
-        const ok = document.execCommand("copy");
+        copiedToClipboard = document.execCommand("copy");
         field.remove();
-        if (!ok) throw new Error("Clipboard unavailable");
       }
+      if (!copiedToClipboard) throw new Error("Clipboard unavailable");
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
