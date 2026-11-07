@@ -10,9 +10,10 @@ export const metadata: Metadata = {
   description: "Discuss smartphone settings, report paths, and help others — by brand.",
 };
 
-export default async function ForumPage({ searchParams }: { searchParams: Promise<{ brand?: string }> }) {
-  const { brand: requestedBrand } = await searchParams;
+export default async function ForumPage({ searchParams }: { searchParams: Promise<{ brand?: string; category?: string }> }) {
+  const { brand: requestedBrand, category: requestedCategory } = await searchParams;
   const brand = typeof requestedBrand === "string" ? requestedBrand.toLowerCase().trim() : "";
+  const category = typeof requestedCategory === "string" ? requestedCategory.toLowerCase().trim() : "";
   return (
     <>
       <ForumJsonLd
@@ -43,7 +44,11 @@ export default async function ForumPage({ searchParams }: { searchParams: Promis
             <Link
               key={c.slug}
               href={
-                c.slug === "general" || c.slug === "guides" ? "/forum" : `/forum?brand=${encodeURIComponent(c.slug)}`
+                c.slug === "general"
+                  ? "/forum?brand=general"
+                  : c.slug === "guides"
+                    ? "/forum?category=guides"
+                    : `/forum?brand=${encodeURIComponent(c.slug)}`
               }
               className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 transition hover:border-brand-300 dark:hover:border-brand-700"
             >
@@ -56,7 +61,7 @@ export default async function ForumPage({ searchParams }: { searchParams: Promis
           ))}
         </div>
 
-        <ForumBoard brand={brand || undefined} />
+        <ForumBoard brand={brand || undefined} category={category || undefined} />
       </div>
     </>
   );
