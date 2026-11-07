@@ -13,7 +13,6 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { getAdminStats } from "@/lib/db/content";
-import { isNeonConfigured } from "@/lib/db/neon";
 
 export const metadata: Metadata = {
   title: "Admin · Dashboard",
@@ -32,7 +31,7 @@ const cards = [
 
 export default async function AdminPage() {
   const stats = await getAdminStats();
-  const live = isNeonConfigured();
+  const live = stats.usingSupabase;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -62,7 +61,7 @@ export default async function AdminPage() {
           <p className="mt-1" style={{ color: "var(--a-muted)" }}>
             {live
               ? "Creates, edits, and deletes are saved to your database."
-              : "Set DATABASE_URL (Neon) in your host environment, then redeploy."}
+              : "Neon is not reachable. Check DATABASE_URL and run neon/schema.sql; production content is not replaced with sample data."}
           </p>
         </div>
         <Database className="ml-auto h-5 w-5 shrink-0 opacity-40" />
