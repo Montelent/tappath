@@ -4,7 +4,7 @@
 
 ## Stack
 
-Next.js 15 · TypeScript · Tailwind · Lucide
+Next.js 15 · TypeScript · Tailwind · Lucide · Node.js 22.12+
 
 ```bash
 npm install && npm run dev
