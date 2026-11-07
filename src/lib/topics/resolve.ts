@@ -80,7 +80,7 @@ export async function resolveTopic(slug: string): Promise<Topic | null> {
     }
   }
 
-  if (isNeonConfigured()) return null;
+  if (isNeonConfigured() || process.env.NODE_ENV === "production") return null;
   return getStaticTopic(key) ?? null;
 }
 
@@ -98,7 +98,7 @@ export async function listTopicsForIndex(): Promise<
       guideCount: guides.filter((g) => categoryMatches(g.category || "", t.name, t.slug)).length,
     })).filter((t) => t.guideCount > 0);
   }
-  if (isNeonConfigured()) return [];
+  if (isNeonConfigured() || process.env.NODE_ENV === "production") return [];
   const { topics } = await import("@/data/topics");
   return topics.map((t) => ({
     slug: t.slug,
