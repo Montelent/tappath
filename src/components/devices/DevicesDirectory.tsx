@@ -64,6 +64,19 @@ export default function DevicesDirectory({ devices, brandFilters = [] }: Props) 
       </div>
 
       <div className="mb-8 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setBrand("all")}
+          aria-pressed={brand === "all"}
+          className={cn(
+            "rounded-full px-4 py-1.5 text-sm font-medium transition",
+            brand === "all"
+              ? "bg-brand-600 text-white"
+              : "border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--muted)]"
+          )}
+        >
+          All brands
+        </button>
         {brandFilters.map((b) => (
           <button
             key={b.slug}
