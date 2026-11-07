@@ -21,9 +21,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "New account registration is currently disabled." }, { status: 403 });
   }
 
-  const name = (body.name || "").trim();
-  const email = (body.email || "").trim().toLowerCase();
-  const password = body.password || "";
+  const name = typeof body.name === "string" ? body.name.trim() : "";
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  const password = typeof body.password === "string" ? body.password : "";
 
   if (!email || !password) {
     return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
