@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/lib/session";
 import { getStore, saveStore } from "@/lib/store";
 import { getSql, isNeonConfigured } from "@/lib/db/neon";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -22,6 +23,13 @@ export async function POST(req: NextRequest, ctx: Ctx) {
   const text = typeof body.body === "string" ? body.body.trim() : "";
   if (!text || text.length > 10000) {
     return NextResponse.json({ error: "Reply body must be between 1 and 10000 characters." }, { status: 400 });
+  }
+  const rate = await enforceRateLimit(req, "forum-reply", 20, 900);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: rate.unavailable ? "Service temporarily unavailable." : "Too many requests. Try again shortly." },
+      { status: rate.unavailable ? 503 : 429, headers: { "Retry-After": String(rate.retryAfter) } }
+    );
   }
 
   if (isNeonConfigured()) {
