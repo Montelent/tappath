@@ -39,7 +39,13 @@ export async function GET(req: NextRequest) {
           lastActivity: t.updated_at,
         })),
       });
-    } catch { /* memory */ }
+    } catch {
+      return NextResponse.json({ error: "Forum database unavailable" }, { status: 503 });
+    }
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Forum database is not configured" }, { status: 503 });
   }
 
   let topics = getStore().topics;
@@ -115,6 +121,10 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Forum database is not configured" }, { status: 503 });
   }
 
   const id = `t-${Date.now()}`;
