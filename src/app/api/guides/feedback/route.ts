@@ -50,6 +50,10 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Feedback database is not configured" }, { status: 503 });
+  }
+
   saveStore((db) => {
     db.feedback.push({
       id: `f-${Date.now()}`,
@@ -94,8 +98,12 @@ export async function GET(req: NextRequest) {
           `;
       return NextResponse.json({ feedback: rows });
     } catch {
-      /* fall through */
+      return NextResponse.json({ error: "Feedback database unavailable" }, { status: 503 });
     }
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Feedback database is not configured" }, { status: 503 });
   }
 
   const feedback = getStore().feedback;
