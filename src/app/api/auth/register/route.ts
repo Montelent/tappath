@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Name must be 80 characters or fewer." }, { status: 400 });
   }
 
-  let existing;
+  let existing: Awaited<ReturnType<typeof findUserByEmail>>;
   try {
     existing = await findUserByEmail(email);
   } catch (e) {
