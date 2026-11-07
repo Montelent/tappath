@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { setSessionCookie } from "@/lib/session";
 import { authenticateUser, publicUser } from "@/lib/db/users";
 import { isNeonConfigured } from "@/lib/db/neon";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
