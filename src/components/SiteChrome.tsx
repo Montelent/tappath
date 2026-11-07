@@ -1,37 +1,47 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import MaintenanceBanner from "@/components/MaintenanceBanner";
-import CustomCode from "@/components/CustomCode";
-import AdSlot from "@/components/ads/AdSlot";
 import CopilotWidget from "@/components/copilot/CopilotWidget";
 
+type Props = {
+  children: ReactNode;
+  maintenanceBanner?: ReactNode;
+  headerAd?: ReactNode;
+  beforeFooterAd?: ReactNode;
+  footer?: ReactNode;
+  footerCode?: ReactNode;
+};
+
 /**
- * Public site chrome only. Admin routes render children alone so the
- * WordPress-style backend never shows the public header/nav/footer.
+ * Public site chrome. Server-rendered slots are supplied by the root layout,
+ * keeping async data components out of this client-side route switcher.
  */
-export default function SiteChrome({ children }: { children: React.ReactNode }) {
+export default function SiteChrome({
+  children,
+  maintenanceBanner,
+  headerAd,
+  beforeFooterAd,
+  footer,
+  footerCode,
+}: Props) {
   const pathname = usePathname() || "";
   const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
 
-  if (isAdmin) {
-    return <>{children}</>;
-  }
+  if (isAdmin) return <>{children}</>;
 
   return (
     <>
-      <CustomCode slot="head" />
-      <MaintenanceBanner />
-      <AdSlot placement="header" />
+      {maintenanceBanner}
+      {headerAd}
       <Header />
       <main id="main-content" className="flex-1 pb-24 md:pb-16 safe-pb">
         {children}
       </main>
-      <AdSlot placement="before_footer" />
-      <Footer />
-      <CustomCode slot="footer" />
+      {beforeFooterAd}
+      {footer}
+      {footerCode}
       <CopilotWidget />
     </>
   );
