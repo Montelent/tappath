@@ -47,8 +47,8 @@ export default function AuthForm({ mode }: Props) {
 
     setLoading(true);
     const result = isSignUp
-      ? await signUp(name, email, password)
-      : await signIn(email, password);
+      ? await signUp(name.trim(), email.trim(), password)
+      : await signIn(email.trim(), password);
     setLoading(false);
 
     if (!result.ok) {
