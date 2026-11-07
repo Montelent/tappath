@@ -623,8 +623,19 @@ async function updateGuide(sql: Sql, id: string, b: Record<string, unknown>) {
   return rows[0];
 }
 
+function slugifyGlossaryTerm(value: string) {
+  return value.normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase()
+    .trim().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
 async function insertGlossary(sql: Sql, b: Record<string, unknown>) {
   await ensureGlossaryColumns(sql);
+  const term = String(b.term || "").trim();
+  const requestedSlug = String(b.slug || "").trim();
+  const slug = slugifyGlossaryTerm(requestedSlug || term);
+  if (!term || !slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+    throw new Error("A glossary term and valid URL slug are required");
+  }
   const rows = await sql`
     INSERT INTO glossary_terms (
       slug, term, category, short, definition, faqs, related_guides, published,
@@ -657,6 +668,13 @@ async function insertGlossary(sql: Sql, b: Record<string, unknown>) {
 async function updateGlossary(sql: Sql, id: string, b: Record<string, unknown>) {
   await ensureGlossaryColumns(sql);
   const existing = await sql`SELECT slug FROM glossary_terms WHERE id::text = ${id} LIMIT 1`;
+  if (!existing[0]) throw new Error("Glossary term not found");
+  const term = String(b.term || "").trim();
+  const requestedSlug = String(b.slug ?? existing[0].slug ?? "").trim();
+  const slug = slugifyGlossaryTerm(requestedSlug);
+  if (!term || !slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+    throw new Error("A glossary term and valid URL slug are required");
+  }
   const rows = await sql`
     UPDATE glossary_terms SET
       slug = ${String(b.slug || "")},
