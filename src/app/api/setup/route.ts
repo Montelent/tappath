@@ -26,13 +26,22 @@ export async function POST(req: NextRequest) {
 
   try {
     const sql = getSql()!;
-    const tables = ["profiles", "guides", "brands", "topics", "devices", "glossary_terms"] as const;
-    const counts: Record<string, number> = {};
-    for (const table of tables) {
-      // Table names are a fixed allowlist, never request-controlled.
-      const rows = await sql`SELECT count(*)::int AS count FROM ${sql(table)}`;
-      counts[table] = Number((rows[0] as { count: number }).count);
-    }
+    const [profiles, guides, brands, topics, devices, glossary] = await Promise.all([
+      sql`SELECT count(*)::int AS count FROM profiles`,
+      sql`SELECT count(*)::int AS count FROM guides`,
+      sql`SELECT count(*)::int AS count FROM brands`,
+      sql`SELECT count(*)::int AS count FROM topics`,
+      sql`SELECT count(*)::int AS count FROM devices`,
+      sql`SELECT count(*)::int AS count FROM glossary_terms`,
+    ]);
+    const counts = {
+      profiles: Number((profiles[0] as { count: number }).count),
+      guides: Number((guides[0] as { count: number }).count),
+      brands: Number((brands[0] as { count: number }).count),
+      topics: Number((topics[0] as { count: number }).count),
+      devices: Number((devices[0] as { count: number }).count),
+      glossary: Number((glossary[0] as { count: number }).count),
+    };
 
     return NextResponse.json({
       ok: true,
