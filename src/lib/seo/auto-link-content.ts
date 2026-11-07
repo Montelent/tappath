@@ -7,11 +7,11 @@ type LinkState = {
 };
 
 function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return value.replace(/[.*+?^\${}()|[\]\\]/g, "\\$&");
 }
 
 function escapeAttribute(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return value.replace(/[.*+?^\${}()|[\]\\]/g, "\\$&");
 }
 
 function linkTextNodes(html: string, matcher: RegExp, render: (matched: string) => string): string {
@@ -60,7 +60,7 @@ export function createGuideAutoLinker(
         if (linked) return _matched;
         linked = true;
         state.glossary.add(term.slug);
-        const definition = escapeAttribute((term.short || term.definition || "").replace(/<[^>]*>/g, " ").replace(/\\s+/g, " ").trim().slice(0, 260));
+        const definition = escapeAttribute((term.short || term.definition || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 260));
         return `<a class="auto-glossary-link" href="/glossary/${encodeURIComponent(term.slug)}" data-definition="${definition}" title="${definition || escapeAttribute(term.term)}" aria-label="${escapeAttribute(term.term)} glossary definition">${_matched}<span class="auto-glossary-tooltip" role="tooltip">${definition || escapeAttribute(term.term)}<span class="auto-glossary-more">Read glossary entry →</span></span></a>`;
       });
     }
