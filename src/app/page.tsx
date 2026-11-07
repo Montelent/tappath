@@ -133,7 +133,7 @@ export default async function HomePage() {
                 <div className="mb-3 flex items-center justify-between text-xs text-[var(--muted-foreground)]">
                   <span className="font-semibold text-[var(--foreground)]">Settings path</span>
                   <span className="rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-semibold text-[var(--accent)]">
-                    Path verified
+                    Example path
                   </span>
                 </div>
                 <ul className="space-y-2 text-sm">
@@ -160,7 +160,7 @@ export default async function HomePage() {
               { n: guideCount > 0 ? `${guideCount}+` : "—", l: "Guides" },
               { n: topicCount > 0 ? String(topicCount) : "—", l: "Topics" },
               { n: brandCount > 0 ? String(brandCount) : "—", l: "Brands" },
-              { n: "Live", l: "Paths" },
+              { n: live ? "Live" : "—", l: "Paths" },
             ].map((stat) => (
               <div key={stat.l} className="rounded-2xl border border-[var(--border)] bg-[var(--card)]/80 px-4 py-3 text-center shadow-sm backdrop-blur">
                 <div className="text-2xl font-bold tabular-nums tracking-tight text-[var(--accent)]">{stat.n}</div>
