@@ -82,12 +82,12 @@ function isActionHighlight(h: string) {
 }
 
 export default function LiveSimulator({ versions, brandName, deviceModel = "Galaxy S23+" }: Props) {
-  const safeVersions = versions?.length ? versions : [];
+  const safeVersions = useMemo(() => (versions?.length ? versions : []), [versions]);
   const [versionId, setVersionId] = useState(safeVersions[0]?.id ?? "");
   const version = safeVersions.find((v) => v.id === versionId) ?? safeVersions[0];
   const [stepIndex, setStepIndex] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
-  const steps = version?.steps ?? [];
+  const steps = useMemo(() => version?.steps ?? [], [version]);
   const current = steps[stepIndex];
   const total = steps.length;
 
