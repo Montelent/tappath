@@ -20,26 +20,9 @@ export default function ForgotPasswordPage() {
           </p>
         </div>
 
-        <div className="space-y-5">
-          <div>
-            <label htmlFor="email" className="mb-1.5 block text-sm font-medium">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3.5 py-2.5 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20"
-            />
-          </div>
-          <button
-            type="button"
-            disabled
-            className="flex w-full cursor-not-allowed items-center justify-center rounded-full bg-brand-600 px-5 py-2.5 text-sm font-medium text-white opacity-50"
-          >
-            Password reset unavailable
-          </button>
-        </div>
+        <p className="rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+          Password reset is not configured yet. Please contact the site administrator for help accessing your account.
+        </p>
 
         <p className="mt-6 text-center text-sm text-[var(--muted-foreground)]">
           <Link
