@@ -127,7 +127,7 @@ async function selectAll(sql: Sql, table: string) {
     case "forum_replies":
       return sql`SELECT * FROM forum_replies ORDER BY created_at DESC NULLS LAST LIMIT 500`;
     case "site_settings":
-      return sql`SELECT * FROM site_settings LIMIT 10`;
+      return sql`SELECT key, value, updated_at FROM site_settings WHERE key <> 'copilot' LIMIT 100`;
     case "guide_feedback":
       return sql`SELECT * FROM guide_feedback ORDER BY created_at DESC NULLS LAST LIMIT 500`;
     default:
