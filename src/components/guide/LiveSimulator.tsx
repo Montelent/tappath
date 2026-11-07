@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import type { GuideVersion } from "@/data/guides";
 import PhoneFrame, { ScreenshotLayer } from "@/components/guide/PhoneFrame";
 
-type Props = { versions: GuideVersion[]; brandName: string; deviceModel?: string };
+type Props = { versions: GuideVersion[]; brandName: string; deviceModel?: string; pathVerified?: boolean };
 type MenuItem = {
   id: string; label: string;
   icon?: "settings" | "wifi" | "battery" | "phone" | "home" | "search" | "fingerprint" | "bell" | "apps";
@@ -81,7 +81,7 @@ function isActionHighlight(h: string) {
   return /^(remove|delete|ok|done|next|confirm|cancel|yes|no|add|save|apply)$/i.test(plain(h));
 }
 
-export default function LiveSimulator({ versions, brandName, deviceModel = "Galaxy S23+" }: Props) {
+export default function LiveSimulator({ versions, brandName, deviceModel = "Galaxy S23+", pathVerified = false }: Props) {
   const safeVersions = useMemo(() => (versions?.length ? versions : []), [versions]);
   const [versionId, setVersionId] = useState(safeVersions[0]?.id ?? "");
   const version = safeVersions.find((v) => v.id === versionId) ?? safeVersions[0];
@@ -130,9 +130,15 @@ export default function LiveSimulator({ versions, brandName, deviceModel = "Gala
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-medium uppercase tracking-wider text-[var(--muted-foreground)]">Live simulator</span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-            <CheckCircle2 className="h-3 w-3" /> Path verified
-          </span>
+          {pathVerified ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 className="h-3 w-3" /> Path verified
+            </span>
+          ) : (
+            <span className="rounded-full bg-[var(--muted)] px-2 py-0.5 text-[11px] font-medium text-[var(--muted-foreground)]">
+              Step-by-step preview
+            </span>
+          )}
           <span className="rounded-full bg-[var(--muted)] px-2 py-0.5 text-[11px] font-medium text-[var(--muted-foreground)]">{brandName} · {deviceModel}</span>
           {hasScreenshot && (
             <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-700 dark:bg-brand-950 dark:text-brand-300">Screenshot mode</span>
