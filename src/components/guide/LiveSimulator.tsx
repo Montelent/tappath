@@ -96,6 +96,20 @@ export default function LiveSimulator({ versions, brandName, deviceModel = "Gala
     if (safeVersions[0] && !safeVersions.find((v) => v.id === versionId)) setVersionId(safeVersions[0].id);
   }, [safeVersions, versionId]);
 
+  useEffect(() => {
+    if (!fullscreen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setFullscreen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [fullscreen]);
+
   const menuItems = useMemo(() => buildMenuFromSteps(steps), [steps]);
   const highlightPlain = plain(current?.highlight || "");
   const showActionPopup = current && isActionHighlight(highlightPlain);
@@ -131,7 +145,8 @@ export default function LiveSimulator({ versions, brandName, deviceModel = "Gala
           </select>
           <button type="button" onClick={() => setFullscreen(!fullscreen)}
             className="rounded-lg border border-[var(--border)] p-1.5 text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
-            aria-label={fullscreen ? "Exit fullscreen" : "Fullscreen"}>
+            aria-label={fullscreen ? "Exit fullscreen" : "Fullscreen"}
+            aria-pressed={fullscreen}>
             {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </button>
         </div>
