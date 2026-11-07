@@ -37,7 +37,7 @@ function safeProviderBase(raw: string, fallback: string): string | null {
   try {
     const base = normalizeOpenAiBase(raw, fallback);
     const url = new URL(base);
-    const host = url.hostname.toLowerCase().replace(/^\\[|\\]$/g, "").replace(/\\.$/, "");
+    const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, "").replace(/\.$/, "");
     if (
       url.protocol !== "https:" ||
       url.username || url.password ||
