@@ -64,16 +64,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setTheme((current) => {
-      const next = current === "dark" ? "light" : "dark";
-      applyTheme(next);
-      try {
-        window.localStorage.setItem(STORAGE_KEY, next);
-      } catch {
-        // The theme still applies for this session when storage is unavailable.
-      }
-      return next;
-    });
+    const next: Theme = document.documentElement.classList.contains("dark")
+      ? "light"
+      : "dark";
+    setTheme(next);
+    applyTheme(next);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      // The theme still applies for this session when storage is unavailable.
+    }
   }, []);
 
   const value = useMemo(() => ({ theme, toggleTheme }), [theme, toggleTheme]);
