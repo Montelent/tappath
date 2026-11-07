@@ -61,7 +61,7 @@ export function createGuideAutoLinker(
         linked = true;
         state.glossary.add(term.slug);
         const definition = escapeAttribute((term.short || term.definition || "").replace(/<[^>]*>/g, " ").replace(/\\s+/g, " ").trim().slice(0, 260));
-        return `<a class="auto-glossary-link" href="/glossary/${encodeURIComponent(term.slug)}" data-definition="${definition}" aria-label="${escapeAttribute(term.term)} glossary definition">${_matched}<span class="auto-glossary-tooltip" role="tooltip">${definition || escapeAttribute(term.term)}<span class="auto-glossary-more">Read glossary entry →</span></span></a>`;
+        return `<a class="auto-glossary-link" href="/glossary/${encodeURIComponent(term.slug)}" data-definition="${definition}" title="${definition || escapeAttribute(term.term)}" aria-label="${escapeAttribute(term.term)} glossary definition">${_matched}<span class="auto-glossary-tooltip" role="tooltip">${definition || escapeAttribute(term.term)}<span class="auto-glossary-more">Read glossary entry →</span></span></a>`;
       });
     }
 
