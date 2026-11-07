@@ -118,7 +118,7 @@ export default function Header() {
           >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
-          {auth?.user ? (
+          {auth?.isAdmin ? (
             <Link
               href="/admin"
               className="hidden sm:inline-flex rounded-full bg-[var(--accent)] px-3.5 py-1.5 text-sm font-semibold text-[var(--accent-foreground)] hover:bg-[var(--accent-hover)]"
