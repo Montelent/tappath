@@ -41,12 +41,12 @@ export default async function PublicPage({ params }: Props) {
   if (!page) notFound();
 
   return (
-    <main className="mx-auto min-h-[60vh] w-full max-w-4xl px-4 py-12 sm:px-6">
+    <div className="mx-auto min-h-[60vh] w-full max-w-4xl px-4 py-12 sm:px-6">
       <article>
         <h1 className="mb-6 text-3xl font-bold tracking-tight sm:text-4xl">{page.title}</h1>
         {page.excerpt ? <p className="mb-8 text-lg text-muted-foreground">{page.excerpt}</p> : null}
         <div className="prose prose-lg max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(page.content) }} />
       </article>
-    </main>
+    </div>
   );
 }
