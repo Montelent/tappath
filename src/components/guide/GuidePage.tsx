@@ -6,6 +6,7 @@ import GuideFAQ from "./GuideFAQ";
 import AuthorBox from "./AuthorBox";
 import AdSlot from "@/components/ads/AdSlot";
 import ShareButtons from "@/components/share/ShareButtons";
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
 
 type Props = {
   guide: Guide;
@@ -72,7 +73,7 @@ export default function GuidePage({ guide }: Props) {
               {guide.shortDescription && (
                 <div
                   className="mt-4 text-[var(--muted-foreground)] leading-relaxed prose-a:text-[var(--accent)]"
-                  dangerouslySetInnerHTML={{ __html: guide.shortDescription }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(guide.shortDescription) }}
                 />
               )}
               <p className="mt-4 text-sm text-[var(--muted-foreground)]">
@@ -133,7 +134,7 @@ export default function GuidePage({ guide }: Props) {
                   <h2 className="font-display text-xl mb-4">Notes</h2>
                   <div className="space-y-3 text-[var(--muted-foreground)] leading-relaxed">
                     {guide.article.map((p, i) => (
-                      <p key={i} dangerouslySetInnerHTML={{ __html: p }} />
+                      <p key={i} dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(p) }} />
                     ))}
                   </div>
                 </section>
@@ -142,7 +143,7 @@ export default function GuidePage({ guide }: Props) {
               {guide.faqs?.length > 0 && (
                 <section>
                   <h2 className="font-display text-xl mb-4">FAQ</h2>
-                  <GuideFAQ faqs={guide.faqs} />
+                  <GuideFAQ faqs={guide.faqs.map((faq) => ({ q: faq.q, a: sanitizeRichHtml(faq.a) }))} />
                 </section>
               )}
 
