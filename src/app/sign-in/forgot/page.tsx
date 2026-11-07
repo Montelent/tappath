@@ -16,7 +16,7 @@ export default function ForgotPasswordPage() {
           </Link>
           <h1 className="mt-4 text-2xl font-bold tracking-tight">Forgot password</h1>
           <p className="mt-1.5 text-sm text-[var(--muted-foreground)]">
-            Password reset is not configured yet. Please contact the site administrator for help accessing your account.
+            Use the notice below for current account recovery options.
           </p>
         </div>
 
