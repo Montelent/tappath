@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import RichTextEditor from "@/components/admin/RichTextEditor";
 import Link from "next/link";
 import { CheckCircle2, Loader2, MessageSquarePlus } from "lucide-react";
 import { useAuthOptional } from "@/context/AuthContext";
@@ -22,6 +21,9 @@ type Topic = {
 
 export default function ForumBoard({ brand }: { brand?: string }) {
   const auth = useAuthOptional();
+  const brandLabel = brand
+    ? brand.replace(/[-_]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase())
+    : "General";
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -64,7 +66,7 @@ export default function ForumBoard({ brand }: { brand?: string }) {
         body: JSON.stringify({
           title,
           content,
-          brand: brand === "samsung" ? "Samsung" : brand === "xiaomi" ? "Xiaomi" : "General",
+          brand: brandLabel,
           brandSlug: brand || "general",
           category: "General",
         }),
@@ -129,13 +131,14 @@ export default function ForumBoard({ brand }: { brand?: string }) {
             className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3.5 py-2.5 text-sm outline-none focus:border-brand-400"
             required
           />
-          <RichTextEditor
-            label=""
+          <textarea
             value={content}
-            onChange={setContent}
-            minHeight={160}
-            compact
+            onChange={(event) => setContent(event.target.value)}
             placeholder="Describe the issue or tip…"
+            rows={6}
+            maxLength={10000}
+            className="w-full resize-y rounded-xl border border-[var(--border)] bg-[var(--background)] px-3.5 py-3 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20"
+            required
           />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button
