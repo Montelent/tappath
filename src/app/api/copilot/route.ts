@@ -3,6 +3,7 @@ import { listProviders, type ProviderConfig } from "@/lib/copilot/providers";
 import { listGuides, listTopics, listGlossary, listBrands } from "@/lib/db/content";
 import { listDevicesPublic } from "@/lib/devices/resolve";
 import { guideHref } from "@/lib/guides/resolve";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 type Body = { message: string };
 
@@ -214,6 +215,13 @@ export async function POST(req: NextRequest) {
   }
   if (message.length > 2000) {
     return NextResponse.json({ error: "Message must be 2000 characters or fewer." }, { status: 413 });
+  }
+  const rate = await enforceRateLimit(req, "copilot", 30, 3600);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: rate.unavailable ? "Service temporarily unavailable." : "Too many requests. Try again shortly." },
+      { status: rate.unavailable ? 503 : 429, headers: { "Retry-After": String(rate.retryAfter) } }
+    );
   }
 
   const [providers, publishedGuides, publishedTopics, publishedGlossary, publishedBrands, publishedDevices] = await Promise.all([
