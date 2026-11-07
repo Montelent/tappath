@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { setSessionCookie } from "@/lib/session";
 import { createUser, findUserByEmail, publicUser } from "@/lib/db/users";
+import { getSiteSettings } from "@/lib/site-settings";
 
 export async function POST(req: NextRequest) {
   let body: { name?: string; email?: string; password?: string };
@@ -8,6 +9,11 @@ export async function POST(req: NextRequest) {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const settings = await getSiteSettings();
+  if (!settings.allow_signups) {
+    return NextResponse.json({ error: "New account registration is currently disabled." }, { status: 403 });
   }
 
   const name = (body.name || "").trim();
