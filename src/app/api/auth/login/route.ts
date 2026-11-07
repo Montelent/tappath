@@ -23,6 +23,9 @@ export async function POST(req: NextRequest) {
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password required." }, { status: 400 });
     }
+    if (email.length > 254 || password.length > 128) {
+      return NextResponse.json({ error: "Invalid email or password." }, { status: 400 });
+    }
 
     let user;
     try {
