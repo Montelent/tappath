@@ -6,6 +6,9 @@ import { isNeonConfigured } from "@/lib/db/neon";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
+  if (!isNeonConfigured() && process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Authentication database is not configured." }, { status: 503 });
+  }
   try {
     let body: { email?: string; password?: string };
     try {
@@ -38,7 +41,7 @@ export async function POST(req: NextRequest) {
         );
       }
       return NextResponse.json(
-        { error: msg, backend: isNeonConfigured() ? "neon" : "mock" },
+        { error: "Login service unavailable.", backend: isNeonConfigured() ? "neon" : "unconfigured" },
         { status: 500 }
       );
     }
