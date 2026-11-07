@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Share2, Link2, Check, ChevronDown } from "lucide-react";
 
 type Props = {
@@ -172,6 +173,7 @@ export default function ShareButtons({
   url,
   className = "",
 }: Props) {
+  const pathname = usePathname();
   const [pageUrl, setPageUrl] = useState(url || "");
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState("");
@@ -187,7 +189,7 @@ export default function ShareButtons({
       setPageUrl(window.location.href.split("#")[0]);
     }
     setCanNative(typeof navigator !== "undefined" && typeof navigator.share === "function");
-  }, [url]);
+  }, [url, pathname]);
 
   useEffect(() => {
     if (!open) return;
