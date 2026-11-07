@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listProviders, type ProviderConfig } from "@/lib/copilot/providers";
+import { listGuides, listTopics, listGlossary } from "@/lib/db/content";
+import { guideHref } from "@/lib/guides/resolve";
 
 type Body = { message: string };
 
@@ -228,7 +230,7 @@ export async function POST(req: NextRequest) {
     errors.push(`${result.provider}(${result.status ?? "?"}): ${result.error.slice(0, 140)}`);
   }
 
-  const fb = fallback(message);
+  const fb = await fallback(message);
 
   if (providers.length === 0) {
     return NextResponse.json({
@@ -254,52 +256,79 @@ export async function POST(req: NextRequest) {
   });
 }
 
-function fallback(input: string) {
+async function fallback(input: string) {
   const q = input.toLowerCase();
+  const [guides, topics, glossary] = await Promise.all([
+    listGuides(),
+    listTopics(),
+    listGlossary(),
+  ]);
+
+  const guideLink = (terms: string[]) => {
+    const guide = guides.find((item) => {
+      const text = `${item.title} ${item.slug} ${item.short_description || ""}`.toLowerCase();
+      return terms.some((term) => text.includes(term));
+    });
+    return guide ? [{ label: guide.title, href: guideHref(guide) }] : [];
+  };
+  const topicLink = (slug: string) => {
+    const topic = topics.find((item) => item.slug === slug);
+    if (!topic) return [];
+    const hasGuide = guides.some((guide) => {
+      const category = (guide.category || "").toLowerCase();
+      const name = (topic.name || "").toLowerCase();
+      return !!category && (category.includes(name) || name.includes(category));
+    });
+    return hasGuide ? [{ label: topic.name, href: `/topics/${topic.slug}` }] : [];
+  };
+  const glossaryLink = (slug: string) => {
+    const term = glossary.find((item) => item.slug === slug);
+    return term ? [{ label: term.term, href: `/glossary/${term.slug}` }] : [];
+  };
 
   if (q.includes("google search") || q.includes("search bar") || q.includes("widget")) {
     return {
       text: "The Google search bar is a home-screen widget. Long-press it and tap Remove.",
-      links: [{ label: "Samsung: Remove Google Search Bar", href: "/samsung/galaxy/remove-google-search-bar" }],
+      links: guideLink(["remove-google-search-bar", "remove google search bar"]),
     };
   }
   if (q.includes("battery") && (q.includes("percent") || q.includes("%") || q.includes("show"))) {
     return {
       text: "On Samsung: Settings → Battery and device care → Battery → Show battery percentage.",
-      links: [{ label: "Show Battery Percentage", href: "/samsung/galaxy/battery-percentage" }],
+      links: guideLink(["battery-percentage", "show battery percentage"]),
     };
   }
   if (q.includes("fingerprint") || q.includes("biometr")) {
     return {
-      text: "Fingerprints are under Settings → Security and privacy → Biometrics.",
-      links: [{ label: "Add a Fingerprint", href: "/samsung/galaxy/add-fingerprint" }],
+      text: "Fingerprints are usually under Settings → Security and privacy → Biometrics.",
+      links: guideLink(["add-fingerprint", "fingerprint"]),
     };
   }
   if (q.includes("private dns") || q.includes("dns")) {
     return {
       text: "Private DNS is usually under Settings → Connections → More connection settings → Private DNS.",
-      links: [{ label: "Network topic", href: "/topics/network" }],
+      links: topicLink("network"),
     };
   }
   if (q.includes("volte") || q.includes("4g call")) {
     return {
-      text: "VoLTE carries calls over 4G. Enable it under mobile network / SIM settings for your brand.",
-      links: [{ label: "VoLTE glossary", href: "/glossary/volte" }],
+      text: "VoLTE carries calls over 4G. Check mobile network or SIM settings for your device.",
+      links: glossaryLink("volte"),
     };
   }
-  if (/^(hi|hello|hey|hola|hallo)\b/i.test(input.trim()) || input.trim().length < 3) {
+  if (/^(hi|hello|hey|hola|hallo)\\b/i.test(input.trim()) || input.trim().length < 3) {
     return {
-      text: "Hi! Ask me how to change a setting (e.g. “remove Google search bar on Samsung”) or what a term means (e.g. “what is VoLTE”). I’ll point you to the right guide.",
+      text: "Hi! Ask me how to change a setting or what a smartphone term means. I’ll point you to matching published TapPath content when available.",
       links: [
-        { label: "Browse brands", href: "/samsung" },
-        { label: "Topics", href: "/topics" },
+        { label: "Browse topics", href: "/topics" },
         { label: "Glossary", href: "/glossary" },
+        { label: "Devices", href: "/devices" },
       ],
     };
   }
 
   return {
-    text: "I can help with settings paths and glossary terms. Try a specific question like “enable Private DNS on Samsung” or “what is eSIM”.",
+    text: "I can help with smartphone settings paths and glossary terms. Try a specific question like “enable Private DNS” or “what is eSIM”.",
     links: [
       { label: "Topics", href: "/topics" },
       { label: "Glossary", href: "/glossary" },
