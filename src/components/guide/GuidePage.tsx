@@ -117,6 +117,7 @@ export default function GuidePage({ guide }: Props) {
                 versions={guide.versions}
                 brandName={guide.brand}
                 deviceModel={deviceModel}
+                pathVerified={guide.forumVerified}
               />
             </section>
 
