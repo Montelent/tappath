@@ -32,7 +32,7 @@ async function resolveSiteOrigin(canonicalHost?: string): Promise<string> {
     (canonicalHost || "").trim(),
     (process.env.NEXT_PUBLIC_SITE_URL || "").trim(),
     (process.env.VERCEL_URL || "").trim()
-      ? `https://${(process.env.VERCEL_URL || "").trim().replace(/^https?:\\/\\//, "")}`
+      ? `https://${(process.env.VERCEL_URL || "").trim().replace(/^https?:\/\//, "")}`
       : "",
   ];
   for (const c of candidates) {
