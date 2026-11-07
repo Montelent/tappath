@@ -106,6 +106,7 @@ async function callOnce(
       },
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(15_000),
+      redirect: "error",
     });
   } catch (e) {
     return {
