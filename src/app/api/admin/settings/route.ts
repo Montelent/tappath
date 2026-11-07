@@ -25,6 +25,7 @@ export async function GET() {
     const rows = await sql`SELECT key, value FROM site_settings`;
     const settings: Record<string, unknown> = { ...SITE_SETTINGS_DEFAULTS };
     for (const r of rows as { key: string; value: unknown }[]) {
+      if (!(r.key in SITE_SETTINGS_DEFAULTS)) continue;
       settings[r.key] = unwrapValue(r.value);
     }
     return NextResponse.json({ backend: "neon", settings });
