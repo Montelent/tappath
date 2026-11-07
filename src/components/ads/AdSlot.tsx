@@ -1,4 +1,5 @@
 import { getSiteSettings } from "@/lib/site-settings";
+import HtmlInjector from "@/components/HtmlInjector";
 
 export type AdPlacement =
   | "header"
@@ -34,9 +35,9 @@ export default async function AdSlot({ placement, className = "" }: Props) {
       aria-label="Advertisement"
       data-ad-placement={placement}
     >
-      <div
+      <HtmlInjector
+        html={html}
         className="w-full max-w-[728px] min-h-[50px] text-center [&_iframe]:mx-auto [&_ins]:mx-auto"
-        dangerouslySetInnerHTML={{ __html: html }}
       />
     </aside>
   );
