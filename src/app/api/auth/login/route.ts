@@ -9,6 +9,13 @@ export async function POST(req: NextRequest) {
   if (!isNeonConfigured() && process.env.NODE_ENV === "production") {
     return NextResponse.json({ error: "Authentication database is not configured." }, { status: 503 });
   }
+  const rate = await enforceRateLimit(req, "login", 10, 900);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: rate.unavailable ? "Service temporarily unavailable." : "Too many requests. Try again shortly." },
+      { status: rate.unavailable ? 503 : 429, headers: { "Retry-After": String(rate.retryAfter) } }
+    );
+  }
   try {
     let body: { email?: string; password?: string };
     try {
