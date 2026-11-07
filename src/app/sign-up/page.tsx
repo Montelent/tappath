@@ -6,6 +6,7 @@ import { getSiteSettings } from "@/lib/site-settings";
 export const metadata: Metadata = {
   title: "Create account",
   description: "Create a TapPath account to confirm guides and join discussions.",
+  alternates: { canonical: "/sign-up" },
 };
 
 export default async function SignUpPage() {
