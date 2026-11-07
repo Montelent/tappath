@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import TopicHub from "@/components/topics/TopicHub";
 import { resolveTopic } from "@/lib/topics/resolve";
 import TopicJsonLd from "@/components/seo/TopicJsonLd";
+import { listTopicsForIndex } from "@/lib/topics/resolve";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -48,6 +49,8 @@ export default async function TopicSlugPage({ params }: Props) {
   const { slug } = await params;
   const topic = await resolveTopic(slug);
   if (!topic) notFound();
+  const allTopics = await listTopicsForIndex();
+  const otherTopics = allTopics.map(({ name, slug }) => ({ name, slug }));
   const guides = topic.guidesByBrand.flatMap((b) =>
     b.guides.map((g) => ({
       title: g.title,
@@ -63,7 +66,7 @@ export default async function TopicSlugPage({ params }: Props) {
         description={topic.description || `Settings guides for ${topic.name}.`}
         guides={guides}
       />
-      <TopicHub topic={topic} />
+      <TopicHub topic={topic} otherTopics={otherTopics} />
     </>
   );
 }
