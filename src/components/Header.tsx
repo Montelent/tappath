@@ -159,7 +159,7 @@ export default function Header() {
               </div>
             ))}
             <div className="my-1 border-t border-[var(--border)]" />
-            {auth?.user ? (
+            {auth?.isAdmin ? (
               <Link
                 href="/admin"
                 onClick={() => setMobileOpen(false)}
