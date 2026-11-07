@@ -21,7 +21,7 @@ export async function query<T extends Record<string, unknown> = Record<string, u
 ): Promise<T[]> {
   const client = getSql();
   if (!client) throw new Error("DATABASE_URL is not set");
-  const rows = await (client as any)(strings, ...values);
+  const rows = await client(strings, ...values);
   return rows as T[];
 }
 
