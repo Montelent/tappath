@@ -278,8 +278,12 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       const title = String(body.title || "").trim();
       const slug = String(body.slug || "").trim().toLowerCase();
       if (!title || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) throw new Error("A title and valid URL slug are required");
+      const existingPage = await sql`SELECT slug FROM pages WHERE id::text = ${id} LIMIT 1`;
       const rows = await sql`UPDATE pages SET title = ${title}, slug = ${slug}, content = ${String(body.content || "")}, excerpt = ${String(body.excerpt || "")}, published = ${body.published === true}, seo_title = ${String(body.seo_title || "") || null}, seo_description = ${String(body.seo_description || "") || null}, focus_keyword = ${String(body.focus_keyword || "") || null}, canonical_url = ${String(body.canonical_url || "") || null}, robots_index = ${body.robots_index === false ? false : true}, robots_follow = ${body.robots_follow === false ? false : true}, og_title = ${String(body.og_title || "") || null}, og_description = ${String(body.og_description || "") || null}, og_image = ${String(body.og_image || "") || null}, updated_at = now() WHERE id::text = ${id} RETURNING *`;
       if (!rows[0]) throw new Error("Page not found");
+      if (existingPage[0]?.slug && String(existingPage[0].slug) !== slug) {
+        await addSeoRedirect(sql, `page-${id}`, `/pages/${String(existingPage[0].slug)}`, `/pages/${slug}`);
+      }
       return NextResponse.json({ row: rows[0] });
     }
     if (table === "topics") {
@@ -341,6 +345,30 @@ export async function DELETE(req: NextRequest, ctx: Ctx) {
   }
 }
 
+async function addSeoRedirect(sql: Sql, id: string, from: string, to: string) {
+  if (!from || !to || from === to || !from.startsWith("/") || !to.startsWith("/")) return;
+  const settingRows = await sql`SELECT value FROM site_settings WHERE key = 'seo_redirects' LIMIT 1`;
+  let redirects: { id?: string; from?: string; to?: string; code?: number; enabled?: boolean }[] = [];
+  const raw = settingRows[0]?.value;
+  if (Array.isArray(raw)) redirects = raw;
+  else if (typeof raw === "string") {
+    try { const parsed = JSON.parse(raw); if (Array.isArray(parsed)) redirects = parsed; } catch { /* use empty list */ }
+  } else if (raw && typeof raw === "object") {
+    const value = (raw as { value?: unknown }).value;
+    if (Array.isArray(value)) redirects = value as typeof redirects;
+  }
+  redirects = redirects.map((item) => item && item.to === from ? { ...item, to } : item);
+  const index = redirects.findIndex((item) => item?.from === from);
+  const entry = { id, from, to, code: 301, enabled: true };
+  if (index >= 0) redirects[index] = entry;
+  else redirects.push(entry);
+  await sql`
+    INSERT INTO site_settings (key, value, updated_at)
+    VALUES ('seo_redirects', ${JSON.stringify(redirects)}::jsonb, now())
+    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()
+  `;
+}
+
 function slugifyTopicName(value: string) {
   return value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
     .trim().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -385,6 +413,9 @@ async function updateTopic(sql: Sql, id: string, body: Record<string, unknown>) 
     RETURNING *
   `;
   if (!rows[0]) throw new Error("Topic not found");
+  if (existing[0]?.slug && String(existing[0].slug) !== slug) {
+    await addSeoRedirect(sql, `topic-${id}`, `/topics/${String(existing[0].slug)}`, `/topics/${slug}`);
+  }
   return rows[0];
 }
 
@@ -451,7 +482,7 @@ async function insertDevice(sql: Sql, b: Record<string, unknown>) {
 }
 
 async function updateDevice(sql: Sql, id: string, b: Record<string, unknown>) {
-  const existing = await sql`SELECT slug FROM devices WHERE id::text = ${id} LIMIT 1`;
+  const existing = await sql`SELECT slug, brand_slug, href FROM devices WHERE id::text = ${id} LIMIT 1`;
   const d = await normalizeDeviceInput(sql, b, String(existing[0]?.slug || ""));
   const rows = await sql`
     UPDATE devices SET slug = ${d.slug}, name = ${d.name}, brand_slug = ${d.brandSlug},
@@ -460,6 +491,8 @@ async function updateDevice(sql: Sql, id: string, b: Record<string, unknown>) {
     WHERE id::text = ${id} RETURNING *
   `;
   if (!rows[0]) throw new Error("Device not found");
+  const oldPath = String(existing[0]?.href || `/${existing[0]?.brand_slug || d.brandSlug}/${existing[0]?.slug || ""}`);
+  if (oldPath !== d.href) await addSeoRedirect(sql, `device-${id}`, oldPath, d.href);
   return rows[0];
 }
 
@@ -623,6 +656,7 @@ async function insertGlossary(sql: Sql, b: Record<string, unknown>) {
 
 async function updateGlossary(sql: Sql, id: string, b: Record<string, unknown>) {
   await ensureGlossaryColumns(sql);
+  const existing = await sql`SELECT slug FROM glossary_terms WHERE id::text = ${id} LIMIT 1`;
   const rows = await sql`
     UPDATE glossary_terms SET
       slug = ${String(b.slug || "")},
@@ -646,6 +680,9 @@ async function updateGlossary(sql: Sql, id: string, b: Record<string, unknown>) 
     RETURNING *
   `;
   if (!rows[0]) throw new Error("Glossary term not found");
+  if (existing[0]?.slug && String(existing[0].slug) !== String(b.slug || "")) {
+    await addSeoRedirect(sql, `glossary-${id}`, `/glossary/${String(existing[0].slug)}`, `/glossary/${String(b.slug || "")}`);
+  }
   return rows[0];
 }
 
