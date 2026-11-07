@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: "All smartphone models & specs",
   description:
     "Device directory — search and filter smartphone models with guides, OS versions and specs.",
+  alternates: { canonical: "/devices" },
 };
 
 export default async function DevicesPage() {
