@@ -40,6 +40,7 @@ function safeProviderBase(raw: string, fallback: string): string | null {
     const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, "").replace(/\.$/, "");
     if (
       url.protocol !== "https:" ||
+      !!url.search || !!url.hash ||
       url.username || url.password ||
       isIP(host) !== 0 ||
       host === "localhost" || host.endsWith(".localhost") ||
