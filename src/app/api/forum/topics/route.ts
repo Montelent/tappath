@@ -95,6 +95,9 @@ export async function POST(req: NextRequest) {
   if (!title || !content) {
     return NextResponse.json({ error: "Title and content are required." }, { status: 400 });
   }
+  if (title.length > 200 || content.length > 10000) {
+    return NextResponse.json({ error: "Title must be 200 characters or fewer and content 10,000 characters or fewer." }, { status: 400 });
+  }
 
   if (isNeonConfigured()) {
     try {
