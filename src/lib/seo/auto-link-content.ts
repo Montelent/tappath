@@ -7,7 +7,7 @@ type LinkState = {
 };
 
 function escapeRegExp(value: string): string {
-  return value.split("").map((character) => ".*+?^${}()|[]\\\\".includes(character) ? `\\${character}` : character).join("");
+  return value.split("").map((character) => ".*+?^${}()|[]\\\\".includes(character) ? "\\" + character : character).join("");
 }
 
 function escapeAttribute(value: string): string {
