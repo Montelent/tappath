@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useTheme } from "@/context/ThemeContext";
 import { Moon, Sun, Menu, X } from "lucide-react";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { useAuthOptional } from "@/context/AuthContext";
@@ -9,7 +10,7 @@ import type { NavMenuItem, SiteSettings } from "@/lib/site-settings";
 import { SITE_SETTINGS_DEFAULTS } from "@/lib/site-settings";
 
 export default function Header() {
-  const [dark, setDark] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [s, setS] = useState({
     site_name: SITE_SETTINGS_DEFAULTS.site_name,
@@ -24,15 +25,6 @@ export default function Header() {
     nav_items: [] as NavMenuItem[],
   });
   const auth = useAuthOptional();
-
-  useEffect(() => {
-    const isDark =
-      localStorage.getItem("theme") === "dark" ||
-      (!localStorage.getItem("theme") &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches);
-    setDark(isDark);
-    document.documentElement.classList.toggle("dark", isDark);
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -66,13 +58,6 @@ export default function Header() {
       document.body.style.overflow = "";
     };
   }, [mobileOpen]);
-
-  const toggleDark = () => {
-    const next = !dark;
-    setDark(next);
-    document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("theme", next ? "dark" : "light");
-  };
 
   const nav: NavMenuItem[] =
     Array.isArray(s.nav_items) && s.nav_items.length > 0
@@ -125,11 +110,13 @@ export default function Header() {
           <LanguageSwitcher />
           <button
             type="button"
-            onClick={toggleDark}
+            onClick={toggleTheme}
             className="rounded-full p-2 text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
-            aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            aria-pressed={theme === "dark"}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           >
-            {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
           {auth?.user ? (
             <Link
