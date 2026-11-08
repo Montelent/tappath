@@ -164,6 +164,7 @@ export default function BrandEditor() {
     }
     const snapshot = {
       ...editing,
+      published: editing.id ? editing.published : false,
       top_guides: autoGuides,
       guides_count: autoGuides.length,
     };
