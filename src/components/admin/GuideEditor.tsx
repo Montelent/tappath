@@ -368,6 +368,22 @@ export default function GuideEditor() {
             pathPreview={previewHref(editing) || `/${editing.brand_slug || "brand"}/${editing.slug || "slug"}`}
             imageUrl={editing.featured_image_url || undefined}
           />
+          <label className="flex items-start gap-3 rounded-xl border border-[var(--border)] bg-[var(--muted)]/30 p-4">
+            <input
+              type="checkbox"
+              checked={editing.published === true}
+              onChange={(e) => setEditing({ ...editing, published: e.target.checked })}
+              className="mt-1 h-4 w-4 accent-[var(--accent)]"
+            />
+            <span>
+              <span className="block text-sm font-semibold">Publish this guide</span>
+              <span className="mt-0.5 block text-xs text-[var(--muted-foreground)]">
+                {editing.published
+                  ? "This guide will be publicly visible after saving."
+                  : "Leave unchecked to save this guide as a draft. Drafts are not shown publicly."}
+              </span>
+            </span>
+          </label>
           <div className="flex flex-wrap gap-2">
             <button type="button" disabled={saving}
               onClick={async () => {
@@ -393,7 +409,7 @@ export default function GuideEditor() {
               }}
               className="inline-flex items-center gap-1.5 rounded-full bg-brand-600 px-4 py-2 text-sm font-medium text-white">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              Save to database
+              {editing.published ? "Publish guide" : "Save as draft"}
             </button>
             <button type="button" onClick={() => setEditing(null)} className="rounded-full border border-[var(--border)] px-4 py-2 text-sm">Cancel</button>
             {previewHref(editing) && (
