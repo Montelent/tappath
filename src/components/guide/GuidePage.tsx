@@ -149,6 +149,12 @@ export default async function GuidePage({ guide }: Props) {
                 </section>
               )}
 
+              {guide.afterStepsContent?.trim() && (
+                <section className="prose prose-sm max-w-none text-[var(--muted-foreground)] leading-relaxed prose-headings:font-display prose-headings:text-[var(--foreground)] prose-a:text-[var(--accent)] prose-img:rounded-xl">
+                  <div dangerouslySetInnerHTML={{ __html: autoLink(sanitizeRichHtml(guide.afterStepsContent)) }} />
+                </section>
+              )}
+
               {guide.faqs?.length > 0 && (
                 <section>
                   <h2 className="font-display text-xl mb-4">FAQ</h2>
