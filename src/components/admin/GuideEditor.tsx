@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Loader2, Plus, Save, RefreshCw, ExternalLink,
@@ -136,6 +136,8 @@ export default function GuideEditor() {
   const [editing, setEditing] = useState<GuideRow | null>(null);
   const [slugLocked, setSlugLocked] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const autoSaveInFlight = useRef(false);
   const [message, setMessage] = useState("");
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
   const [listSearch, setListSearch] = useState("");
@@ -176,6 +178,47 @@ export default function GuideEditor() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    if (!editing) {
+      setAutoSaveStatus("idle");
+      return;
+    }
+    if (!editing.title.trim() || !editing.slug.trim() || !editing.brand_slug.trim()) {
+      setAutoSaveStatus("idle");
+      return;
+    }
+    const snapshot = {
+      ...editing,
+      published: editing.id ? editing.published : false,
+      read_time: estimateReadTime(editing.article, editing.versions),
+      updated_label: formatUpdatedLabel(),
+    };
+    const timer = window.setTimeout(async () => {
+      if (autoSaveInFlight.current) return;
+      autoSaveInFlight.current = true;
+      setAutoSaveStatus("saving");
+      try {
+        const isNew = !snapshot.id;
+        const res = await fetch("/api/admin/content/guides", {
+          method: isNew ? "POST" : "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(snapshot),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Auto-save failed");
+        const savedId = data.row?.id;
+        if (savedId) setEditing((current) => current ? { ...current, id: current.id || savedId } : current);
+        setAutoSaveStatus("saved");
+      } catch {
+        setAutoSaveStatus("error");
+      } finally {
+        autoSaveInFlight.current = false;
+      }
+    }, 1400);
+    return () => window.clearTimeout(timer);
+  }, [editing]);
 
   useEffect(() => {
     let cancelled = false;
@@ -255,7 +298,7 @@ export default function GuideEditor() {
       {editing ? (
         <div id="guide-edit-form" className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
           <div className="sticky top-0 z-10 -mx-5 -mt-5 mb-2 flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] bg-[var(--card)] px-5 py-3">
-            <h2 className="font-semibold">{editing.id ? "Edit guide" : "Create guide"}</h2>
+            <div><h2 className="font-semibold">{editing.id ? "Edit guide" : "Create guide"}</h2><p className="mt-0.5 text-xs text-[var(--muted-foreground)]">{autoSaveStatus === "saving" ? "Saving draft…" : autoSaveStatus === "saved" ? "Draft saved automatically" : autoSaveStatus === "error" ? "Auto-save failed — use Save to retry" : "Changes auto-save as you work"}{editing.id && editing.published ? " · Published guide edits update the live page" : " · New guides stay drafts until you publish"}</p></div>
             <p className="text-xs text-[var(--muted-foreground)]">Scroll stays on this form · Save below</p>
           </div>
           <label className="block">
@@ -403,7 +446,7 @@ export default function GuideEditor() {
                   });
                   const data = await res.json();
                   if (!res.ok) setMessage(data.error || "Save failed");
-                  else { setMessage("Saved"); setEditing(null); await load(); }
+                  else { setMessage("Saved"); setEditing(null); setAutoSaveStatus("idle"); await load(); }
                 } catch { setMessage("Network error"); }
                 finally { setSaving(false); }
               }}
