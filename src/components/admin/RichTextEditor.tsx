@@ -196,6 +196,8 @@ export default function RichTextEditor({
               padding: 10px 14px;
               -webkit-user-select: text !important;
               user-select: text !important;
+              -webkit-touch-callout: default;
+              touch-action: pan-y;
               word-break: break-word;
             }
             p { margin: 0 0 0.75em; }
@@ -249,7 +251,7 @@ export default function RichTextEditor({
               if (body) {
                 body.style.webkitUserSelect = "text";
                 body.style.userSelect = "text";
-                body.style.webkitTouchCallout = "default";
+                body.style.setProperty("-webkit-touch-callout", "default");
               }
             });
             const emit = () => onChangeRef.current(editor.getContent());
