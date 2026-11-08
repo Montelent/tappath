@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2, Plus, Save, RefreshCw } from "lucide-react";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import SortOrderField, { nextSortOrder } from "@/components/admin/SortOrderField";
@@ -29,6 +29,8 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
   const [usingDb, setUsingDb] = useState(false);
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
   const [saving, setSaving] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const autoSaveInFlight = useRef(false);
   const [message, setMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [seoTpl, setSeoTpl] = useState({
@@ -105,6 +107,47 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!editing || !["topics", "devices"].includes(table)) {
+      setAutoSaveStatus("idle");
+      return;
+    }
+    const name = String(editing.name || "").trim();
+    const slug = String(editing.slug || "").trim();
+    const ready = table === "topics"
+      ? Boolean(name && slug)
+      : Boolean(name && slug && String(editing.brand_slug || "").trim());
+    if (!ready) {
+      setAutoSaveStatus("idle");
+      return;
+    }
+    const snapshot = { ...editing };
+    const timer = window.setTimeout(async () => {
+      if (autoSaveInFlight.current) return;
+      autoSaveInFlight.current = true;
+      setAutoSaveStatus("saving");
+      try {
+        const isNew = !snapshot.id;
+        const res = await fetch(`/api/admin/content/${table}`, {
+          method: isNew ? "POST" : "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(snapshot),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Auto-save failed");
+        const savedId = data.row?.id;
+        if (savedId) setEditing((current) => current ? { ...current, id: current.id || savedId } : current);
+        setAutoSaveStatus("saved");
+      } catch {
+        setAutoSaveStatus("error");
+      } finally {
+        autoSaveInFlight.current = false;
+      }
+    }, 1100);
+    return () => window.clearTimeout(timer);
+  }, [editing, table]);
 
   const save = async () => {
     if (!editing) return;
@@ -217,7 +260,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
       {editing ? (
         <div id="content-edit-form" className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
           <div className="sticky top-0 z-10 -mx-5 -mt-5 mb-2 flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] bg-[var(--card)] px-5 py-3">
-            <h2 className="font-semibold">{editing.id ? `Edit ${title}` : `Create ${title}`}</h2>
+            <div><h2 className="font-semibold">{editing.id ? `Edit ${title}` : `Create ${title}`}</h2><p className="mt-0.5 text-xs text-[var(--muted-foreground)]">{autoSaveStatus === "saving" ? "Saving draft…" : autoSaveStatus === "saved" ? "Draft saved automatically" : autoSaveStatus === "error" ? "Auto-save failed — use Save to retry" : "Changes auto-save as you work"}</p></div>
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={save} disabled={saving} className="inline-flex items-center gap-1.5 rounded-full bg-brand-600 px-3 py-1.5 text-sm font-medium text-white">
                 {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Save
