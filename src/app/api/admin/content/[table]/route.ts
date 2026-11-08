@@ -422,6 +422,7 @@ async function updateTopic(sql: Sql, id: string, body: Record<string, unknown>) 
 async function ensureGuideColumns(sql: Sql) {
   try {
     await sql`ALTER TABLE guides ADD COLUMN IF NOT EXISTS featured_image_url text`;
+    await sql`ALTER TABLE guides ADD COLUMN IF NOT EXISTS after_steps_content text NOT NULL DEFAULT ''`;
     await sql`ALTER TABLE guides ADD COLUMN IF NOT EXISTS seo_title text`;
     await sql`ALTER TABLE guides ADD COLUMN IF NOT EXISTS seo_description text`;
     await sql`ALTER TABLE guides ADD COLUMN IF NOT EXISTS focus_keyword text`;
@@ -501,7 +502,7 @@ async function insertGuide(sql: Sql, b: Record<string, unknown>) {
   const rows = await sql`
     INSERT INTO guides (
       slug, brand, brand_slug, product_line, title, short_description,
-      updated_label, read_time, category, versions, article, faqs,
+      updated_label, read_time, category, versions, article, after_steps_content, faqs,
       related, compatible_devices, confirmations, forum_verified, published,
       featured_image_url, seo_title, seo_description,
       focus_keyword, canonical_url, robots_index, robots_follow,
@@ -518,6 +519,7 @@ async function insertGuide(sql: Sql, b: Record<string, unknown>) {
       ${String(b.category || "General")},
       ${JSON.stringify(b.versions || [])}::jsonb,
       ${JSON.stringify(b.article || [])}::jsonb,
+      ${String(b.after_steps_content || "")},
       ${JSON.stringify(b.faqs || [])}::jsonb,
       ${JSON.stringify(b.related || [])}::jsonb,
       ${JSON.stringify(b.compatible_devices || [])}::jsonb,
@@ -558,6 +560,7 @@ async function updateGuide(sql: Sql, id: string, b: Record<string, unknown>) {
       category = ${String(b.category || "General")},
       versions = ${JSON.stringify(b.versions || [])}::jsonb,
       article = ${JSON.stringify(b.article || [])}::jsonb,
+      after_steps_content = ${String(b.after_steps_content || "")},
       faqs = ${JSON.stringify(b.faqs || [])}::jsonb,
       related = ${JSON.stringify(b.related || [])}::jsonb,
       compatible_devices = ${JSON.stringify(b.compatible_devices || [])}::jsonb,
