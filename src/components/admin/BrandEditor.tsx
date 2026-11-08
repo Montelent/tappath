@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Loader2,
@@ -62,6 +62,8 @@ export default function BrandEditor() {
   const [usingDb, setUsingDb] = useState(false);
   const [editing, setEditing] = useState<BrandRow | null>(null);
   const [saving, setSaving] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const autoSaveInFlight = useRef(false);
   const [message, setMessage] = useState("");
   const [autoGuides, setAutoGuides] = useState<TopGuide[]>([]);
   const [loadingGuides, setLoadingGuides] = useState(false);
@@ -148,6 +150,48 @@ export default function BrandEditor() {
       setLoadingGuides(false);
     }
   };
+
+  useEffect(() => {
+    if (!editing) {
+      setAutoSaveStatus("idle");
+      return;
+    }
+    const name = editing.name.trim();
+    const slug = editing.slug.trim();
+    if (!name || !slug) {
+      setAutoSaveStatus("idle");
+      return;
+    }
+    const snapshot = {
+      ...editing,
+      top_guides: autoGuides,
+      guides_count: autoGuides.length,
+    };
+    const timer = window.setTimeout(async () => {
+      if (autoSaveInFlight.current) return;
+      autoSaveInFlight.current = true;
+      setAutoSaveStatus("saving");
+      try {
+        const isNew = !snapshot.id;
+        const res = await fetch("/api/admin/content/brands", {
+          method: isNew ? "POST" : "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(snapshot),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Auto-save failed");
+        const savedId = data.row?.id;
+        if (savedId) setEditing((current) => current ? { ...current, id: current.id || savedId } : current);
+        setAutoSaveStatus("saved");
+      } catch {
+        setAutoSaveStatus("error");
+      } finally {
+        autoSaveInFlight.current = false;
+      }
+    }, 1100);
+    return () => window.clearTimeout(timer);
+  }, [editing, autoGuides]);
 
   const save = async () => {
     if (!editing) return;
@@ -236,7 +280,7 @@ export default function BrandEditor() {
       {editing && (
         <div className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-semibold">{editing.id ? "Edit brand" : "Create brand"}</h2>
+            <div><h2 className="font-semibold">{editing.id ? "Edit brand" : "Create brand"}</h2><p className="mt-0.5 text-xs text-[var(--muted-foreground)]">{autoSaveStatus === "saving" ? "Saving draft…" : autoSaveStatus === "saved" ? "Draft saved automatically" : autoSaveStatus === "error" ? "Auto-save failed — use Save to retry" : "Changes auto-save as you work"}</p></div>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={!!editing.published} onChange={(e) => setEditing({ ...editing, published: e.target.checked })} className="h-4 w-4" />
               {editing.published ? (
