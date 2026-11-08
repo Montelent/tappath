@@ -248,7 +248,8 @@ export default function RichTextEditor({
               const body = editor.getBody();
               if (body) {
                 body.style.webkitUserSelect = "text";
-                body.style.userSelect = "text";\n                body.style.webkitTouchCallout = "default";
+                body.style.userSelect = "text";
+                body.style.webkitTouchCallout = "default";
               }
             });
             const emit = () => onChangeRef.current(editor.getContent());
