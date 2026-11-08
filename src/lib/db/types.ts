@@ -70,6 +70,7 @@ export type DbGuide = {
   category: string;
   versions: unknown[];
   article: string[];
+  after_steps_content?: string | null;
   faqs: { q: string; a: string }[];
   related: { title: string; href: string; category: string }[];
   compatible_devices: { name: string; os: string; href: string }[];
