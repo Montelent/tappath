@@ -28,6 +28,7 @@ export type Guide = {
   category: string;
   versions: GuideVersion[];
   article: string[];
+  afterStepsContent?: string;
   faqs: { q: string; a: string }[];
   related: { title: string; href: string; category: string }[];
   compatibleDevices: { name: string; os: string; href: string }[];
