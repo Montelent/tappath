@@ -113,8 +113,22 @@ export default function GuideVersionsEditor({ versions, onChange }: Props) {
                   }}
                 />
               ))}
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border)] pt-3">
+                <span className="text-xs text-[var(--muted-foreground)]">{(v.steps || []).length} step{(v.steps || []).length === 1 ? "" : "s"}</span>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-brand-600 px-3 py-2 text-xs font-semibold text-white"
+                  onClick={() => {
+                    const next = [...versions];
+                    next[vi] = { ...next[vi], steps: [...(next[vi].steps || []), { instruction: "", highlight: "" }] };
+                    onChange(next);
+                  }}
+                >
+                  + Add next step
+                </button>
+              </div>
               {!(v.steps || []).length && (
-                <p className="text-xs text-[var(--muted-foreground)]">No steps yet — click + Step.</p>
+                <p className="text-xs text-[var(--muted-foreground)]">No steps yet — use Add next step.</p>
               )}
             </div>
           </div>
