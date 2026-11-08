@@ -30,7 +30,7 @@ type Version = {
 };
 type GuideRow = {
   id?: string; slug: string; brand: string; brand_slug: string; product_line: string;
-  title: string; short_description: string; updated_label: string; read_time: string;
+  title: string; short_description: string; after_steps_content: string; updated_label: string; read_time: string;
   category: string; versions: Version[]; article: string[]; faqs: Faq[];
   related: { title: string; href: string; category: string }[];
   compatible_devices: { name: string; os: string; href: string }[];
@@ -52,7 +52,7 @@ type BrandOpt = { name: string; slug: string; product_lines: { name: string }[] 
 
 const emptyGuide = (): GuideRow => ({
   slug: "", brand: "Samsung", brand_slug: "samsung", product_line: "Galaxy",
-  title: "", short_description: "", updated_label: formatUpdatedLabel(), read_time: "1 min",
+  title: "", short_description: "", after_steps_content: "", updated_label: formatUpdatedLabel(), read_time: "1 min",
   category: "Display & Home Screen",
   versions: [{ id: "v1", label: "Latest", steps: [{ instruction: "", highlight: "" }] }],
   article: [""], faqs: [{ q: "", a: "" }], related: [], compatible_devices: [],
@@ -341,6 +341,19 @@ export default function GuideEditor() {
             versions={editing.versions || []}
             onChange={(versions) => setEditing({ ...editing, versions })}
           />
+          <section className="space-y-3 rounded-xl border border-[var(--border)] p-4">
+            <div>
+              <h3 className="text-sm font-semibold">Additional information after steps</h3>
+              <p className="mt-1 text-xs text-[var(--muted-foreground)]">Add explanations, tips, warnings, menu paths, images or links. This appears after the interactive steps and before FAQs.</p>
+            </div>
+            <RichTextEditor
+              label="Post-steps content"
+              value={editing.after_steps_content || ""}
+              onChange={(html) => setEditing({ ...editing, after_steps_content: html })}
+              minHeight={220}
+              placeholder="Write additional information readers should know after completing the steps…"
+            />
+          </section>
           <section className="space-y-3 rounded-xl border border-[var(--border)] p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
