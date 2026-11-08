@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronLeft, ChevronRight, Maximize2, Minimize2, CheckCircle2,
   Settings, Wifi, Battery, Smartphone, Home, Search, Fingerprint, Bell, AppWindow,
@@ -87,9 +87,20 @@ export default function LiveSimulator({ versions, brandName, deviceModel = "Gala
   const version = safeVersions.find((v) => v.id === versionId) ?? safeVersions[0];
   const [stepIndex, setStepIndex] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
+  const screenshotPanelRef = useRef<HTMLDivElement>(null);
+  const previousStepRef = useRef(stepIndex);
   const steps = useMemo(() => version?.steps ?? [], [version]);
   const current = steps[stepIndex];
   const total = steps.length;
+
+  useEffect(() => {
+    if (previousStepRef.current !== stepIndex) {
+      previousStepRef.current = stepIndex;
+      if (window.matchMedia("(max-width: 1023px)").matches && !fullscreen) {
+        screenshotPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }, [stepIndex, fullscreen]);
 
   useEffect(() => { setStepIndex(0); }, [versionId]);
   useEffect(() => {
@@ -159,7 +170,7 @@ export default function LiveSimulator({ versions, brandName, deviceModel = "Gala
       </div>
 
       <div className={cn("grid gap-6 p-4 sm:p-6", fullscreen ? "flex-1 lg:grid-cols-2" : "lg:grid-cols-2")}>
-        <div className="flex flex-col items-center">
+        <div ref={screenshotPanelRef} className="flex flex-col items-center scroll-mt-24">
           <PhoneFrame deviceModel={deviceModel}>
             {hasScreenshot && current?.imageUrl ? (
               <ScreenshotLayer
@@ -211,7 +222,7 @@ export default function LiveSimulator({ versions, brandName, deviceModel = "Gala
           </p>
         </div>
 
-        <div className={cn(fullscreen && "overflow-y-auto")}>
+        <div className={cn(fullscreen && "overflow-y-auto")} aria-live="polite">
           <h3 className="text-sm font-semibold">Follow these steps</h3>
           <p className="mt-1 text-xs text-[var(--muted-foreground)]">{stepIndex + 1} / {total} · {deviceModel}</p>
           <ol className="mt-4 space-y-2">
