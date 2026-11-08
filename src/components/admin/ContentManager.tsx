@@ -122,7 +122,7 @@ export default function ContentManager({ table, title, columns, emptyRow, fields
       setAutoSaveStatus("idle");
       return;
     }
-    const snapshot = { ...editing, published: editing.id ? editing.published : false };
+    const snapshot: Record<string, unknown> = { ...editing, published: editing.id ? editing.published : false };
     const timer = window.setTimeout(async () => {
       if (autoSaveInFlight.current) return;
       autoSaveInFlight.current = true;
