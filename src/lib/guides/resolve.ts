@@ -115,6 +115,7 @@ export function dbGuideToGuide(db: DbGuide): Guide {
     productLine: db.product_line,
     title: db.title,
     shortDescription: db.short_description || "",
+    afterStepsContent: db.after_steps_content || "",
     updated: db.updated_label || "",
     readTime: db.read_time || "2 min",
     category: db.category || "General",
