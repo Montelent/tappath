@@ -177,10 +177,8 @@ export default function RichTextEditor({
           mobile: {
             menubar: false,
             toolbar_mode: "scrolling",
-            toolbar: compact
-              ? "undo redo | cut copy paste | selectall | bold italic | bullist numlist | link | table | code"
-              : "undo redo | cut copy paste | selectall | blocks | bold italic underline | bullist numlist | link image table | code",
-            plugins: "lists link image table code autoresize",
+            toolbar: compact ? compactToolbar : fullToolbar,
+            plugins: compact ? compactPlugins : fullPlugins,
           },
           paste_as_text: false,
           paste_data_images: false,
@@ -197,7 +195,6 @@ export default function RichTextEditor({
               -webkit-user-select: text !important;
               user-select: text !important;
               -webkit-touch-callout: default;
-              touch-action: pan-y;
               word-break: break-word;
             }
             p { margin: 0 0 0.75em; }
@@ -238,6 +235,7 @@ export default function RichTextEditor({
           convert_urls: true,
           browser_spellcheck: true,
           // Let the browser/OS own long-press selection and clipboard menus on touch devices.
+          contextmenu: false,
           contextmenu_never_use_native: false,
           setup: (editor: {
             on: (ev: string, cb: (...args: unknown[]) => void) => void;
