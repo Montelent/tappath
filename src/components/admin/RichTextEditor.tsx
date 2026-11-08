@@ -178,8 +178,8 @@ export default function RichTextEditor({
             menubar: false,
             toolbar_mode: "scrolling",
             toolbar: compact
-              ? "undo redo | bold italic | bullist numlist | link | table | code"
-              : "undo redo | blocks | bold italic underline | bullist numlist | link image table | code",
+              ? "undo redo | cut copy paste | selectall | bold italic | bullist numlist | link | table | code"
+              : "undo redo | cut copy paste | selectall | blocks | bold italic underline | bullist numlist | link image table | code",
             plugins: "lists link image table code autoresize",
           },
           paste_as_text: false,
@@ -235,7 +235,8 @@ export default function RichTextEditor({
           relative_urls: false,
           convert_urls: true,
           browser_spellcheck: true,
-          contextmenu: "link image table",
+          // Let the browser/OS own long-press selection and clipboard menus on touch devices.
+          contextmenu_never_use_native: false,
           setup: (editor: {
             on: (ev: string, cb: (...args: unknown[]) => void) => void;
             getContent: () => string;
@@ -247,7 +248,7 @@ export default function RichTextEditor({
               const body = editor.getBody();
               if (body) {
                 body.style.webkitUserSelect = "text";
-                body.style.userSelect = "text";
+                body.style.userSelect = "text";\n                body.style.webkitTouchCallout = "default";
               }
             });
             const emit = () => onChangeRef.current(editor.getContent());
@@ -299,7 +300,7 @@ export default function RichTextEditor({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={Math.max(8, Math.round(minHeight / 28))}
-          className="w-full resize-y bg-transparent px-3 py-2 text-sm leading-relaxed outline-none min-h-[160px]"
+          className="w-full resize-y bg-transparent px-3 py-2 text-sm leading-relaxed outline-none min-h-[160px] select-text"
           style={{
             WebkitUserSelect: "text",
             userSelect: "text",
