@@ -13,7 +13,8 @@ import { listDevicesPublic } from "@/lib/devices/resolve";
 import { listTopicsForIndex } from "@/lib/topics/resolve";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [s, host] = await Promise.all([getSiteSettings(), getRequestOrigin()]);
+  const s = await getSiteSettings();
+  const host = await getRequestOrigin(s.seo_canonical_host);
   if (s.seo_sitemap_enabled === false) return [];
 
   const now = new Date();
