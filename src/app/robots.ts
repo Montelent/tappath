@@ -1,13 +1,9 @@
 import type { MetadataRoute } from "next";
 import { getSiteSettings } from "@/lib/site-settings";
+import { getRequestOrigin } from "@/lib/seo/request-origin";
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
-  const s = await getSiteSettings();
-  const host = (
-    s.seo_canonical_host ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "https://tappath.com"
-  ).replace(/\/$/, "");
+  const [s, host] = await Promise.all([getSiteSettings(), getRequestOrigin()]);
 
   const disallow = ["/admin/", "/api/", "/sign-in/", "/sign-up/"];
   for (const line of (s.seo_robots_extra || "").split("\n")) {
@@ -19,15 +15,8 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
 
   return {
     rules: allowIndex
-      ? {
-          userAgent: "*",
-          allow: "/",
-          disallow,
-        }
-      : {
-          userAgent: "*",
-          disallow: "/",
-        },
+      ? { userAgent: "*", allow: "/", disallow }
+      : { userAgent: "*", disallow: "/" },
     sitemap: `${host}/sitemap.xml`,
     host,
   };
