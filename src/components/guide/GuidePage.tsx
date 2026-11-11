@@ -50,7 +50,7 @@ export default async function GuidePage({ guide }: Props) {
 
   return (
     <div className="page-pad">
-      <article className="max-wide py-8 sm:py-10">
+      <article className="mx-auto w-full max-w-[96rem] px-0 py-8 sm:py-10">
         <nav
           className="mb-6 flex flex-wrap items-center gap-2 text-sm text-[var(--muted-foreground)]"
           aria-label="Breadcrumb"
@@ -66,9 +66,9 @@ export default async function GuidePage({ guide }: Props) {
           <span className="text-[var(--foreground)] break-words">{guide.title}</span>
         </nav>
 
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,16rem)]">
+        <div className="grid gap-8 xl:gap-12 lg:grid-cols-[minmax(0,1fr)_19rem]">
           <div className="min-w-0">
-            <header className="max-w-2xl mb-8">
+            <header className="max-w-5xl mb-8">
               <p className="label-caps mb-2">
                 {guide.brand}
                 {guide.category ? ` · ${guide.category}` : ""}
@@ -116,7 +116,7 @@ export default async function GuidePage({ guide }: Props) {
 
             <AdSlot placement="after_title" />
 
-            <section className="mb-12" aria-label="Interactive steps">
+            <section id="guide-steps" className="mb-12 scroll-mt-28" aria-label="Interactive steps">
               <LiveSimulator
                 key={guide.slug}
                 versions={guide.versions}
@@ -128,8 +128,8 @@ export default async function GuidePage({ guide }: Props) {
 
             <AdSlot placement="after_simulator" />
 
-            <div className="max-w-2xl space-y-12">
-              <section className="max-w-xl">
+            <div className="max-w-none space-y-12">
+              <section id="guide-feedback" className="max-w-3xl scroll-mt-28">
                 <GuideFeedback
                   key={guide.slug}
                   guideSlug={guide.slug}
@@ -139,7 +139,7 @@ export default async function GuidePage({ guide }: Props) {
               </section>
 
               {guide.article?.length > 0 && (
-                <section>
+                <section id="guide-notes" className="scroll-mt-28">
                   <h2 className="font-display text-xl mb-4">Notes</h2>
                   <div className="space-y-3 text-[var(--muted-foreground)] leading-relaxed">
                     {guide.article.map((p, i) => (
@@ -150,20 +150,20 @@ export default async function GuidePage({ guide }: Props) {
               )}
 
               {guide.afterStepsContent?.trim() && (
-                <section className="prose prose-sm max-w-none text-[var(--muted-foreground)] leading-relaxed prose-headings:font-display prose-headings:text-[var(--foreground)] prose-a:text-[var(--accent)] prose-img:rounded-xl">
+                <section id="guide-additional-info" className="prose prose-sm max-w-none scroll-mt-28 text-[var(--muted-foreground)] leading-relaxed prose-headings:font-display prose-headings:text-[var(--foreground)] prose-a:text-[var(--accent)] prose-img:rounded-xl">
                   <div dangerouslySetInnerHTML={{ __html: autoLink(sanitizeRichHtml(guide.afterStepsContent)) }} />
                 </section>
               )}
 
               {guide.faqs?.length > 0 && (
-                <section>
+                <section id="guide-faq" className="scroll-mt-28">
                   <h2 className="font-display text-xl mb-4">FAQ</h2>
                   <GuideFAQ key={guide.slug} faqs={guide.faqs.map((faq) => ({ q: faq.q, a: autoLink(sanitizeRichHtml(faq.a)) }))} />
                 </section>
               )}
 
               {guide.compatibleDevices?.length > 0 && (
-                <section>
+                <section id="guide-compatible-devices" className="scroll-mt-28">
                   <h2 className="font-display text-xl mb-4">Compatible devices</h2>
                   <ul className="grid gap-2 sm:grid-cols-2">
                     {guide.compatibleDevices.map((d) => (
@@ -186,7 +186,7 @@ export default async function GuidePage({ guide }: Props) {
               )}
 
               {guide.related?.length > 0 && (
-                <section aria-labelledby="related-guides-heading">
+                <section id="guide-related" className="scroll-mt-28" aria-labelledby="related-guides-heading">
                   <h2 id="related-guides-heading" className="font-display text-xl mb-4">
                     Related guides
                   </h2>
@@ -210,7 +210,31 @@ export default async function GuidePage({ guide }: Props) {
           </div>
 
           <aside className="hidden lg:block min-w-0">
-            <div className="sticky top-20 space-y-6">
+            <div className="sticky top-24 space-y-5">
+              <section className="surface-card overflow-hidden" aria-label="Guide navigation">
+                <div className="border-b border-[var(--border)] px-4 py-3">
+                  <h2 className="text-sm font-semibold">In this guide</h2>
+                </div>
+                <nav className="p-3" aria-label="On this page">
+                  <ul className="space-y-1">
+                    <li><a href="#guide-steps" className="block rounded-lg px-3 py-2 text-sm link-quiet hover:bg-[var(--muted)]">Step-by-step instructions</a></li>
+                    {guide.article?.length > 0 && <li><a href="#guide-notes" className="block rounded-lg px-3 py-2 text-sm link-quiet hover:bg-[var(--muted)]">Notes</a></li>}
+                    {guide.afterStepsContent?.trim() && <li><a href="#guide-additional-info" className="block rounded-lg px-3 py-2 text-sm link-quiet hover:bg-[var(--muted)]">Additional information</a></li>}
+                    {guide.faqs?.length > 0 && <li><a href="#guide-faq" className="block rounded-lg px-3 py-2 text-sm link-quiet hover:bg-[var(--muted)]">Frequently asked questions</a></li>}
+                    {guide.compatibleDevices?.length > 0 && <li><a href="#guide-compatible-devices" className="block rounded-lg px-3 py-2 text-sm link-quiet hover:bg-[var(--muted)]">Compatible devices</a></li>}
+                    {guide.related?.length > 0 && <li><a href="#guide-related" className="block rounded-lg px-3 py-2 text-sm link-quiet hover:bg-[var(--muted)]">Related guides</a></li>}
+                  </ul>
+                </nav>
+                <div className="border-t border-[var(--border)] px-4 py-3">
+                  <p className="label-caps mb-2">Guide details</p>
+                  <dl className="space-y-2 text-sm">
+                    <div className="flex items-start justify-between gap-3"><dt className="text-[var(--muted-foreground)]">Device</dt><dd className="text-right font-medium">{deviceModel}</dd></div>
+                    <div className="flex items-start justify-between gap-3"><dt className="text-[var(--muted-foreground)]">Reading time</dt><dd className="text-right font-medium">{guide.readTime}</dd></div>
+                    {steps > 0 && <div className="flex items-start justify-between gap-3"><dt className="text-[var(--muted-foreground)]">Steps</dt><dd className="text-right font-medium">{steps}</dd></div>}
+                    {verified && <div className="flex items-start justify-between gap-3"><dt className="text-[var(--muted-foreground)]">Verified</dt><dd className="text-right font-medium">{verified}</dd></div>}
+                  </dl>
+                </div>
+              </section>
               <AdSlot placement="sidebar" />
             </div>
           </aside>
