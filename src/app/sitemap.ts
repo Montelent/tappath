@@ -7,42 +7,18 @@ import {
 } from "@/lib/db/content";
 import { guideHref } from "@/lib/guides/resolve";
 import { getSiteSettings } from "@/lib/site-settings";
+import { getRequestOrigin } from "@/lib/seo/request-origin";
 import { listPublishedPages } from "@/lib/db/pages";
 import { listDevicesPublic } from "@/lib/devices/resolve";
 import { listTopicsForIndex } from "@/lib/topics/resolve";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const s = await getSiteSettings();
-  if (s.seo_sitemap_enabled === false) {
-    return [];
-  }
-
-  // Sitemap URLs must always use the stable canonical host. VERCEL_URL is a
-  // deployment-specific hostname (and changes between preview deployments),
-  // so it must never be used as the public SEO origin.
-  const configuredOrigin =
-    s.seo_canonical_host ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "https://tappath.com";
-  let host: string;
-  try {
-    const hasProtocol =
-      configuredOrigin.startsWith("https://") ||
-      configuredOrigin.startsWith("http://");
-    host = new URL(hasProtocol ? configuredOrigin : `https://${configuredOrigin}`).origin;
-  } catch {
-    host = "https://tappath.com";
-  }
+  const [s, host] = await Promise.all([getSiteSettings(), getRequestOrigin()]);
+  if (s.seo_sitemap_enabled === false) return [];
 
   const now = new Date();
   const defFreq = (s.seo_sitemap_changefreq_default || "weekly") as
-    | "always"
-    | "hourly"
-    | "daily"
-    | "weekly"
-    | "monthly"
-    | "yearly"
-    | "never";
+    | "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
   const defPri = Number(s.seo_sitemap_priority_default || "0.7") || 0.7;
   const guideFreq = (s.seo_sitemap_changefreq_guides || "weekly") as typeof defFreq;
   const guidePri = Number(s.seo_sitemap_priority_guides || "0.9") || 0.9;
@@ -52,12 +28,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${host}/topics`, lastModified: now, changeFrequency: defFreq, priority: 0.9 },
     { url: `${host}/devices`, lastModified: now, changeFrequency: defFreq, priority: 0.9 },
     { url: `${host}/glossary`, lastModified: now, changeFrequency: defFreq, priority: 0.8 },
-    { url: `${host}/forum`, lastModified: now, changeFrequency: "daily", priority: 0.7 },
+    ...(s.seo_sitemap_include_forum !== false
+      ? [{ url: `${host}/forum`, lastModified: now, changeFrequency: "daily" as const, priority: 0.7 }]
+      : []),
   ];
 
-  if (!isDatabaseConfigured()) {
-    return staticRoutes;
-  }
+  if (!isDatabaseConfigured()) return staticRoutes;
 
   try {
     const [brands, topics, devices, glossary, guides] = await Promise.all([
@@ -68,52 +44,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       s.seo_sitemap_include_guides !== false ? listGuides() : Promise.resolve([]),
     ]);
 
-    const brandsWithGuides = brands;
-    const devicesWithGuides = devices;
-
-    const brandRoutes = brandsWithGuides.map((b) => ({
-      url: `${host}/${b.slug}`,
-      lastModified: now,
-      changeFrequency: defFreq,
-      priority: 0.85,
+    const brandRoutes = brands.map((b) => ({
+      url: `${host}/${b.slug}`, lastModified: now, changeFrequency: defFreq, priority: 0.85,
     }));
-
     const topicRoutes = topics.map((t) => ({
-      url: `${host}/topics/${t.slug}`,
-      lastModified: now,
-      changeFrequency: defFreq,
-      priority: 0.8,
+      url: `${host}/topics/${t.slug}`, lastModified: now, changeFrequency: defFreq, priority: 0.8,
     }));
-
-    const deviceRoutes = devicesWithGuides.map((d) => ({
+    const deviceRoutes = devices.map((d) => ({
       url: `${host}${d.href || `/${d.brandSlug}/${d.slug}`}`,
-      lastModified: now,
-      changeFrequency: defFreq,
-      priority: defPri,
+      lastModified: now, changeFrequency: defFreq, priority: defPri,
     }));
-
     const glossaryRoutes = glossary.map((t) => ({
-      url: `${host}/glossary/${t.slug}`,
-      lastModified: now,
-      changeFrequency: "monthly" as const,
-      priority: 0.6,
+      url: `${host}/glossary/${t.slug}`, lastModified: now, changeFrequency: "monthly" as const, priority: 0.6,
     }));
-
     const guideRoutes = guides.map((g) => ({
-      url: `${host}${guideHref(g)}`,
-      lastModified: now,
-      changeFrequency: guideFreq,
-      priority: guidePri,
+      url: `${host}${guideHref(g)}`, lastModified: now, changeFrequency: guideFreq, priority: guidePri,
     }));
+    const pages = await listPublishedPages();
 
     return [
       ...staticRoutes,
-      ...((await listPublishedPages()).map((p) => ({ url: `${host}/pages/${p.slug}`, lastModified: p.updated_at ? new Date(p.updated_at) : now, changeFrequency: "monthly" as const, priority: 0.6 }))),
-      ...brandRoutes,
-      ...topicRoutes,
-      ...glossaryRoutes,
-      ...deviceRoutes,
-      ...guideRoutes,
+      ...pages.map((p) => ({
+        url: `${host}/pages/${p.slug}`,
+        lastModified: p.updated_at ? new Date(p.updated_at) : now,
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+      })),
+      ...brandRoutes, ...topicRoutes, ...glossaryRoutes, ...deviceRoutes, ...guideRoutes,
     ];
   } catch {
     return staticRoutes;
