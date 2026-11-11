@@ -17,13 +17,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return [];
   }
 
-  const vercelHost = (process.env.VERCEL_URL || "")
-    .replace("https://", "")
-    .replace("http://", "");
+  // Sitemap URLs must always use the stable canonical host. VERCEL_URL is a
+  // deployment-specific hostname (and changes between preview deployments),
+  // so it must never be used as the public SEO origin.
   const configuredOrigin =
     s.seo_canonical_host ||
     process.env.NEXT_PUBLIC_SITE_URL ||
-    (vercelHost ? `https://${vercelHost}` : "") ||
     "https://tappath.com";
   let host: string;
   try {
@@ -69,12 +68,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       s.seo_sitemap_include_guides !== false ? listGuides() : Promise.resolve([]),
     ]);
 
-    // listBrands already excludes brands without published guides. Keep this
-    // independent from the guide-sitemap toggle so the two settings compose.
     const brandsWithGuides = brands;
-    // listTopicsForIndex applies the same category matching as public topic pages
-    // and excludes topics without at least one published guide.
-    // listDevicesPublic includes only devices with at least one matching published guide.
     const devicesWithGuides = devices;
 
     const brandRoutes = brandsWithGuides.map((b) => ({
